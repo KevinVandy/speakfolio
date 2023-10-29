@@ -5,6 +5,7 @@ import {
   RedirectToSignIn,
   UserButton,
 } from "@clerk/remix";
+import { Text, Title } from "@mantine/core";
 
 export const meta: MetaFunction = () => {
   return [
@@ -17,8 +18,8 @@ export default function Index() {
   return (
     <div>
       <SignedIn>
-        <h1>Index route</h1>
-        <p>You are signed in!</p>
+        <Title order={1}>Index route</Title>
+        <Text>You are signed in!</Text>
         <UserButton />
       </SignedIn>
       <SignedOut>

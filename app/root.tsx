@@ -10,7 +10,7 @@ import {
 } from "@remix-run/react";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
-
+import { MantineProvider, ColorSchemeScript } from "@mantine/core";
 
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
@@ -20,8 +20,6 @@ export const loader: LoaderFunction = (args) => rootAuthLoader(args);
 
 export const ErrorBoundary = ClerkErrorBoundary();
 
-
-
 function App() {
   return (
     <html lang="en">
@@ -30,12 +28,15 @@ function App() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
         <Links />
+        <ColorSchemeScript />
       </head>
       <body>
-        <Outlet />
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+        <MantineProvider>
+          <Outlet />
+          <ScrollRestoration />
+          <Scripts />
+          <LiveReload />
+        </MantineProvider>
       </body>
     </html>
   );
