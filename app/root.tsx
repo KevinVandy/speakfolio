@@ -1,4 +1,3 @@
-import { cssBundleHref } from "@remix-run/css-bundle";
 import type { LinksFunction, LoaderFunction } from "@remix-run/node";
 import {
   Links,
@@ -10,11 +9,24 @@ import {
 } from "@remix-run/react";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
-import { MantineProvider, ColorSchemeScript } from "@mantine/core";
+import {
+  MantineProvider,
+  ColorSchemeScript,
+  localStorageColorSchemeManager,
+} from "@mantine/core";
+import { Layout } from "./Layout";
+
+//CSS
+import theme from "./styles/theme";
+import mantineCoreStyles from "@mantine/core/styles.layer.css";
+import tailwindStyles from "./styles/tailwind.css";
 
 export const links: LinksFunction = () => [
-  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
+  { rel: "stylesheet", href: tailwindStyles },
+  { rel: "stylesheet", href: mantineCoreStyles },
 ];
+
+const colorSchemeManager = localStorageColorSchemeManager({ key: "default" });
 
 export const loader: LoaderFunction = (args) => rootAuthLoader(args);
 
@@ -31,8 +43,10 @@ function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider>
-          <Outlet />
+        <MantineProvider colorSchemeManager={colorSchemeManager} theme={theme}>
+          <Layout>
+            <Outlet />
+          </Layout>
           <ScrollRestoration />
           <Scripts />
           <LiveReload />
