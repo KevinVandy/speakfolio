@@ -9,6 +9,7 @@ import {
 } from "@remix-run/react";
 import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
+import { dark } from "@clerk/themes";
 import {
   MantineProvider,
   ColorSchemeScript,
@@ -47,13 +48,17 @@ function App() {
           <Layout>
             <Outlet />
           </Layout>
-          <ScrollRestoration />
-          <Scripts />
-          <LiveReload />
         </MantineProvider>
+        <ScrollRestoration />
+        <Scripts />
+        <LiveReload />
       </body>
     </html>
   );
 }
 
-export default ClerkApp(App);
+export default ClerkApp(App, {
+  appearance: {
+    baseTheme: dark,
+  },
+});
