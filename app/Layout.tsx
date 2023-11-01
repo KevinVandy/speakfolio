@@ -1,4 +1,3 @@
-import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/remix";
 import {
   ActionIcon,
   AppShell,
@@ -62,12 +61,6 @@ export const Layout = ({ children }: Props) => {
             >
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton />
-            </SignedOut>
           </Flex>
         </Flex>
       </AppShell.Header>

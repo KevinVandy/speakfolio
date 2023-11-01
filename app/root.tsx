@@ -1,4 +1,4 @@
-import type { LinksFunction, LoaderFunction } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -7,9 +7,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import { rootAuthLoader } from "@clerk/remix/ssr.server";
-import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
-import { dark } from "@clerk/themes";
 import {
   MantineProvider,
   ColorSchemeScript,
@@ -20,18 +17,12 @@ import { Layout } from "./Layout";
 //CSS
 import theme from "./styles/theme";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
-import tailwindStyles from "./styles/tailwind.css";
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: tailwindStyles },
   { rel: "stylesheet", href: mantineCoreStyles },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({ key: "default" });
-
-export const loader: LoaderFunction = (args) => rootAuthLoader(args);
-
-export const ErrorBoundary = ClerkErrorBoundary();
 
 function App() {
   return (
@@ -57,8 +48,4 @@ function App() {
   );
 }
 
-export default ClerkApp(App, {
-  appearance: {
-    baseTheme: dark,
-  },
-});
+export default App;
