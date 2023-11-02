@@ -1,21 +1,27 @@
 import {
   ActionIcon,
   AppShell,
+  Avatar,
   Burger,
+  Button,
   Flex,
+  Menu,
   Title,
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Link } from "@remix-run/react";
+import type { Session, SupabaseClient } from "@supabase/auth-helpers-remix";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
 interface Props {
   children: React.ReactNode;
+  supabase: SupabaseClient;
+  session: Session;
 }
 
-export const Layout = ({ children }: Props) => {
+export const Layout = ({ children, supabase, session }: Props) => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
     getInitialValueInEffect: true,
@@ -30,7 +36,7 @@ export const Layout = ({ children }: Props) => {
       navbar={{
         width: 300,
         breakpoint: "sm",
-        collapsed: { mobile: !opened || isMobile },
+        collapsed: { mobile: !opened, desktop: true },
       }}
       padding="md"
     >
@@ -61,6 +67,22 @@ export const Layout = ({ children }: Props) => {
             >
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
+            {session ? (
+              <Menu>
+                <Menu.Target>
+                  <Avatar />
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Item onClick={() => supabase.auth.signOut()}>
+                    Sign Out
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            ) : (
+              <Link to="/sign-in">
+                <Button>Sign In</Button>
+              </Link>
+            )}
           </Flex>
         </Flex>
       </AppShell.Header>
