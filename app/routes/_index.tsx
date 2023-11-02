@@ -1,6 +1,15 @@
 import { type MetaFunction } from "@remix-run/node";
-import { Button, Card, SimpleGrid, Stack, Text, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Card,
+  SimpleGrid,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { Link } from "@remix-run/react";
+import { useSupabase } from "~/hooks/useSupabase";
 
 export const meta: MetaFunction = () => {
   return [
@@ -10,7 +19,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function IndexPage() {
-  
+  const { session } = useSupabase();
 
   return (
     <Stack justify="center" gap="xl">
@@ -27,19 +36,43 @@ export default function IndexPage() {
           conferences. Whether you're a speaker looking for events, or an event
           looking for speakers, we've got you covered.
         </Text>
-        <SimpleGrid cols={2} spacing="xl" p="md" my="md">
-          <Button size="xl" color="blue" onClick={() => {}}>
-            Sign up as a Speaker
-          </Button>
-          <Button size="xl" color="pink" onClick={() => {}}>
-            Search for Speakers
-          </Button>
-        </SimpleGrid>
-        <Link to={`/profile`} style={{ display: "grid" }}>
-          <Button size="xl" color="pink">
-            Go to my Profile
-          </Button>
-        </Link>
+        {!session ? (
+          <Stack justify="center">
+            <SimpleGrid cols={2} spacing="xl" p="md" my="md">
+              <Button
+                to="/sign-up"
+                component={Link}
+                size="xl"
+                color="blue"
+                onClick={() => {}}
+              >
+                Sign up as a Speaker
+              </Button>
+              <Button
+                component={Link}
+                to="/sign-up"
+                size="xl"
+                color="pink"
+                onClick={() => {}}
+              >
+                Search for Speakers
+              </Button>
+            </SimpleGrid>
+            <Text ta="center">
+              Already have an account?{" "}
+              <Anchor component={Link} to="/sign-in">
+                Sign in
+              </Anchor>
+              .
+            </Text>
+          </Stack>
+        ) : (
+          <Link to={`/profile`} style={{ display: "grid" }}>
+            <Button size="xl" color="pink">
+              Go to my Profile
+            </Button>
+          </Link>
+        )}
       </Card>
     </Stack>
   );

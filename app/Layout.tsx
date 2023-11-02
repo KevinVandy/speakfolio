@@ -70,15 +70,20 @@ export const Layout = ({ children }: Props) => {
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
             {session?.user ? (
-              <Menu>
+              <Menu trigger="hover">
                 <Menu.Target>
                   <Avatar />
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item>{session.user.email}</Menu.Item>
+                  <Menu.Divider />
                   <Menu.Item onClick={() => navigate("/profile")}>
                     Profile
                   </Menu.Item>
+                  <Menu.Item onClick={() => navigate("/settings")}>
+                    Settings
+                  </Menu.Item>
+                  <Menu.Divider />
                   <Menu.Item onClick={() => supabase.auth.signOut()}>
                     Sign Out
                   </Menu.Item>

@@ -13,6 +13,8 @@ import {
   useLoaderData,
 } from "@remix-run/react";
 import { type Session } from "@supabase/auth-helpers-remix";
+import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
+import { SupabaseProvider } from "./hooks/useSupabase";
 import {
   MantineProvider,
   ColorSchemeScript,
@@ -23,8 +25,6 @@ import { Layout } from "./Layout";
 //CSS
 import theme from "./styles/theme";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
-import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
-import { SupabaseProvider } from "./hooks/useSupabase";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: mantineCoreStyles },
