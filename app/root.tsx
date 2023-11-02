@@ -17,7 +17,6 @@ import { useEffect, useState } from "react";
 import {
   type Session,
   createBrowserClient,
-  createServerClient,
 } from "@supabase/auth-helpers-remix";
 import {
   MantineProvider,
@@ -29,6 +28,7 @@ import { Layout } from "./Layout";
 //CSS
 import theme from "./styles/theme";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
+import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: mantineCoreStyles },
@@ -36,7 +36,7 @@ export const links: LinksFunction = () => [
 
 const colorSchemeManager = localStorageColorSchemeManager({ key: "default" });
 
-export const loader = async ({ request }: LoaderFunctionArgs) => {
+export async function loader({ request }: LoaderFunctionArgs) {
   const env = {
     SUPABASE_URL: process.env.SUPABASE_URL!,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
@@ -44,14 +44,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const response = new Response();
 
-  const supabase = createServerClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    {
-      request,
-      response,
-    }
-  );
+  const supabase = getSupabaseServerClient({ request, response });
 
   const {
     data: { session },
@@ -66,7 +59,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       headers: response.headers,
     }
   );
-};
+}
 
 function App() {
   const { env, session } = useLoaderData<typeof loader>();
@@ -95,24 +88,6 @@ function App() {
       subscription.unsubscribe();
     };
   }, [serverAccessToken, supabase, revalidate]);
-
-  // const signUp = () => {
-  //   supabase.auth.signUp({
-  //     email: "kevinvandy656@gmail.com",
-  //     password: "password",
-  //   });
-  // };
-
-  // const signIn = () => {
-  //   supabase.auth.signInWithPassword({
-  //     email: "kevinvandy656@gmail.com",
-  //     password: "password",
-  //   });
-  // };
-
-  // const signOut = () => {
-  //   supabase.auth.signOut();
-  // };
 
   return (
     <html lang="en">

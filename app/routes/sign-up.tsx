@@ -1,8 +1,24 @@
-import { Button, Fieldset, Stack, TextInput, Title } from "@mantine/core";
+import {
+  Anchor,
+  Button,
+  Fieldset,
+  LoadingOverlay,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { useNavigate, useOutletContext } from "@remix-run/react";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { redirect, json } from "@remix-run/node";
+import {
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type MetaFunction,
+} from "@remix-run/node";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import { useEffect } from "react";
 import { z } from "zod";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 const signUpSchema = z
   .object({
@@ -20,48 +36,100 @@ const signUpSchema = z
     path: ["passwordConfirmation"],
   });
 
-// export const a
+export async function loader({ request }: LoaderFunctionArgs) {
+  const response = new Response();
+  const supabase = getSupabaseServerClient({ request, response });
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (session) {
+    return redirect("/");
+  }
+  return {};
+}
 
-export const meta = {
-  title: "Sign Up",
-  description: "Sign up for Speakerscape",
+export async function action({ request }: ActionFunctionArgs) {
+  const response = new Response();
+  const supabase = getSupabaseServerClient({ request, response });
+
+  const rawData = Object.fromEntries(await request.formData());
+  const validationResult = signUpSchema.safeParse(rawData);
+  const { success } = validationResult;
+  if (!success) {
+    const errors = validationResult.error.formErrors.fieldErrors;
+    return json({ data: rawData, errors, success });
+  }
+  const { data } = validationResult;
+  try {
+    await supabase.auth.signUp({ email: data.email, password: data.password });
+  } catch (error) {
+    console.log(error);
+    return redirect("/sign-up");
+  }
+
+  return redirect("/signed-up");
+}
+
+export const meta: MetaFunction = () => {
+  return [
+    { title: "Sign up for Speakerscape" },
+    {
+      property: "og:title",
+      content: "Sign up for Speakerscape",
+    },
+    {
+      name: "description",
+      content: "Sign up for Speakerscape",
+    },
+  ];
 };
 
 export default function SignUpPage() {
-  const supabase = useOutletContext<SupabaseClient>();
-  const navigate = useNavigate();
+  const actionData = useActionData<typeof action>();
+  const navigation = useNavigation();
 
   const form = useForm({
     validate: zodResolver(signUpSchema),
-    initialValues: {
+    initialValues: actionData?.data ?? {
       name: "",
       email: "",
       password: "",
       passwordConfirmation: "",
     },
+    initialErrors: actionData?.errors,
   });
 
-  const handleSignUp = async (data: any) => {
-    await supabase.auth.signUp({
-      ...data,
-    });
-    navigate("/signed-up");
-  };
+  useEffect(() => {
+    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
+      form.setErrors({ ...form.errors, ...actionData.errors });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actionData]);
 
   return (
     <Stack maw="400px" m="auto">
       <Title order={2}>Sign Up</Title>
-      <form onSubmit={form.onSubmit(handleSignUp)}>
-        <Fieldset legend="Sign Up">
+      <Form
+        method="post"
+        onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      >
+        <Fieldset
+          pos="relative"
+          disabled={navigation.state === "submitting"}
+          legend="Sign Up"
+        >
+          <LoadingOverlay visible={navigation.state === "submitting"} />
           <Stack gap="md">
             <TextInput
               label="Name"
+              name="name"
               placeholder="Enter your name"
               withAsterisk
               {...form.getInputProps("name")}
             />
             <TextInput
               label="Email"
+              name="email"
               placeholder="Enter your email"
               withAsterisk
               {...form.getInputProps("email")}
@@ -69,6 +137,7 @@ export default function SignUpPage() {
             <TextInput
               autoComplete="new-password"
               label="Password"
+              name="password"
               placeholder="Enter your password"
               type="password"
               withAsterisk
@@ -76,6 +145,7 @@ export default function SignUpPage() {
             />
             <TextInput
               autoComplete="new-password"
+              name="passwordConfirmation"
               label="Password Confirmation"
               placeholder="Confirm your password"
               type="password"
@@ -87,7 +157,14 @@ export default function SignUpPage() {
             </Button>
           </Stack>
         </Fieldset>
-      </form>
+      </Form>
+      <Text>
+        Already have an account?{" "}
+        <Anchor component={Link} to="/sign-in">
+          Sign in
+        </Anchor>
+        .
+      </Text>
     </Stack>
   );
 }

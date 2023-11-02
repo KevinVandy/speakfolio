@@ -69,7 +69,7 @@ export const Layout = ({ children, supabase, session }: Props) => {
             >
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
-            {session ? (
+            {session?.user ? (
               <Menu>
                 <Menu.Target>
                   <Avatar />
