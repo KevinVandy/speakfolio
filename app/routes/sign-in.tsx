@@ -2,7 +2,6 @@ import {
   Anchor,
   Button,
   Fieldset,
-  LoadingOverlay,
   Stack,
   Text,
   TextInput,
@@ -15,16 +14,11 @@ import type {
   ActionFunctionArgs,
   MetaFunction,
 } from "@remix-run/node";
-import {
-  Form,
-  Link,
-  useActionData,
-  useNavigation,
-  useOutletContext,
-} from "@remix-run/react";
-import type { Session, SupabaseClient } from "@supabase/supabase-js";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import type { Session } from "@supabase/supabase-js";
 import { useEffect } from "react";
 import { z } from "zod";
+import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface SignUpPostResponse {
@@ -124,9 +118,7 @@ export const meta: MetaFunction = () => {
 export default function SignUpPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const { supabase } = useOutletContext<{
-    supabase: SupabaseClient;
-  }>();
+  const { supabase } = useSupabase();
 
   const form = useForm({
     validate: zodResolver(signUpSchema),
@@ -143,7 +135,7 @@ export default function SignUpPage() {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
-    if (actionData?.session) {
+    if (actionData?.session?.user) {
       supabase.auth.setSession(actionData.session);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -161,10 +153,6 @@ export default function SignUpPage() {
           disabled={navigation.state !== "idle"}
           legend="Sign In"
         >
-          <LoadingOverlay
-            transitionProps={{ duration: 200 }}
-            visible={navigation.state !== "idle"}
-          />
           <Stack gap="md">
             <TextInput
               label="Email"

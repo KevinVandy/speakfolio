@@ -12,17 +12,17 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { Link, useNavigate } from "@remix-run/react";
-import type { Session, SupabaseClient } from "@supabase/auth-helpers-remix";
 import { IconMoon, IconSun } from "@tabler/icons-react";
+import { useSupabase } from "./hooks/useSupabase";
 
 interface Props {
   children: React.ReactNode;
-  supabase: SupabaseClient;
-  session: Session;
 }
 
-export const Layout = ({ children, supabase, session }: Props) => {
+export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
+
+  const { supabase, session } = useSupabase();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {

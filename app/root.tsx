@@ -11,13 +11,8 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-  useRevalidator,
 } from "@remix-run/react";
-import { useEffect, useState } from "react";
-import {
-  type Session,
-  createBrowserClient,
-} from "@supabase/auth-helpers-remix";
+import { type Session } from "@supabase/auth-helpers-remix";
 import {
   MantineProvider,
   ColorSchemeScript,
@@ -29,12 +24,15 @@ import { Layout } from "./Layout";
 import theme from "./styles/theme";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
+import { SupabaseProvider } from "./hooks/useSupabase";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: mantineCoreStyles },
 ];
 
-const colorSchemeManager = localStorageColorSchemeManager({ key: "default" });
+const colorSchemeManager = localStorageColorSchemeManager({
+  key: "colorScheme",
+});
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const env = {
@@ -63,31 +61,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 function App() {
   const { env, session } = useLoaderData<typeof loader>();
-  const { revalidate } = useRevalidator();
-
-  const [supabase] = useState(() =>
-    createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
-  );
-
-  const serverAccessToken = session?.access_token;
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event !== "INITIAL_SESSION" &&
-        session?.access_token !== serverAccessToken
-      ) {
-        // server and client are out of sync.
-        revalidate();
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [serverAccessToken, supabase, revalidate]);
 
   return (
     <html lang="en">
@@ -99,11 +72,17 @@ function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <MantineProvider colorSchemeManager={colorSchemeManager} theme={theme}>
-          <Layout supabase={supabase} session={session as Session}>
-            <Outlet context={{ session, supabase }} />
-          </Layout>
-        </MantineProvider>
+        <SupabaseProvider env={env} session={session as Session}>
+          <MantineProvider
+            defaultColorScheme="dark"
+            colorSchemeManager={colorSchemeManager}
+            theme={theme}
+          >
+            <Layout>
+              <Outlet />
+            </Layout>
+          </MantineProvider>
+        </SupabaseProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

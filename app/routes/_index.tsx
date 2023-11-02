@@ -1,12 +1,5 @@
 import { type MetaFunction } from "@remix-run/node";
-import {
-  Button,
-  Card,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Button, Card, SimpleGrid, Stack, Text, Title } from "@mantine/core";
 import { Link } from "@remix-run/react";
 
 export const meta: MetaFunction = () => {
@@ -16,12 +9,9 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-// export const loader = async (args: DataFunctionArgs) => {
-//   const { user, userId } = await getAuth(args);
-//   return json({ user, userId });
-// };
-
 export default function IndexPage() {
+  
+
   return (
     <Stack justify="center" gap="xl">
       <Title ta="center" order={1} fz="48pt">
