@@ -11,7 +11,7 @@ import {
   useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Link } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import type { Session, SupabaseClient } from "@supabase/auth-helpers-remix";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 
@@ -22,6 +22,8 @@ interface Props {
 }
 
 export const Layout = ({ children, supabase, session }: Props) => {
+  const navigate = useNavigate();
+
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
     getInitialValueInEffect: true,
@@ -73,6 +75,10 @@ export const Layout = ({ children, supabase, session }: Props) => {
                   <Avatar />
                 </Menu.Target>
                 <Menu.Dropdown>
+                  <Menu.Item>{session.user.email}</Menu.Item>
+                  <Menu.Item onClick={() => navigate("/profile")}>
+                    Profile
+                  </Menu.Item>
                   <Menu.Item onClick={() => supabase.auth.signOut()}>
                     Sign Out
                   </Menu.Item>

@@ -72,8 +72,6 @@ function App() {
   const { env, session } = useLoaderData<typeof loader>();
   const { revalidate } = useRevalidator();
 
-  console.log({ env, session });
-
   const [supabase] = useState(() =>
     createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
   );
@@ -98,23 +96,23 @@ function App() {
     };
   }, [serverAccessToken, supabase, revalidate]);
 
-  const signUp = () => {
-    supabase.auth.signUp({
-      email: "kevinvandy656@gmail.com",
-      password: "password",
-    });
-  };
+  // const signUp = () => {
+  //   supabase.auth.signUp({
+  //     email: "kevinvandy656@gmail.com",
+  //     password: "password",
+  //   });
+  // };
 
-  const signIn = () => {
-    supabase.auth.signInWithPassword({
-      email: "kevinvandy656@gmail.com",
-      password: "password",
-    });
-  };
+  // const signIn = () => {
+  //   supabase.auth.signInWithPassword({
+  //     email: "kevinvandy656@gmail.com",
+  //     password: "password",
+  //   });
+  // };
 
-  const signOut = () => {
-    supabase.auth.signOut();
-  };
+  // const signOut = () => {
+  //   supabase.auth.signOut();
+  // };
 
   return (
     <html lang="en">
@@ -128,10 +126,7 @@ function App() {
       <body>
         <MantineProvider colorSchemeManager={colorSchemeManager} theme={theme}>
           <Layout supabase={supabase} session={session as Session}>
-            <button onClick={signUp}>Sign Up</button>
-            <button onClick={signIn}>Sign In</button>
-            <button onClick={signOut}>Sign Out</button>
-            <Outlet context={{ supabase }} />
+            <Outlet context={{ session, supabase }} />
           </Layout>
         </MantineProvider>
         <ScrollRestoration />

@@ -5,5 +5,5 @@ export default function SignInPage() {
     <div>
       <h1>Sign In route</h1>
     </div>
-  );
+  ); 
 }
