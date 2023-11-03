@@ -11,7 +11,7 @@ import {
 import { Link } from "@remix-run/react";
 import { useSupabase } from "~/hooks/useSupabase";
 import { db } from "db/connection";
-import { profiles } from "db/schema";
+import { profiles } from "db/schemas/profiles";
 
 export const meta: MetaFunction = () => {
   return [

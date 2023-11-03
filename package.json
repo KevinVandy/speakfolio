@@ -9,7 +9,8 @@
     "start": "remix-serve ./build/index.js",
     "typecheck": "tsc",
     "introspect": "drizzle-kit introspect:pg --config ./drizzle.config.ts",
-    "generate": "drizzle-kit generate:pg --config ./drizzle.config.ts"
+    "generate": "drizzle-kit generate:pg --config ./drizzle.config.ts",
+    "migrate": "node ./db/migrate.mjs"
   },
   "dependencies": {
     "@mantine/carousel": "^7.1.7",
