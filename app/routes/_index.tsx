@@ -10,8 +10,6 @@ import {
 } from "@mantine/core";
 import { Link } from "@remix-run/react";
 import { useSupabase } from "~/hooks/useSupabase";
-import { db } from "db/connection";
-import { profiles } from "db/schemas/profiles";
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,14 +18,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function loader() {
-  const result = await db.select().from(profiles);
-  console.log(result);
-  return {};
-}
-
 export default function IndexPage() {
-  const { session } = useSupabase();
+  const { session, currentUserProfile } = useSupabase();
+
+  console.log(currentUserProfile);
 
   return (
     <Stack justify="center" gap="xl">
@@ -74,11 +68,16 @@ export default function IndexPage() {
               .
             </Text>
           </Stack>
-        ) : (
-          <Button component={Link} to="/profile" size="xl" color="pink">
+        ) : currentUserProfile ? (
+          <Button
+            component={Link}
+            to={`/profile/${currentUserProfile.username}`}
+            size="xl"
+            color="pink"
+          >
             Go to my Profile
           </Button>
-        )}
+        ) : null}
       </Card>
     </Stack>
   );

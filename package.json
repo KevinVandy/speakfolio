@@ -29,6 +29,7 @@
     "@tabler/icons-react": "^2.40.0",
     "dayjs": "^1.11.10",
     "drizzle-orm": "^0.28.6",
+    "drizzle-zod": "^0.5.1",
     "embla-carousel-react": "8.0.0-rc14",
     "isbot": "^3.7.0",
     "postgres": "^3.4.3",

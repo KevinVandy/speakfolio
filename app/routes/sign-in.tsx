@@ -21,7 +21,7 @@ import { z } from "zod";
 import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
-interface SignUpPostResponse {
+interface SignInPostResponse {
   session: Session | null;
   success: boolean;
   data: any;
@@ -51,7 +51,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const response = new Response();
   const supabase = getSupabaseServerClient({ request, response });
 
-  let returnData: SignUpPostResponse = {
+  let returnData: SignInPostResponse = {
     session: null,
     success: false,
     data: {},

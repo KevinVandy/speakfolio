@@ -16,13 +16,22 @@ import {
   type MetaFunction,
 } from "@remix-run/node";
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import { db } from "db/connection";
+import { profiles } from "db/schemas/profiles";
 import { useEffect } from "react";
 import { z } from "zod";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
+interface SignUpPostResponse {
+  success: boolean;
+  data: any;
+  errors: any;
+}
+
 const signUpSchema = z
   .object({
     name: z.string().min(1, { message: "Name is required" }),
+    username: z.string().min(2, { message: "Username is required" }),
     email: z.string().email({ message: "Please enter a valid email" }),
     password: z
       .string()
@@ -52,19 +61,48 @@ export async function action({ request }: ActionFunctionArgs) {
   const response = new Response();
   const supabase = getSupabaseServerClient({ request, response });
 
+  let returnData: SignUpPostResponse = {
+    success: false,
+    data: {},
+    errors: {},
+  };
+
   const rawData = Object.fromEntries(await request.formData());
   const validationResult = signUpSchema.safeParse(rawData);
   const { success } = validationResult;
   if (!success) {
     const errors = validationResult.error.formErrors.fieldErrors;
-    return json({ data: rawData, errors, success });
+    returnData = { ...returnData, data: rawData, errors, success };
+    return json(returnData, { status: 422 });
   }
   const { data } = validationResult;
+
   try {
-    await supabase.auth.signUp({ email: data.email, password: data.password });
+    const authResult = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+    });
+    if (!authResult?.data?.user?.id) {
+      throw new Error("Failed to create user");
+    }
+    await db.insert(profiles).values({
+      contactEmail: data.email,
+      displayName: data.name,
+      isPublic: false,
+      userId: authResult.data.user.id,
+      username: data.username,
+    });
   } catch (error) {
     console.log(error);
-    return redirect("/sign-up");
+    returnData = {
+      ...returnData,
+      data,
+      success: false,
+      errors: {
+        username: "Unable to create user",
+      },
+    };
+    return json(returnData, { status: 400 });
   }
 
   return redirect("/signed-up");
@@ -92,6 +130,7 @@ export default function SignUpPage() {
     validate: zodResolver(signUpSchema),
     initialValues: actionData?.data ?? {
       name: "",
+      username: "",
       email: "",
       password: "",
       passwordConfirmation: "",
@@ -126,6 +165,13 @@ export default function SignUpPage() {
               placeholder="Enter your name"
               withAsterisk
               {...form.getInputProps("name")}
+            />
+            <TextInput
+              label="Username"
+              name="username"
+              placeholder="Enter your username"
+              withAsterisk
+              {...form.getInputProps("username")}
             />
             <TextInput
               label="Email"

@@ -20,6 +20,9 @@ import {
   ColorSchemeScript,
   localStorageColorSchemeManager,
 } from "@mantine/core";
+import { db } from "db/connection";
+import { profiles } from "db/schemas/profiles";
+import { eq } from "drizzle-orm";
 import { Layout } from "./Layout";
 
 //CSS
@@ -48,10 +51,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
     data: { session },
   } = await supabase.auth.getSession();
 
+  const currentUserProfile = session?.user?.id
+    ? (
+        await db
+          .select()
+          .from(profiles)
+          .where(eq(profiles.userId, session?.user?.id))
+          .limit(1)
+      )?.[0] ?? null
+    : null;
+
   return json(
     {
       env,
       session,
+      currentUserProfile,
     },
     {
       headers: response.headers,
@@ -60,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function App() {
-  const { env, session } = useLoaderData<typeof loader>();
+  const { currentUserProfile, env, session } = useLoaderData<typeof loader>();
 
   return (
     <html lang="en">
@@ -72,7 +86,11 @@ function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <SupabaseProvider env={env} session={session as Session}>
+        <SupabaseProvider
+          currentUserProfile={currentUserProfile}
+          env={env}
+          session={session as Session}
+        >
           <MantineProvider
             defaultColorScheme="dark"
             colorSchemeManager={colorSchemeManager}

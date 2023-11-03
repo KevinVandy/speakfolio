@@ -1,4 +1,5 @@
 import { pgTable, unique, uuid, varchar, boolean } from "drizzle-orm/pg-core";
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 
 export const profiles = pgTable(
   "profiles",
@@ -19,3 +20,8 @@ export const profiles = pgTable(
     };
   }
 );
+
+export const selectUserSchema = createSelectSchema(profiles);
+export const insertUserSchema = createInsertSchema(profiles);
+
+export type Profile = typeof profiles.$inferSelect
