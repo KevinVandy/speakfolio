@@ -12,6 +12,7 @@ const main = async () => {
   console.log("Migrating...");
   await migrate(db, { migrationsFolder: "./db/migrations" });
   console.log("Done Migrating!");
+  return 1;
 };
 
 main();

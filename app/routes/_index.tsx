@@ -20,11 +20,11 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-// export async function loader() {
-//   const result = await db.select().from(profiles);
-//   console.log(result);
-//   return {};
-// }
+export async function loader() {
+  const result = await db.select().from(profiles);
+  console.log(result);
+  return {};
+}
 
 export default function IndexPage() {
   const { session } = useSupabase();
