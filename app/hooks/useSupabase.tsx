@@ -4,11 +4,11 @@ import {
   createBrowserClient,
   type SupabaseClient,
 } from "@supabase/auth-helpers-remix";
-import { Profile } from "db/schemas/profiles";
+import { IProfile } from "db/schemas/profiles";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface SupabaseContextValues {
-  currentUserProfile: Profile | null;
+  loggedInUserProfile: IProfile | null;
   supabase: SupabaseClient;
   session: Session | null;
 }
@@ -24,12 +24,12 @@ interface Props {
     SUPABASE_ANON_KEY: string;
   };
   session: Session;
-  currentUserProfile: Profile | null;
+  loggedInUserProfile: IProfile | null;
 }
 
 export function SupabaseProvider({
   children,
-  currentUserProfile,
+  loggedInUserProfile,
   env,
   session,
 }: Props) {
@@ -60,7 +60,9 @@ export function SupabaseProvider({
   }, [serverAccessToken, supabase, revalidate]);
 
   return (
-    <SupabaseContext.Provider value={{ currentUserProfile, supabase, session }}>
+    <SupabaseContext.Provider
+      value={{ loggedInUserProfile, supabase, session }}
+    >
       {children}
     </SupabaseContext.Provider>
   );

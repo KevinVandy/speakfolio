@@ -1,23 +1,33 @@
 import {
   Anchor,
   Button,
+  Collapse,
   Fieldset,
+  Loader,
   LoadingOverlay,
+  Skeleton,
   Stack,
   Text,
   TextInput,
   Title,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
+import { useDebouncedValue } from "@mantine/hooks";
 import { redirect, json } from "@remix-run/node";
 import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
 } from "@remix-run/node";
-import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import {
+  Form,
+  Link,
+  useActionData,
+  useFetcher,
+  useNavigation,
+} from "@remix-run/react";
 import { db } from "db/connection";
-import { profiles } from "db/schemas/profiles";
+import { profilesTable } from "db/schemas/profiles";
 import { useEffect } from "react";
 import { z } from "zod";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -85,10 +95,10 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!authResult?.data?.user?.id) {
       throw new Error("Failed to create user");
     }
-    await db.insert(profiles).values({
+    await db.insert(profilesTable).values({
       contactEmail: data.email,
       displayName: data.name,
-      isPublic: false,
+      profileVisibility: "public",
       userId: authResult.data.user.id,
       username: data.username,
     });
@@ -124,6 +134,9 @@ export const meta: MetaFunction = () => {
 
 export default function SignUpPage() {
   const actionData = useActionData<typeof action>();
+  const usernameAvailableFetcher = useFetcher<any>({
+    key: "username-available",
+  });
   const navigation = useNavigation();
 
   const form = useForm({
@@ -145,6 +158,31 @@ export default function SignUpPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
+  const [debouncedUsername] = useDebouncedValue(
+    form.getTransformedValues().username,
+    500
+  );
+
+  useEffect(() => {
+    if (debouncedUsername) {
+      usernameAvailableFetcher.load(
+        `/api/username-available/${debouncedUsername}`
+      );
+    }
+  }, [debouncedUsername]);
+
+  const isUsernameAvailable =
+    usernameAvailableFetcher.data?.isAvailable === true;
+
+  useEffect(() => {
+    if (usernameAvailableFetcher.data?.isAvailable === false) {
+      form.setErrors({
+        ...form.errors,
+        username: `Username "${usernameAvailableFetcher.data?.username}" is not available`,
+      });
+    }
+  }, [usernameAvailableFetcher.data?.isAvailable]);
+
   return (
     <Stack maw="400px" m="auto">
       <Title order={2}>Sign Up</Title>
@@ -160,6 +198,7 @@ export default function SignUpPage() {
           <LoadingOverlay visible={navigation.state === "submitting"} />
           <Stack gap="md">
             <TextInput
+              description="The name you want to be displayed on your profile"
               label="Name"
               name="name"
               placeholder="Enter your name"
@@ -167,12 +206,31 @@ export default function SignUpPage() {
               {...form.getInputProps("name")}
             />
             <TextInput
+              description="The name you want to use in your profile URL"
               label="Username"
               name="username"
               placeholder="Enter your username"
+              rightSection={
+                usernameAvailableFetcher.state !== "idle" ? (
+                  <Loader size="xs" />
+                ) : null
+              }
               withAsterisk
               {...form.getInputProps("username")}
+              onChange={(e) => {
+                console.log(e.target.value);
+                form.getInputProps("username").onChange(e);
+              }}
             />
+            <Collapse
+              in={
+                usernameAvailableFetcher.state !== "idle" &&
+                debouncedUsername?.length > 2 &&
+                isUsernameAvailable
+              }
+            >
+              <Text color="green">{`${debouncedUsername} is available!`}</Text>
+            </Collapse>
             <TextInput
               label="Email"
               name="email"
@@ -204,7 +262,7 @@ export default function SignUpPage() {
           </Stack>
         </Fieldset>
       </Form>
-      <Text>
+      <Text ta="center">
         Already have an account?{" "}
         <Anchor component={Link} to="/sign-in">
           Sign in

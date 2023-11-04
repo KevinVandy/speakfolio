@@ -21,7 +21,7 @@ import {
   localStorageColorSchemeManager,
 } from "@mantine/core";
 import { db } from "db/connection";
-import { profiles } from "db/schemas/profiles";
+import { profilesTable } from "db/schemas/profiles";
 import { eq } from "drizzle-orm";
 import { Layout } from "./Layout";
 
@@ -51,12 +51,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const currentUserProfile = session?.user?.id
+  const loggedInUserProfile = session?.user?.id
     ? (
         await db
           .select()
-          .from(profiles)
-          .where(eq(profiles.userId, session?.user?.id))
+          .from(profilesTable)
+          .where(eq(profilesTable.userId, session?.user?.id))
           .limit(1)
       )?.[0] ?? null
     : null;
@@ -65,7 +65,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     {
       env,
       session,
-      currentUserProfile,
+      loggedInUserProfile,
     },
     {
       headers: response.headers,
@@ -74,7 +74,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function App() {
-  const { currentUserProfile, env, session } = useLoaderData<typeof loader>();
+  const { loggedInUserProfile, env, session } = useLoaderData<typeof loader>();
 
   return (
     <html lang="en">
@@ -87,7 +87,7 @@ function App() {
       </head>
       <body>
         <SupabaseProvider
-          currentUserProfile={currentUserProfile}
+          loggedInUserProfile={loggedInUserProfile}
           env={env}
           session={session as Session}
         >

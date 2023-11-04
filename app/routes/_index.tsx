@@ -19,9 +19,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function IndexPage() {
-  const { session, currentUserProfile } = useSupabase();
-
-  console.log(currentUserProfile);
+  const { session, loggedInUserProfile } = useSupabase();
 
   return (
     <Stack justify="center" gap="xl">
@@ -68,10 +66,10 @@ export default function IndexPage() {
               .
             </Text>
           </Stack>
-        ) : currentUserProfile ? (
+        ) : loggedInUserProfile ? (
           <Button
             component={Link}
-            to={`/profile/${currentUserProfile.username}`}
+            to={`/profile/${loggedInUserProfile.username}`}
             size="xl"
             color="pink"
           >
