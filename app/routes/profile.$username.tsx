@@ -1,11 +1,10 @@
 import { Button } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { json, redirect, type LoaderFunctionArgs } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import { db } from "db/connection";
-import { IProfile, profilesTable } from "db/schemas/profiles";
+import { profilesTable } from "db/schemas/profiles";
 import { and, eq, ne } from "drizzle-orm";
-import { EditProfileModal } from "~/components/modals/EditProfileModal";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 export async function loader({ params, request, context }: LoaderFunctionArgs) {
@@ -63,13 +62,14 @@ export default function ProfileIdPage() {
 
   return (
     <div>
-      {isOwnProfile && <Button onClick={open}>Edit Profile</Button>}
-
-      <EditProfileModal
-        profile={profile as IProfile}
-        opened={opened}
-        onClose={close}
-      />
+      {isOwnProfile && (
+        <>
+          <Button component={Link} to="edit">
+            Edit Profile
+          </Button>
+        </>
+      )}
+      <Outlet />
       <pre>
         <code>{JSON.stringify({ profile, isOwnProfile }, null, 2)}</code>
       </pre>

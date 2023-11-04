@@ -5,7 +5,6 @@ import {
   Fieldset,
   Loader,
   LoadingOverlay,
-  Skeleton,
   Stack,
   Text,
   TextInput,
@@ -217,10 +216,6 @@ export default function SignUpPage() {
               }
               withAsterisk
               {...form.getInputProps("username")}
-              onChange={(e) => {
-                console.log(e.target.value);
-                form.getInputProps("username").onChange(e);
-              }}
             />
             <Collapse
               in={
