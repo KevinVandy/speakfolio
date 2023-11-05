@@ -95,7 +95,6 @@ export async function action({ request }: ActionFunctionArgs) {
       throw new Error("Failed to create user");
     }
     await db.insert(profilesTable).values({
-      contactEmail: data.email,
       displayName: data.name,
       profileVisibility: "public",
       userId: authResult.data.user.id,
