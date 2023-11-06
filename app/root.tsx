@@ -19,15 +19,14 @@ import {
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
 import { type Session } from "@supabase/auth-helpers-remix";
-import { Layout } from "./Layout";
+import { eq } from "drizzle-orm";
+import { Layout } from "./components/Layout";
 import { SupabaseProvider } from "./hooks/useSupabase";
-//CSS
 import theme from "./styles/theme";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
-import { eq } from "drizzle-orm";
 
 export const links: LinksFunction = () => [
   { href: mantineCoreStyles, rel: "stylesheet" },

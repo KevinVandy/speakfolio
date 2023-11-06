@@ -23,8 +23,8 @@ module.exports = {
             react: "react",
           },
           value: {
-            db: ["db"],
-            drizzle: ["drizzle-orm/*"],
+            db: ["db*"],
+            drizzle: ["drizzle-orm*"],
             mantine: ["@mantine/*", "mantine-react-table", "dayjs"],
             postgres: ["postgres"],
             react: ["react", "react-*"],

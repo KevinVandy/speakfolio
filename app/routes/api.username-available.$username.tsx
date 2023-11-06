@@ -1,7 +1,7 @@
 import { type LoaderFunctionArgs, json } from "@remix-run/node";
+import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
-import { eq } from "drizzle-orm";
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { username } = params;

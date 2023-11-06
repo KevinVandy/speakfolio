@@ -1,10 +1,10 @@
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import { Button } from "@mantine/core";
+import { and, eq, ne } from "drizzle-orm";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
-import { and, eq, ne } from "drizzle-orm";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const { username } = params;

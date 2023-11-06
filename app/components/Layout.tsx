@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
-import { useSupabase } from "./hooks/useSupabase";
+import { useSupabase } from "../hooks/useSupabase";
 
 interface Props {
   children: React.ReactNode;
