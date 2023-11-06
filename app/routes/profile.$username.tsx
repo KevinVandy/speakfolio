@@ -53,7 +53,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export default function ProfileIdPage() {
-  const { isOwnProfile, profile } = useLoaderData<typeof loader>();
+  const { isOwnProfile } = useLoaderData<typeof loader>();
 
   return (
     <div>
@@ -65,9 +65,7 @@ export default function ProfileIdPage() {
         </>
       )}
       <Outlet />
-      <pre>
-        <code>{JSON.stringify({ isOwnProfile, profile }, null, 2)}</code>
-      </pre>
+      {/* <pre>{JSON.stringify({ isOwnProfile, profile }, null, 2)}</pre> */}
     </div>
   );
 }

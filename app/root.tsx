@@ -12,12 +12,17 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
+import mantineCarouselStyles from "@mantine/carousel/styles.css";
 import {
   ColorSchemeScript,
   MantineProvider,
   localStorageColorSchemeManager,
 } from "@mantine/core";
+import mantineCoreStyles from "@mantine/core/styles.layer.css";
+import mantineDateStyles from "@mantine/dates/styles.css";
 import { ModalsProvider } from "@mantine/modals";
+import { Notifications } from "@mantine/notifications";
+import mantineNProgressStyles from "@mantine/nprogress/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
@@ -26,10 +31,12 @@ import { Layout } from "./components/Layout";
 import { SupabaseProvider } from "./hooks/useSupabase";
 import theme from "./styles/theme";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
-import mantineCoreStyles from "@mantine/core/styles.layer.css";
 
 export const links: LinksFunction = () => [
   { href: mantineCoreStyles, rel: "stylesheet" },
+  { href: mantineDateStyles, rel: "stylesheet" },
+  { href: mantineNProgressStyles, rel: "stylesheet" },
+  { href: mantineCarouselStyles, rel: "stylesheet" },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({
@@ -96,6 +103,7 @@ export default function App() {
             theme={theme}
           >
             <ModalsProvider>
+              <Notifications />
               <Layout>
                 <Outlet />
               </Layout>

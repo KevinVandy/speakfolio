@@ -456,7 +456,7 @@ export default function EditProfileModal() {
           </Text>
         ))}
         <SimpleGrid cols={2} mt="xl">
-          <Button onClick={handleCancel} type="submit" variant="default">
+          <Button onClick={handleCancel} type="button" variant="default">
             Cancel
           </Button>
           <Button

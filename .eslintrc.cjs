@@ -26,7 +26,7 @@ module.exports = {
           value: {
             db: ["db*", "db/**"],
             drizzle: ["drizzle-orm*", "drizzle-orm/**"],
-            mantine: ["@mantine/*", "mantine-react-table", "dayjs"],
+            mantine: ["@mantine/**", "mantine-react-table", "dayjs"],
             postgres: ["postgres"],
             react: ["react", "react-*"],
             remix: ["@remix-run/**"],

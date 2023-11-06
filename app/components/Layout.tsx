@@ -22,7 +22,7 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
 
-  const { session, supabase, loggedInUserProfile } = useSupabase();
+  const { loggedInUserProfile, session, supabase } = useSupabase();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
