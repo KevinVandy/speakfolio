@@ -15,14 +15,11 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import type { Session } from "@supabase/supabase-js";
 import { useEffect } from "react";
 import { z } from "zod";
-import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface SignInPostResponse {
-  session: Session | null;
   success: boolean;
   data: any;
   errors: any;
@@ -52,7 +49,6 @@ export async function action({ request }: ActionFunctionArgs) {
   const supabase = getSupabaseServerClient({ request, response });
 
   let returnData: SignInPostResponse = {
-    session: null,
     success: false,
     data: {},
     errors: {},
@@ -69,6 +65,7 @@ export async function action({ request }: ActionFunctionArgs) {
       errors,
       success,
     };
+    return json(returnData, { headers: response.headers });
   } else {
     const { data } = validationResult;
     try {
@@ -84,7 +81,6 @@ export async function action({ request }: ActionFunctionArgs) {
         ...returnData,
         data,
         success: true,
-        session: result.data.session,
       };
     } catch (error) {
       returnData = {
@@ -95,10 +91,11 @@ export async function action({ request }: ActionFunctionArgs) {
         },
         success: false,
       };
+      return json(returnData, { headers: response.headers });
     }
   }
 
-  return json({ ...returnData, headers: response.headers });
+  return redirect("/", { headers: response.headers });
 }
 
 export const meta: MetaFunction = () => {
@@ -118,7 +115,6 @@ export const meta: MetaFunction = () => {
 export default function SignUpPage() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
-  const { supabase } = useSupabase();
 
   const form = useForm({
     validate: zodResolver(signUpSchema),
@@ -135,10 +131,6 @@ export default function SignUpPage() {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
-    if (actionData?.session?.user) {
-      supabase.auth.setSession(actionData.session);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
   return (

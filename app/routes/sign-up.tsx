@@ -82,7 +82,7 @@ export async function action({ request }: ActionFunctionArgs) {
   if (!success) {
     const errors = validationResult.error.formErrors.fieldErrors;
     returnData = { ...returnData, data: rawData, errors, success };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 422,  });
   }
   const { data } = validationResult;
 

@@ -44,9 +44,6 @@ export const profilesTable = pgTable(
   },
   (table) => {
     return {
-      profilesContactEmailUnique: unique("profiles_contact_email_unique").on(
-        table.contactEmail
-      ),
       profileUsernameUnique: unique("profile_username_unique").on(
         table.username
       ),

@@ -47,6 +47,7 @@
     "dotenv": "^16.3.1",
     "drizzle-kit": "^0.19.13",
     "eslint": "^8.52.0",
+    "eslint-plugin-perfectionist": "^2.2.0",
     "postcss": "^8.4.31",
     "postcss-preset-mantine": "^1.9.0",
     "postcss-simple-vars": "^7.0.1",

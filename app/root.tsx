@@ -20,6 +20,7 @@ import {
   ColorSchemeScript,
   localStorageColorSchemeManager,
 } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
 import { eq } from "drizzle-orm";
@@ -96,9 +97,11 @@ function App() {
             colorSchemeManager={colorSchemeManager}
             theme={theme}
           >
-            <Layout>
-              <Outlet />
-            </Layout>
+            <ModalsProvider>
+              <Layout>
+                <Outlet />
+              </Layout>
+            </ModalsProvider>
           </MantineProvider>
         </SupabaseProvider>
         <ScrollRestoration />

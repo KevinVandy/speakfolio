@@ -103,6 +103,9 @@ devDependencies:
   eslint:
     specifier: ^8.52.0
     version: 8.52.0
+  eslint-plugin-perfectionist:
+    specifier: ^2.2.0
+    version: 2.2.0(eslint@8.52.0)(typescript@5.2.2)
   postcss:
     specifier: ^8.4.31
     version: 8.4.31
@@ -3518,6 +3521,33 @@ packages:
       minimatch: 3.1.2
       resolve: 1.22.8
       semver: 6.3.1
+    dev: true
+
+  /eslint-plugin-perfectionist@2.2.0(eslint@8.52.0)(typescript@5.2.2):
+    resolution: {integrity: sha512-/nG2Uurd6AY7CI6zlgjHPOoiPY8B7EYMUWdNb5w+EzyauYiQjjD5lQwAI1FlkBbCCFFZw/CdZIPQhXumYoiyaw==}
+    peerDependencies:
+      astro-eslint-parser: ^0.16.0
+      eslint: '>=8.0.0'
+      svelte: '>=3.0.0'
+      svelte-eslint-parser: ^0.33.0
+      vue-eslint-parser: '>=9.0.0'
+    peerDependenciesMeta:
+      astro-eslint-parser:
+        optional: true
+      svelte:
+        optional: true
+      svelte-eslint-parser:
+        optional: true
+      vue-eslint-parser:
+        optional: true
+    dependencies:
+      '@typescript-eslint/utils': 6.9.1(eslint@8.52.0)(typescript@5.2.2)
+      eslint: 8.52.0
+      minimatch: 9.0.3
+      natural-compare-lite: 1.4.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
     dev: true
 
   /eslint-plugin-react-hooks@4.6.0(eslint@8.52.0):

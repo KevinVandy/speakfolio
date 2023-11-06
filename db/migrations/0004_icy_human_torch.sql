@@ -1,0 +1,1 @@
+ALTER TABLE "profiles" DROP CONSTRAINT "profiles_contact_email_unique";
