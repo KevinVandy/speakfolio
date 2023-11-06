@@ -1,19 +1,53 @@
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   extends: [
-    "plugin:@typescript-eslint/recommended",
     "@remix-run/eslint-config",
     "@remix-run/eslint-config/node",
+    "plugin:perfectionist/recommended-natural",
   ],
-  parser: "@typescript-eslint/parser",
-  plugins: ["@typescript-eslint"],
+  plugins: ["perfectionist"],
   rules: {
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
-        prefer: "type-imports",
         disallowTypeAnnotations: true,
         fixStyle: "inline-type-imports",
+        prefer: "type-imports",
+      },
+    ],
+    "perfectionist/sort-imports": [
+      "error",
+      {
+        "custom-groups": {
+          type: {
+            react: "react",
+          },
+          value: {
+            db: ["db"],
+            drizzle: ["drizzle-orm/*"],
+            mantine: ["@mantine/*", "mantine-react-table", "dayjs"],
+            postgres: ["postgres"],
+            react: ["react", "react-*"],
+            remix: ["@remix-run/*"],
+            supabase: ["@supabase/*"],
+            tabler: ["@tabler/*"],
+            zod: ["zod"],
+          },
+        },
+        groups: [
+          "remix",
+          "react",
+          "mantine",
+          "tabler",
+          "zod",
+          "supabase",
+          "drizzle",
+          "postgres",
+          "db",
+        ],
+        "newlines-between": "never",
+        order: "asc",
+        type: "natural",
       },
     ],
   },

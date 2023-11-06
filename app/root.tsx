@@ -1,7 +1,7 @@
 import {
-  json,
   type LinksFunction,
   type LoaderFunctionArgs,
+  json,
 } from "@remix-run/node";
 import {
   Links,
@@ -12,26 +12,25 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
-import { type Session } from "@supabase/auth-helpers-remix";
-import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
-import { SupabaseProvider } from "./hooks/useSupabase";
 import {
-  MantineProvider,
   ColorSchemeScript,
+  MantineProvider,
   localStorageColorSchemeManager,
 } from "@mantine/core";
 import { ModalsProvider } from "@mantine/modals";
+import { type Session } from "@supabase/auth-helpers-remix";
+import { Layout } from "./Layout";
+import { SupabaseProvider } from "./hooks/useSupabase";
+//CSS
+import theme from "./styles/theme";
+import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
+import mantineCoreStyles from "@mantine/core/styles.layer.css";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
 import { eq } from "drizzle-orm";
-import { Layout } from "./Layout";
-
-//CSS
-import theme from "./styles/theme";
-import mantineCoreStyles from "@mantine/core/styles.layer.css";
 
 export const links: LinksFunction = () => [
-  { rel: "stylesheet", href: mantineCoreStyles },
+  { href: mantineCoreStyles, rel: "stylesheet" },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({
@@ -40,8 +39,8 @@ const colorSchemeManager = localStorageColorSchemeManager({
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const env = {
-    SUPABASE_URL: process.env.SUPABASE_URL!,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
+    SUPABASE_URL: process.env.SUPABASE_URL!,
   };
 
   const response = new Response();
@@ -65,8 +64,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
   return json(
     {
       env,
-      session,
       loggedInUserProfile,
+      session,
     },
     {
       headers: response.headers,
@@ -75,26 +74,26 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 function App() {
-  const { loggedInUserProfile, env, session } = useLoaderData<typeof loader>();
+  const { env, loggedInUserProfile, session } = useLoaderData<typeof loader>();
 
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta content="width=device-width, initial-scale=1" name="viewport" />
         <Meta />
         <Links />
         <ColorSchemeScript />
       </head>
       <body>
         <SupabaseProvider
-          loggedInUserProfile={loggedInUserProfile}
           env={env}
+          loggedInUserProfile={loggedInUserProfile}
           session={session as Session}
         >
           <MantineProvider
-            defaultColorScheme="dark"
             colorSchemeManager={colorSchemeManager}
+            defaultColorScheme="dark"
             theme={theme}
           >
             <ModalsProvider>

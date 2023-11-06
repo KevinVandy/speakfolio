@@ -1,4 +1,5 @@
 import { type MetaFunction } from "@remix-run/node";
+import { Link } from "@remix-run/react";
 import {
   Anchor,
   Button,
@@ -8,27 +9,26 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { Link } from "@remix-run/react";
 import { useSupabase } from "~/hooks/useSupabase";
 
 export const meta: MetaFunction = () => {
   return [
     { title: "Speakerscape" },
-    { name: "description", content: "Welcome to Speakerscape!" },
+    { content: "Welcome to Speakerscape!", name: "description" },
   ];
 };
 
 export default function IndexPage() {
-  const { session, loggedInUserProfile } = useSupabase();
+  const { loggedInUserProfile, session } = useSupabase();
 
   return (
-    <Stack justify="center" gap="xl">
-      <Title ta="center" order={1} fz="48pt">
+    <Stack gap="xl" justify="center">
+      <Title fz="48pt" order={1} ta="center">
         Speakerscape
       </Title>
 
-      <Card withBorder shadow="xl" m="auto" maw="720">
-        <Title ta="center" fz="32pt" order={2}>
+      <Card m="auto" maw="720" shadow="xl" withBorder>
+        <Title fz="32pt" order={2} ta="center">
           Connecting Speakers and Events
         </Title>
         <Text my="md" size="lg">
@@ -38,22 +38,22 @@ export default function IndexPage() {
         </Text>
         {!session ? (
           <Stack justify="center">
-            <SimpleGrid cols={2} spacing="xl" p="md" my="md">
+            <SimpleGrid cols={2} my="md" p="md" spacing="xl">
               <Button
-                to="/sign-up"
-                component={Link}
-                size="xl"
                 color="blue"
+                component={Link}
                 onClick={() => {}}
+                size="xl"
+                to="/sign-up"
               >
                 Sign up as a Speaker
               </Button>
               <Button
-                component={Link}
-                to="/sign-up"
-                size="xl"
                 color="pink"
+                component={Link}
                 onClick={() => {}}
+                size="xl"
+                to="/sign-up"
               >
                 Search for Speakers
               </Button>
@@ -68,10 +68,10 @@ export default function IndexPage() {
           </Stack>
         ) : loggedInUserProfile ? (
           <Button
-            component={Link}
-            to={`/profile/${loggedInUserProfile.username}`}
-            size="xl"
             color="pink"
+            component={Link}
+            size="xl"
+            to={`/profile/${loggedInUserProfile.username}`}
           >
             Go to my Profile
           </Button>

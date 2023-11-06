@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
+import { type LoaderFunctionArgs, json } from "@remix-run/node";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
 import { eq } from "drizzle-orm";
@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 export async function loader({ params }: LoaderFunctionArgs) {
   const { username } = params;
 
-  let returnData = { username, isAvailable: false };
+  let returnData = { isAvailable: false, username };
 
   if (username) {
     returnData.isAvailable = !(

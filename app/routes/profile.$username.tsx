@@ -1,13 +1,12 @@
-import { Button } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
-import { json, redirect, type LoaderFunctionArgs } from "@remix-run/node";
+import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Button } from "@mantine/core";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
 import { and, eq, ne } from "drizzle-orm";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
-export async function loader({ params, request, context }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const { username } = params;
   const response = new Response();
 
@@ -54,11 +53,7 @@ export async function loader({ params, request, context }: LoaderFunctionArgs) {
 }
 
 export default function ProfileIdPage() {
-  const { profile, isOwnProfile } = useLoaderData<typeof loader>();
-
-  const [opened, { open, close }] = useDisclosure(false);
-
-  // return null;
+  const { isOwnProfile, profile } = useLoaderData<typeof loader>();
 
   return (
     <div>
@@ -71,7 +66,7 @@ export default function ProfileIdPage() {
       )}
       <Outlet />
       <pre>
-        <code>{JSON.stringify({ profile, isOwnProfile }, null, 2)}</code>
+        <code>{JSON.stringify({ isOwnProfile, profile }, null, 2)}</code>
       </pre>
     </div>
   );

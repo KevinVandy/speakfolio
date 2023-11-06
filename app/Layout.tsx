@@ -1,3 +1,4 @@
+import { Link, useNavigate } from "@remix-run/react";
 import {
   ActionIcon,
   AppShell,
@@ -11,7 +12,6 @@ import {
   useMantineColorScheme,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Link, useNavigate } from "@remix-run/react";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useSupabase } from "./hooks/useSupabase";
 
@@ -22,7 +22,7 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
 
-  const { supabase, session } = useSupabase();
+  const { session, supabase } = useSupabase();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
@@ -36,36 +36,36 @@ export const Layout = ({ children }: Props) => {
     <AppShell
       header={{ height: 60 }}
       navbar={{
-        width: 300,
         breakpoint: "sm",
-        collapsed: { mobile: !opened, desktop: true },
+        collapsed: { desktop: true, mobile: !opened },
+        width: 300,
       }}
       padding="md"
     >
       <AppShell.Header p="0">
-        <Flex justify="space-between" w="100%" p="md">
+        <Flex justify="space-between" p="md" w="100%">
           <Flex>
             <Burger
               display={isMobile ? "block" : "none"}
-              opened={opened}
               onClick={toggle}
+              opened={opened}
             />
-            <Link to="/" style={{ textDecoration: "none" }}>
-              <Title m="0" lh="xs" fz="xl" order={1}>
+            <Link style={{ textDecoration: "none" }} to="/">
+              <Title fz="xl" lh="xs" m="0" order={1}>
                 Speakerscape
               </Title>
             </Link>
           </Flex>
-          <Flex gap="md" align="center">
+          <Flex align="center" gap="md">
             <ActionIcon
+              aria-label="Toggle color scheme"
               onClick={() =>
                 setColorScheme(
                   computedColorScheme === "light" ? "dark" : "light"
                 )
               }
-              variant="default"
               size="lg"
-              aria-label="Toggle color scheme"
+              variant="default"
             >
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>

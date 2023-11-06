@@ -1,4 +1,4 @@
-import { pgTable, unique, uuid, text, pgEnum } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
   "public",
@@ -25,22 +25,22 @@ export const profileColorEnum = pgEnum("profile_color", [
 export const profilesTable = pgTable(
   "profiles",
   {
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
-    userId: uuid("user_id"), //fk to auth.users
-    username: text("username").notNull(),
-    displayName: text("display_name").notNull(),
+    bio: text("bio").default(""),
+    company: text("company").default(""),
     contactEmail: text("contact_email").default(""),
+    coverImageUrl: text("cover_image_url"),
+    displayName: text("display_name").notNull(),
+    headline: text("headline").default(""),
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    jobTitle: text("job_title").default(""),
+    profession: text("profession").default(""),
+    profileColor: profileColorEnum("profile_color").default("blue"),
+    profileImageUrl: text("profile_image_url"),
     profileVisibility: profileVisibilityEnum("profile_visibility")
       .notNull()
       .default("public"),
-    profileImageUrl: text("profile_image_url"),
-    coverImageUrl: text("cover_image_url"),
-    headline: text("headline").default(""),
-    bio: text("bio").default(""),
-    profession: text("profession").default(""),
-    jobTitle: text("job_title").default(""),
-    company: text("company").default(""),
-    profileColor: profileColorEnum("profile_color").default("blue"),
+    userId: uuid("user_id"), //fk to auth.users
+    username: text("username").notNull(),
   },
   (table) => {
     return {

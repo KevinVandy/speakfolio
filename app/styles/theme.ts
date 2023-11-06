@@ -1,13 +1,13 @@
 import type { MantineThemeOverride } from "@mantine/core";
 
 const theme: MantineThemeOverride = {
-  primaryColor: "pink",
-  cursorType: "pointer",
   components: {
     button: {
       defaultProps: {},
     },
   },
+  cursorType: "pointer",
+  primaryColor: "pink",
 };
 
 export default theme;

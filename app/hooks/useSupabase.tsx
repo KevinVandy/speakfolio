@@ -1,16 +1,16 @@
 import { useRevalidator } from "@remix-run/react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   type Session,
-  createBrowserClient,
   type SupabaseClient,
+  createBrowserClient,
 } from "@supabase/auth-helpers-remix";
-import { IProfile } from "db/schemas/profiles";
-import { createContext, useContext, useEffect, useState } from "react";
+import { type IProfile } from "db/schemas/profiles";
 
 interface SupabaseContextValues {
   loggedInUserProfile: IProfile | null;
-  supabase: SupabaseClient;
   session: Session | null;
+  supabase: SupabaseClient;
 }
 
 const SupabaseContext = createContext<SupabaseContextValues>(
@@ -20,17 +20,17 @@ const SupabaseContext = createContext<SupabaseContextValues>(
 interface Props {
   children: React.ReactNode;
   env: {
-    SUPABASE_URL: string;
     SUPABASE_ANON_KEY: string;
+    SUPABASE_URL: string;
   };
-  session: Session;
   loggedInUserProfile: IProfile | null;
+  session: Session;
 }
 
 export function SupabaseProvider({
   children,
-  loggedInUserProfile,
   env,
+  loggedInUserProfile,
   session,
 }: Props) {
   const { revalidate } = useRevalidator();
@@ -61,7 +61,7 @@ export function SupabaseProvider({
 
   return (
     <SupabaseContext.Provider
-      value={{ loggedInUserProfile, supabase, session }}
+      value={{ loggedInUserProfile, session, supabase }}
     >
       {children}
     </SupabaseContext.Provider>

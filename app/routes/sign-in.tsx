@@ -1,3 +1,11 @@
+import { json, redirect } from "@remix-run/node";
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from "@remix-run/node";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import { useEffect } from "react";
 import {
   Anchor,
   Button,
@@ -8,21 +16,13 @@ import {
   Title,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { redirect, json } from "@remix-run/node";
-import type {
-  LoaderFunctionArgs,
-  ActionFunctionArgs,
-  MetaFunction,
-} from "@remix-run/node";
-import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useEffect } from "react";
 import { z } from "zod";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface SignInPostResponse {
-  success: boolean;
   data: any;
   errors: any;
+  success: boolean;
 }
 
 const signUpSchema = z.object({
@@ -49,9 +49,9 @@ export async function action({ request }: ActionFunctionArgs) {
   const supabase = getSupabaseServerClient({ request, response });
 
   let returnData: SignInPostResponse = {
-    success: false,
     data: {},
     errors: {},
+    success: false,
   };
 
   const rawData = Object.fromEntries(await request.formData());
@@ -102,12 +102,12 @@ export const meta: MetaFunction = () => {
   return [
     { title: "Sign into Speakerscape" },
     {
-      property: "og:title",
       content: "Sign into Speakerscape",
+      property: "og:title",
     },
     {
-      name: "description",
       content: "Sign into Speakerscape",
+      name: "description",
     },
   ];
 };
@@ -117,14 +117,14 @@ export default function SignUpPage() {
   const navigation = useNavigation();
 
   const form = useForm({
-    validate: zodResolver(signUpSchema),
+    clearInputErrorOnChange: true,
+    initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       email: "",
       password: "",
     },
-    initialErrors: actionData?.errors,
+    validate: zodResolver(signUpSchema),
     validateInputOnBlur: true,
-    clearInputErrorOnChange: true,
   });
 
   useEffect(() => {
@@ -134,16 +134,16 @@ export default function SignUpPage() {
   }, [actionData]);
 
   return (
-    <Stack maw="400px" m="auto">
+    <Stack m="auto" maw="400px">
       <Title order={2}>Sign In</Title>
       <Form
         method="post"
         onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
       >
         <Fieldset
-          pos="relative"
           disabled={navigation.state !== "idle"}
           legend="Sign In"
+          pos="relative"
         >
           <Stack gap="md">
             <TextInput
@@ -160,10 +160,10 @@ export default function SignUpPage() {
               {...form.getInputProps("password")}
             />
             <Button
-              loading={navigation.state === "submitting"}
-              type="submit"
               color="blue"
+              loading={navigation.state === "submitting"}
               mt="md"
+              type="submit"
             >
               Sign In
             </Button>
