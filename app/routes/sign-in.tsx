@@ -131,6 +131,7 @@ export default function SignUpPage() {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
   return (

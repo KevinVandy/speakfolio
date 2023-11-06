@@ -27,9 +27,9 @@ import {
 import { useForm, zodResolver } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { z } from "zod";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profiles";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface SignUpPostResponse {
   data: any;
@@ -101,7 +101,7 @@ export async function action({ request }: ActionFunctionArgs) {
       username: data.username,
     });
   } catch (error) {
-    console.log(error);
+    console.error(error);
     returnData = {
       ...returnData,
       data,
@@ -167,6 +167,7 @@ export default function SignUpPage() {
         `/api/username-available/${debouncedUsername}`
       );
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedUsername]);
 
   const isUsernameAvailable =
@@ -179,6 +180,7 @@ export default function SignUpPage() {
         username: `Username "${usernameAvailableFetcher.data?.username}" is not available`,
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usernameAvailableFetcher.data?.isAvailable]);
 
   return (

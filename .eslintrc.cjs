@@ -5,6 +5,7 @@ module.exports = {
     "@remix-run/eslint-config/node",
     "plugin:perfectionist/recommended-natural",
   ],
+  ignorePatterns: ["node_modules/", ".cache/", "build/"],
   plugins: ["perfectionist"],
   rules: {
     "@typescript-eslint/consistent-type-imports": [
@@ -23,13 +24,13 @@ module.exports = {
             react: "react",
           },
           value: {
-            db: ["db*"],
-            drizzle: ["drizzle-orm*"],
+            db: ["db*", "db/**"],
+            drizzle: ["drizzle-orm*", "drizzle-orm/**"],
             mantine: ["@mantine/*", "mantine-react-table", "dayjs"],
             postgres: ["postgres"],
             react: ["react", "react-*"],
-            remix: ["@remix-run/*"],
-            supabase: ["@supabase/*"],
+            remix: ["@remix-run/**"],
+            supabase: ["@supabase/**"],
             tabler: ["@tabler/*"],
             zod: ["zod"],
           },

@@ -22,7 +22,7 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
 
-  const { session, supabase } = useSupabase();
+  const { session, supabase, loggedInUserProfile } = useSupabase();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
@@ -72,15 +72,23 @@ export const Layout = ({ children }: Props) => {
             {session?.user ? (
               <Menu trigger="hover">
                 <Menu.Target>
-                  <Avatar />
+                  <Avatar src={loggedInUserProfile?.profileImageUrl} />
                 </Menu.Target>
                 <Menu.Dropdown>
                   <Menu.Item>{session.user.email}</Menu.Item>
                   <Menu.Divider />
-                  <Menu.Item onClick={() => navigate("/profile")}>
+                  <Menu.Item
+                    onClick={() =>
+                      navigate(`/profile/${loggedInUserProfile?.username}`)
+                    }
+                  >
                     Profile
                   </Menu.Item>
-                  <Menu.Item onClick={() => navigate("/settings")}>
+                  <Menu.Item
+                    onClick={() =>
+                      navigate(`/profile/${loggedInUserProfile?.username}/edit`)
+                    }
+                  >
                     Settings
                   </Menu.Item>
                   <Menu.Divider />

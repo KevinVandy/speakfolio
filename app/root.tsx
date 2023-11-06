@@ -20,13 +20,13 @@ import {
 import { ModalsProvider } from "@mantine/modals";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
+import { db } from "db/connection";
+import { profilesTable } from "db/schemas/profiles";
 import { Layout } from "./components/Layout";
 import { SupabaseProvider } from "./hooks/useSupabase";
 import theme from "./styles/theme";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
 import mantineCoreStyles from "@mantine/core/styles.layer.css";
-import { db } from "db/connection";
-import { profilesTable } from "db/schemas/profiles";
 
 export const links: LinksFunction = () => [
   { href: mantineCoreStyles, rel: "stylesheet" },
@@ -72,7 +72,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   );
 }
 
-function App() {
+export default function App() {
   const { env, loggedInUserProfile, session } = useLoaderData<typeof loader>();
 
   return (
@@ -109,5 +109,3 @@ function App() {
     </html>
   );
 }
-
-export default App;
