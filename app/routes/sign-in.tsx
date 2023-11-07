@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { json, redirect } from "@remix-run/node";
 import type {
   ActionFunctionArgs,
@@ -5,7 +6,6 @@ import type {
   MetaFunction,
 } from "@remix-run/node";
 import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
-import { useEffect } from "react";
 import {
   Anchor,
   Button,
@@ -127,6 +127,7 @@ export default function SignUpPage() {
     validateInputOnBlur: true,
   });
 
+  //sync back-end errors with form
   useEffect(() => {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });

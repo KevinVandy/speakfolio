@@ -12,6 +12,7 @@ import {
   ScrollRestoration,
   useLoaderData,
 } from "@remix-run/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import mantineCarouselStyles from "@mantine/carousel/styles.css";
 import {
   ColorSchemeScript,
@@ -41,6 +42,14 @@ export const links: LinksFunction = () => [
 
 const colorSchemeManager = localStorageColorSchemeManager({
   key: "colorScheme",
+});
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 10000, // 10 seconds
+    },
+  },
 });
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -97,18 +106,20 @@ export default function App() {
           loggedInUserProfile={loggedInUserProfile}
           session={session as Session}
         >
-          <MantineProvider
-            colorSchemeManager={colorSchemeManager}
-            defaultColorScheme="dark"
-            theme={theme}
-          >
-            <ModalsProvider>
-              <Notifications />
-              <Layout>
-                <Outlet />
-              </Layout>
-            </ModalsProvider>
-          </MantineProvider>
+          <QueryClientProvider client={queryClient}>
+            <MantineProvider
+              colorSchemeManager={colorSchemeManager}
+              defaultColorScheme="dark"
+              theme={theme}
+            >
+              <ModalsProvider>
+                <Notifications />
+                <Layout>
+                  <Outlet />
+                </Layout>
+              </ModalsProvider>
+            </MantineProvider>
+          </QueryClientProvider>
         </SupabaseProvider>
         <ScrollRestoration />
         <Scripts />

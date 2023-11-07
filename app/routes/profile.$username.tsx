@@ -1,9 +1,10 @@
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useParams } from "@remix-run/react";
 import { Button } from "@mantine/core";
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesTable } from "db/schemas/profiles";
+import { type IProfile, profilesTable } from "db/schemas/profiles";
+import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
@@ -16,47 +17,42 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const loggedInUserProfile = session?.user?.id
+  let _profile = username
     ? (
         await db
           .select()
           .from(profilesTable)
-          .where(eq(profilesTable.userId, session?.user?.id))
+          .where(and(eq(profilesTable.username, username)))
           .limit(1)
       )?.[0] ?? null
     : null;
 
-  const isOwnProfile = loggedInUserProfile?.username === username;
+  const isOwnProfile = _profile?.userId === session?.user?.id;
 
-  const profile = isOwnProfile
-    ? loggedInUserProfile
-    : username
-    ? (
-        await db
-          .select()
-          .from(profilesTable)
-          .where(
-            and(
-              eq(profilesTable.username, username),
-              !isOwnProfile
-                ? ne(profilesTable.profileVisibility, "private")
-                : undefined
-            )
-          )
-          .limit(1)
-      )?.[0] ?? null
-    : null;
+  if (
+    !_profile ||
+    (!isOwnProfile && _profile.profileVisibility === "private")
+  ) {
+    return redirect("/unknown-profile");
+  }
 
-  if (!profile) return redirect("/unknown-profile");
+  const profile: IProfile & { isOwnProfile?: boolean } = {
+    ..._profile,
+    isOwnProfile,
+  };
 
-  return json({ isOwnProfile, profile });
+  return json(profile);
 }
 
 export default function ProfileIdPage() {
-  const { isOwnProfile } = useLoaderData<typeof loader>();
+  const { username } = useParams();
+
+  const { data: profile, refetch } = useFetchProfile({ username });
+  const { isOwnProfile } = profile;
 
   return (
     <div>
+      <button onClick={() => refetch()}>Refetch</button>
       {isOwnProfile && (
         <>
           <Button component={Link} to="edit">
@@ -65,7 +61,7 @@ export default function ProfileIdPage() {
         </>
       )}
       <Outlet />
-      {/* <pre>{JSON.stringify({ isOwnProfile, profile }, null, 2)}</pre> */}
+      <pre>{JSON.stringify(profile, null, 2)}</pre>
     </div>
   );
 }

@@ -1,12 +1,12 @@
+import { useEffect, useState } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import {
   Form,
   useActionData,
   useNavigate,
   useNavigation,
-  useRouteLoaderData,
+  useParams,
 } from "@remix-run/react";
-import { useEffect, useState } from "react";
 import {
   Accordion,
   Autocomplete,
@@ -41,7 +41,7 @@ import {
   profileVisibilityEnum,
   profilesTable,
 } from "db/schemas/profiles";
-import { type loader } from "./profile.$username";
+import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -169,11 +169,12 @@ export default function EditProfileModal() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
+  const { username } = useParams();
   const { session } = useSupabase();
-  const { isOwnProfile, profile } = useRouteLoaderData<typeof loader>(
-    `routes/profile.$username`
-  )!;
   const theme = useMantineTheme();
+
+  const { data: profile } = useFetchProfile({ username });
+  const { isOwnProfile } = profile;
 
   const form = useForm({
     initialErrors: actionData?.errors,
@@ -206,11 +207,12 @@ export default function EditProfileModal() {
   };
 
   useEffect(() => {
-    if (!isOwnProfile) return navigate("../");
+    if (!profile || !isOwnProfile) return navigate("../");
     else open();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  //sync back-end errors with form
   useEffect(() => {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
