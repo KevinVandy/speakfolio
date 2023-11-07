@@ -434,7 +434,7 @@ export default function EditProfileModal() {
                         <IconLock size="1rem" /> Only you can view your profile
                       </Flex>
                     ) : (
-                      "Only other Speakerscape users can view your profile"
+                      "Only other Speakfolio users can view your profile"
                     )}
                   </Text>
                   <Flex gap="md" justify="center">

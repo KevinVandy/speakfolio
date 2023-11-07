@@ -52,7 +52,7 @@ export const Layout = ({ children }: Props) => {
             />
             <Link style={{ textDecoration: "none" }} to="/">
               <Title fz="xl" lh="xs" m="0" order={1}>
-                Speakerscape
+                Speakfolio
               </Title>
             </Link>
           </Flex>

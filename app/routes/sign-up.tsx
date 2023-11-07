@@ -118,13 +118,13 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Sign up for Speakerscape" },
+    { title: "Sign up for Speakfolio" },
     {
-      content: "Sign up for Speakerscape",
+      content: "Sign up for Speakfolio",
       property: "og:title",
     },
     {
-      content: "Sign up for Speakerscape",
+      content: "Sign up for Speakfolio",
       name: "description",
     },
   ];

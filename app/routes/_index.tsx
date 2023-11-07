@@ -13,8 +13,8 @@ import { useSupabase } from "~/hooks/useSupabase";
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "Speakerscape" },
-    { content: "Welcome to Speakerscape!", name: "description" },
+    { title: "Speakfolio" },
+    { content: "Welcome to Speakfolio!", name: "description" },
   ];
 };
 
@@ -24,7 +24,7 @@ export default function IndexPage() {
   return (
     <Stack gap="xl" justify="center">
       <Title fz="48pt" order={1} ta="center">
-        Speakerscape
+        Speakfolio
       </Title>
 
       <Card m="auto" maw="720" shadow="xl" withBorder>
@@ -32,7 +32,7 @@ export default function IndexPage() {
           Connecting Speakers and Events
         </Title>
         <Text my="md" size="lg">
-          Speakerscape is a platform that connects speakers with events and
+          Speakfolio is a platform that connects speakers with events and
           conferences. Whether you're a speaker looking for events, or an event
           looking for speakers, we've got you covered.
         </Text>
