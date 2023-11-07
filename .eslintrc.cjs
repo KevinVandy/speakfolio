@@ -17,7 +17,7 @@ module.exports = {
       },
     ],
     "perfectionist/sort-imports": [
-      "error",
+      "warn",
       {
         "custom-groups": {
           type: {
@@ -53,12 +53,18 @@ module.exports = {
           "drizzle",
           "postgres",
           "db",
-          "internal",
+          "siblings",
+          "sibling-type",
+          "parent",
+          "parent-type",
+          "style",
+          // "internal",
         ],
         "newlines-between": "never",
         order: "asc",
         type: "natural",
       },
     ],
+    "react-hooks/exhaustive-deps": "off",
   },
 };

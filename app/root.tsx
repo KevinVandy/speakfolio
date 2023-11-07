@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   type LinksFunction,
   type LoaderFunctionArgs,
@@ -11,6 +12,7 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
+  useNavigation,
 } from "@remix-run/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import mantineCarouselStyles from "@mantine/carousel/styles.css";
@@ -23,6 +25,7 @@ import mantineCoreStyles from "@mantine/core/styles.layer.css";
 import mantineDateStyles from "@mantine/dates/styles.css";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import mantineNProgressStyles from "@mantine/nprogress/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
@@ -47,7 +50,7 @@ const colorSchemeManager = localStorageColorSchemeManager({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 10000, // 10 seconds
+      staleTime: 1000, // 1 seconds
     },
   },
 });
@@ -89,7 +92,20 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function App() {
+  const navigation = useNavigation();
   const { env, loggedInUserProfile, session } = useLoaderData<typeof loader>();
+
+  useEffect(() => {
+    if (navigation.state === "loading") {
+      nprogress.set(50);
+      nprogress.start();
+    } else if (navigation.state === "submitting") {
+      nprogress.set(30);
+      nprogress.start();
+    } else {
+      nprogress.complete();
+    }
+  }, [navigation.state]);
 
   return (
     <html lang="en">
@@ -113,6 +129,7 @@ export default function App() {
               theme={theme}
             >
               <ModalsProvider>
+                <NavigationProgress />
                 <Notifications />
                 <Layout>
                   <Outlet />

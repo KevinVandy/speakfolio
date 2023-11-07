@@ -149,11 +149,11 @@ export default function SignUpPage() {
     validate: zodResolver(signUpSchema),
   });
 
+  //sync back-end errors with form
   useEffect(() => {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
   const [debouncedUsername] = useDebouncedValue(
@@ -167,7 +167,6 @@ export default function SignUpPage() {
         `/api/username-available/${debouncedUsername}`
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedUsername]);
 
   const isUsernameAvailable =
@@ -180,7 +179,6 @@ export default function SignUpPage() {
         username: `Username "${usernameAvailableFetcher.data?.username}" is not available`,
       });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [usernameAvailableFetcher.data?.isAvailable]);
 
   return (

@@ -129,8 +129,9 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //validate auth
   const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId)
+  if (!authUser || authUser.data.user?.id !== data.userId) {
     return redirect("/sign-in");
+  }
 
   //update profile
   try {
@@ -209,7 +210,6 @@ export default function EditProfileModal() {
   useEffect(() => {
     if (!profile || !isOwnProfile) return navigate("../");
     else open();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   //sync back-end errors with form
@@ -217,7 +217,6 @@ export default function EditProfileModal() {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionData]);
 
   return (
