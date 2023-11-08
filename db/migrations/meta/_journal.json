@@ -43,6 +43,13 @@
       "when": 1699406175017,
       "tag": "0005_chief_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1699407687918,
+      "tag": "0006_mean_selene",
+      "breakpoints": true
     }
   ]
 }

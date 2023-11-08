@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import {
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentations";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
@@ -32,6 +39,9 @@ export const profilesTable = pgTable(
     company: text("company").default(""),
     contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
+    createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
     displayName: text("display_name").notNull(),
     headline: text("headline").default(""),
     id: uuid("id").defaultRandom().primaryKey().notNull(),
@@ -40,8 +50,11 @@ export const profilesTable = pgTable(
     profileColor: profileColorEnum("profile_color").default("blue"),
     profileImageUrl: text("profile_image_url"),
     profileVisibility: profileVisibilityEnum("profile_visibility")
-      .notNull()
-      .default("public"),
+      .default("public")
+      .notNull(),
+    updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+      .defaultNow()
+      .notNull(),
     userId: uuid("user_id"), //fk to auth.users
     username: text("username").notNull(),
   },

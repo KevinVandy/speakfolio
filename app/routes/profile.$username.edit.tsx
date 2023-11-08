@@ -17,10 +17,8 @@ import {
   Collapse,
   Fieldset,
   Flex,
-  Group,
   LoadingOverlay,
   Modal,
-  Radio,
   Select,
   SimpleGrid,
   Stack,
@@ -32,17 +30,12 @@ import {
 import { useForm, zodResolver } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { IconAt, IconCircle, IconLock, IconPlus } from "@tabler/icons-react";
+import { IconAt, IconCircle, IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import {
-  profileColorEnum,
-  profileVisibilityEnum,
-  profilesTable,
-} from "db/schemas/profiles";
+import { profileColorEnum, profilesTable } from "db/schemas/profiles";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
-import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface ProfileUpdateResponse {
@@ -52,6 +45,11 @@ interface ProfileUpdateResponse {
 }
 
 const profileSchema = z.object({
+  areasOfExpertise: z
+    .string()
+    .max(100, { message: "Max 100 characters" })
+    .optional()
+    .nullish(),
   bio: z
     .string()
     .max(4000, { message: "Bio max 4000 characters" })
@@ -100,7 +98,6 @@ const profileSchema = z.object({
     .optional()
     .nullish()
     .transform((s) => s || null),
-  profileVisibility: z.enum(profileVisibilityEnum.enumValues),
   userId: z.string().uuid(),
 });
 
@@ -138,6 +135,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await db
       .update(profilesTable)
       .set({
+        areasOfExpertise: data.areasOfExpertise,
         bio: data.bio,
         company: data.company,
         contactEmail: data.contactEmail,
@@ -148,7 +146,6 @@ export async function action({ request }: ActionFunctionArgs) {
         profession: data.profession,
         profileColor: data.profileColor,
         profileImageUrl: data.profileImageUrl,
-        profileVisibility: data.profileVisibility,
       })
       .where(eq(profilesTable.id, data.id));
     return redirect("../");
@@ -171,7 +168,6 @@ export default function EditProfileModal() {
   const navigation = useNavigation();
   const navigate = useNavigate();
   const { username } = useParams();
-  const { session } = useSupabase();
   const theme = useMantineTheme();
 
   const { data: profile } = useFetchProfile({ username });
@@ -352,7 +348,7 @@ export default function EditProfileModal() {
                     {...form.getInputProps("headline")}
                   />
                   <Autocomplete
-                    data={[]}
+                    data={commonProfessions}
                     description="(Optional) Your profession or industry"
                     label="Profession"
                     name="profession"
@@ -374,14 +370,12 @@ export default function EditProfileModal() {
                     {...form.getInputProps("company")}
                   />
                   <Textarea
-                    autosize
-                    description="(Optional) A detailed bio about yourself (Max 4000 characters)"
-                    label="Bio"
-                    maxLength={4000}
-                    minRows={3}
-                    name="bio"
-                    placeholder="Bio"
-                    {...form.getInputProps("bio")}
+                    label="Areas of Expertise"
+                    maxLength={100}
+                    minRows={2}
+                    name="areasOfExpertise"
+                    placeholder="List up to 10 areas of expertise"
+                    {...form.getInputProps("areasOfExpertise")}
                   />
                   <Flex gap="md" justify="center">
                     <Button
@@ -390,7 +384,7 @@ export default function EditProfileModal() {
                     >
                       Back
                     </Button>
-                    <Button onClick={() => setStep("account")} variant="subtle">
+                    <Button onClick={() => setStep("bio")} variant="subtle">
                       Next
                     </Button>
                   </Flex>
@@ -398,46 +392,23 @@ export default function EditProfileModal() {
               </Fieldset>
             </Accordion.Panel>
           </Accordion.Item>
-          <Accordion.Item value="account">
-            <Collapse in={step !== "account"}>
-              <Accordion.Control>Account Settings</Accordion.Control>
+          <Accordion.Item value="bio">
+            <Collapse in={step !== "bio"}>
+              <Accordion.Control>Your Bio</Accordion.Control>
             </Collapse>
             <Accordion.Panel py="lg">
-              <Fieldset legend="Account Settings">
+              <Fieldset legend="Your Bio">
                 <Stack gap="md">
-                  <Flex gap="xs">
-                    <Text fw="bold">Username:</Text>{" "}
-                    <Text>{profile?.username}</Text>
-                  </Flex>
-                  <Flex gap="xs">
-                    <Text fw="bold">Log in email:</Text>{" "}
-                    <Text>{session?.user?.email}</Text>
-                  </Flex>
-                  <Radio.Group
-                    description="Who can view your profile"
-                    label="Profile Visibility"
-                    name="profileVisibility"
-                    {...form.getInputProps("profileVisibility")}
-                  >
-                    <Group mt="md">
-                      <Radio label="Public" value="public" />
-                      <Radio label="Private" value="private" />
-                      <Radio label="Signed in users" value="signed_in_users" />
-                    </Group>
-                  </Radio.Group>
-                  <Text c="dimmed" fs="italic" size="sm">
-                    {form.getTransformedValues().profileVisibility ===
-                    "public" ? (
-                      "Everyone can search for and view your profile"
-                    ) : form.getTransformedValues().profileVisibility ===
-                      "private" ? (
-                      <Flex align="center" gap="xs">
-                        <IconLock size="1rem" /> Only you can view your profile
-                      </Flex>
-                    ) : (
-                      "Only other Speakfolio users can view your profile"
-                    )}
-                  </Text>
+                  <Textarea
+                    autosize
+                    description="(Optional) A detailed bio about yourself (Max 4000 characters)"
+                    label="Bio"
+                    maxLength={4000}
+                    minRows={5}
+                    name="bio"
+                    placeholder="Bio"
+                    {...form.getInputProps("bio")}
+                  />
                   <Flex gap="md" justify="center">
                     <Button onClick={() => setStep("about")} variant="subtle">
                       Back
@@ -473,3 +444,84 @@ export default function EditProfileModal() {
     </Modal>
   );
 }
+
+const commonProfessions = [
+  "Accountant",
+  "Administrative Assistant",
+  "Aerospace Engineer",
+  "Biochemist",
+  "Biomedical Engineer",
+  "Business Analyst",
+  "Business Development Manager",
+  "Chemical Engineer",
+  "Chief Executive Officer",
+  "Chief Financial Officer",
+  "Chief Operating Officer",
+  "Civil Engineer",
+  "Compliance Officer",
+  "Computer Scientist",
+  "Cybersecurity Analyst",
+  "Data Analyst",
+  "Data Scientist",
+  "Database Administrator",
+  "DevOps Engineer",
+  "Digital Marketing Manager",
+  "E-commerce Manager",
+  "Electrical Engineer",
+  "Environmental Scientist",
+  "Executive Assistant",
+  "Financial Analyst",
+  "Financial Planner",
+  "Geneticist",
+  "Graphic Designer",
+  "Human Resources Director",
+  "Human Resources Manager",
+  "IT Consultant",
+  "IT Project Manager",
+  "Industrial Engineer",
+  "Information Technology Manager",
+  "Investment Banker",
+  "Legal Counsel",
+  "Logistics Manager",
+  "Machine Learning Engineer",
+  "Management Consultant",
+  "Marketing Manager",
+  "Materials Scientist",
+  "Mechanical Engineer",
+  "Microbiologist",
+  "Network Administrator",
+  "Operations Manager",
+  "Pharmaceutical Sales Representative",
+  "Physicist",
+  "Product Manager",
+  "Product Marketing Manager",
+  "Project Manager",
+  "Public Relations Specialist",
+  "Quality Assurance Engineer",
+  "Real Estate Developer",
+  "Research Scientist",
+  "Research and Development Engineer",
+  "Risk Manager",
+  "Robotics Engineer",
+  "Sales Director",
+  "Sales Manager",
+  "Sales Representative",
+  "Software Developer",
+  "Software Engineer",
+  "Statistician",
+  "Strategic Planner",
+  "Structural Engineer",
+  "Supply Chain Manager",
+  "Systems Analyst",
+  "Systems Architect",
+  "Systems Engineer",
+  "Talent Acquisition Specialist",
+  "Tax Advisor",
+  "Technical Sales Engineer",
+  "Technical Support Specialist",
+  "Technical Writer",
+  "Training and Development Manager",
+  "UI/UX Designer",
+  "Venture Capitalist",
+  "Web Developer",
+];

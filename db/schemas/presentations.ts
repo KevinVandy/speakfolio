@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profiles";
 
 export const presentationStatusEnum = pgEnum("presentation_status", [
@@ -12,6 +12,9 @@ export const presentationStatusEnum = pgEnum("presentation_status", [
 export const presentationsTable = pgTable("presentations", {
   abstract: text("abstract").default(""),
   coverImageUrl: text("cover_image_url"),
+  createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
+    .defaultNow()
+    .notNull(),
   headline: text("headline").default(""),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   lastPresentedAt: text("last_presented_at").default(""),
@@ -19,7 +22,10 @@ export const presentationsTable = pgTable("presentations", {
   slidesUrl: text("slides_url").default(""),
   status: presentationStatusEnum("status").default("draft"),
   timesPresented: text("times_presented").default(""),
-  title: text("presentation_name").notNull(),
+  title: text("title").notNull(),
+  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
+    .defaultNow()
+    .notNull(),
   videoUrl: text("video_url").default(""),
 });
 
