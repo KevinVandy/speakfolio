@@ -1,4 +1,6 @@
+import { relations } from "drizzle-orm";
 import { pgEnum, pgTable, text, unique, uuid } from "drizzle-orm/pg-core";
+import { presentationsTable } from "./presentations";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
   "public",
@@ -25,6 +27,7 @@ export const profileColorEnum = pgEnum("profile_color", [
 export const profilesTable = pgTable(
   "profiles",
   {
+    areasOfExpertise: text("areas_of_expertise").default(""),
     bio: text("bio").default(""),
     company: text("company").default(""),
     contactEmail: text("contact_email").default(""),
@@ -50,5 +53,9 @@ export const profilesTable = pgTable(
     };
   }
 );
+
+export const profilesTableRelations = relations(profilesTable, ({ many }) => ({
+  presentations: many(presentationsTable),
+}));
 
 export type IProfile = typeof profilesTable.$inferSelect;
