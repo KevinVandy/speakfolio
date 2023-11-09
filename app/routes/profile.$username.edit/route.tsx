@@ -9,32 +9,28 @@ import {
 } from "@remix-run/react";
 import {
   Accordion,
-  Autocomplete,
-  Avatar,
-  BackgroundImage,
   Button,
-  Center,
   Collapse,
-  Fieldset,
-  Flex,
   LoadingOverlay,
   Modal,
-  Select,
   SimpleGrid,
-  Stack,
   Text,
-  TextInput,
-  Textarea,
-  useMantineTheme,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { IconAt, IconCircle, IconPlus } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profileColorEnum, profilesTable } from "db/schemas/profiles";
+import {
+  type IProfileFull,
+  profileColorEnum,
+  profilesTable,
+} from "db/schemas/profiles";
+import { ProfileAboutFieldset } from "./ProfileAbout";
+import { ProfileBioFieldset } from "./ProfileBio";
+import { ProfileCustomizationFieldset } from "./ProfileCustomization";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -168,19 +164,20 @@ export default function EditProfileModal() {
   const navigation = useNavigation();
   const navigate = useNavigate();
   const { username } = useParams();
-  const theme = useMantineTheme();
 
   const { data: profile } = useFetchProfile({ username });
   const { isOwnProfile } = profile;
 
-  const form = useForm({
+  const form = useForm<IProfileFull>({
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? profile!,
     validate: zodResolver(profileSchema),
   });
 
   const [opened, { close, open }] = useDisclosure(false);
-  const [step, setStep] = useState<null | string>("customization");
+  const [currentStep, setCurrentStep] = useState<null | string>(
+    "customization"
+  );
 
   const closeEditModal = () => {
     close();
@@ -215,6 +212,26 @@ export default function EditProfileModal() {
     }
   }, [actionData]);
 
+  const steps = [
+    {
+      component: (
+        <ProfileCustomizationFieldset form={form} setStep={setCurrentStep} />
+      ),
+      id: "customization",
+      title: "Profile Customization",
+    },
+    {
+      component: <ProfileAboutFieldset form={form} setStep={setCurrentStep} />,
+      id: "about",
+      title: "About You",
+    },
+    {
+      component: <ProfileBioFieldset form={form} setStep={setCurrentStep} />,
+      id: "bio",
+      title: "Your Bio",
+    },
+  ];
+
   return (
     <Modal
       closeOnClickOutside={!form.isDirty()}
@@ -231,203 +248,33 @@ export default function EditProfileModal() {
         <input name="userId" type="hidden" value={profile.userId!} />
         <Accordion
           chevron={<IconPlus />}
-          onChange={setStep}
+          onChange={setCurrentStep}
           pos="relative"
-          value={step}
+          value={currentStep}
         >
           <LoadingOverlay visible={navigation.state === "submitting"} />
-          <Accordion.Item value="customization">
-            <Collapse in={step !== "customization"}>
-              <Accordion.Control>Profile Customization</Accordion.Control>
-            </Collapse>
-            <Accordion.Panel py="lg">
-              <Fieldset legend="Profile Customization">
-                <Stack gap="md">
-                  <TextInput
-                    description="The name you want to be displayed on your profile (Full Name)"
-                    label="Display Name"
-                    name="displayName"
-                    placeholder="Enter your name"
-                    withAsterisk
-                    {...form.getInputProps("displayName")}
-                  />
-                  <TextInput
-                    description="Public email address"
-                    label="Contact Email"
-                    leftSection={<IconAt size="1rem" />}
-                    name="contactEmail"
-                    placeholder="Enter your public contact email"
-                    {...form.getInputProps("contactEmail")}
-                  />
-                  <Select
-                    data={[
-                      "red",
-                      "blue",
-                      "green",
-                      "grape",
-                      "yellow",
-                      "orange",
-                      "violet",
-                      "pink",
-                      "indigo",
-                      "cyan",
-                      "lime",
-                      "teal",
-                      "gray",
-                    ]}
-                    label="Profile Theme Color"
-                    leftSection={
-                      <IconCircle
-                        color={
-                          theme.colors[
-                            form.getInputProps("profileColor").value
-                          ]["7"]
-                        }
-                        size="1rem"
-                      />
-                    }
-                    name="profileColor"
-                    {...form.getInputProps("profileColor")}
-                  />
-                  <TextInput
-                    description="A link to your profile picture"
-                    label="Profile Picture URL"
-                    name="profileImageUrl"
-                    placeholder="Enter a link to your profile picture"
-                    {...form.getInputProps("profileImageUrl")}
-                  />
-                  <TextInput
-                    description="A link to your cover photo"
-                    label="Cover Photo URL"
-                    name="coverImageUrl"
-                    placeholder="Enter a link to your cover photo"
-                    {...form.getInputProps("coverImageUrl")}
-                  />
-                  <BackgroundImage
-                    mb="xl"
-                    radius="xs"
-                    src={form.getTransformedValues().coverImageUrl ?? ""}
-                  >
-                    <Center mih="100px" style={{ alignItems: "flex-end" }}>
-                      <Avatar
-                        color={
-                          form.getTransformedValues().profileColor ?? "blue"
-                        }
-                        radius="100%"
-                        size="xl"
-                        src={form.getTransformedValues().profileImageUrl ?? ""}
-                        style={{ transform: "translateY(2rem)" }}
-                        variant="filled"
-                      />
-                    </Center>
-                  </BackgroundImage>
-                  <Flex gap="md" justify="center">
-                    <Button disabled variant="subtle">
-                      Back
-                    </Button>
-                    <Button onClick={() => setStep("about")} variant="subtle">
-                      Next
-                    </Button>
-                  </Flex>
-                </Stack>
-              </Fieldset>
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="about">
-            <Collapse in={step !== "about"}>
-              <Accordion.Control>About You</Accordion.Control>
-            </Collapse>
-            <Accordion.Panel py="lg">
-              <Fieldset legend="About You">
-                <Stack gap="md">
-                  <TextInput
-                    description="(Optional) A 1-line description of yourself"
-                    label="Headline"
-                    name="headline"
-                    placeholder="Headline"
-                    {...form.getInputProps("headline")}
-                  />
-                  <Autocomplete
-                    data={commonProfessions}
-                    description="(Optional) Your profession or industry"
-                    label="Profession"
-                    name="profession"
-                    placeholder="Profession"
-                    {...form.getInputProps("profession")}
-                  />
-                  <TextInput
-                    description="(Optional) Your job title"
-                    label="Job Title"
-                    name="jobTitle"
-                    placeholder="Job Title"
-                    {...form.getInputProps("jobTitle")}
-                  />
-                  <TextInput
-                    description="(Optional) Your company"
-                    label="Company"
-                    name="company"
-                    placeholder="Company"
-                    {...form.getInputProps("company")}
-                  />
-                  <Textarea
-                    label="Areas of Expertise"
-                    maxLength={100}
-                    minRows={2}
-                    name="areasOfExpertise"
-                    placeholder="List up to 10 areas of expertise"
-                    {...form.getInputProps("areasOfExpertise")}
-                  />
-                  <Flex gap="md" justify="center">
-                    <Button
-                      onClick={() => setStep("customization")}
-                      variant="subtle"
-                    >
-                      Back
-                    </Button>
-                    <Button onClick={() => setStep("bio")} variant="subtle">
-                      Next
-                    </Button>
-                  </Flex>
-                </Stack>
-              </Fieldset>
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="bio">
-            <Collapse in={step !== "bio"}>
-              <Accordion.Control>Your Bio</Accordion.Control>
-            </Collapse>
-            <Accordion.Panel py="lg">
-              <Fieldset legend="Your Bio">
-                <Stack gap="md">
-                  <Textarea
-                    autosize
-                    description="(Optional) A detailed bio about yourself (Max 4000 characters)"
-                    label="Bio"
-                    maxLength={4000}
-                    minRows={5}
-                    name="bio"
-                    placeholder="Bio"
-                    {...form.getInputProps("bio")}
-                  />
-                  <Flex gap="md" justify="center">
-                    <Button onClick={() => setStep("about")} variant="subtle">
-                      Back
-                    </Button>
-                    <Button disabled variant="subtle">
-                      Next
-                    </Button>
-                  </Flex>
-                </Stack>
-              </Fieldset>
-            </Accordion.Panel>
-          </Accordion.Item>
+          {steps.map((step) => (
+            <Accordion.Item key={step.id} value={step.id}>
+              <Collapse in={currentStep !== step.id}>
+                <Accordion.Control>{step.title}</Accordion.Control>
+              </Collapse>
+              <Accordion.Panel py="lg">{step.component}</Accordion.Panel>
+            </Accordion.Item>
+          ))}
         </Accordion>
         {Object.values(form.errors).map((error, i) => (
           <Text c="red" key={i}>
             {error}
           </Text>
         ))}
-        <SimpleGrid cols={2} mt="xl">
+        <SimpleGrid
+          bg="inherit"
+          bottom={0}
+          cols={2}
+          my="xl"
+          pos="sticky"
+          w="100%"
+        >
           <Button onClick={handleCancel} type="button" variant="default">
             Cancel
           </Button>
@@ -444,84 +291,3 @@ export default function EditProfileModal() {
     </Modal>
   );
 }
-
-const commonProfessions = [
-  "Accountant",
-  "Administrative Assistant",
-  "Aerospace Engineer",
-  "Biochemist",
-  "Biomedical Engineer",
-  "Business Analyst",
-  "Business Development Manager",
-  "Chemical Engineer",
-  "Chief Executive Officer",
-  "Chief Financial Officer",
-  "Chief Operating Officer",
-  "Civil Engineer",
-  "Compliance Officer",
-  "Computer Scientist",
-  "Cybersecurity Analyst",
-  "Data Analyst",
-  "Data Scientist",
-  "Database Administrator",
-  "DevOps Engineer",
-  "Digital Marketing Manager",
-  "E-commerce Manager",
-  "Electrical Engineer",
-  "Environmental Scientist",
-  "Executive Assistant",
-  "Financial Analyst",
-  "Financial Planner",
-  "Geneticist",
-  "Graphic Designer",
-  "Human Resources Director",
-  "Human Resources Manager",
-  "IT Consultant",
-  "IT Project Manager",
-  "Industrial Engineer",
-  "Information Technology Manager",
-  "Investment Banker",
-  "Legal Counsel",
-  "Logistics Manager",
-  "Machine Learning Engineer",
-  "Management Consultant",
-  "Marketing Manager",
-  "Materials Scientist",
-  "Mechanical Engineer",
-  "Microbiologist",
-  "Network Administrator",
-  "Operations Manager",
-  "Pharmaceutical Sales Representative",
-  "Physicist",
-  "Product Manager",
-  "Product Marketing Manager",
-  "Project Manager",
-  "Public Relations Specialist",
-  "Quality Assurance Engineer",
-  "Real Estate Developer",
-  "Research Scientist",
-  "Research and Development Engineer",
-  "Risk Manager",
-  "Robotics Engineer",
-  "Sales Director",
-  "Sales Manager",
-  "Sales Representative",
-  "Software Developer",
-  "Software Engineer",
-  "Statistician",
-  "Strategic Planner",
-  "Structural Engineer",
-  "Supply Chain Manager",
-  "Systems Analyst",
-  "Systems Architect",
-  "Systems Engineer",
-  "Talent Acquisition Specialist",
-  "Tax Advisor",
-  "Technical Sales Engineer",
-  "Technical Support Specialist",
-  "Technical Writer",
-  "Training and Development Manager",
-  "UI/UX Designer",
-  "Venture Capitalist",
-  "Web Developer",
-];

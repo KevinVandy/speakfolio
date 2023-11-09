@@ -3,7 +3,7 @@ import { Link, Outlet, useParams } from "@remix-run/react";
 import { Button } from "@mantine/core";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { type IProfile, profilesTable } from "db/schemas/profiles";
+import { type IProfileFull, profilesTable } from "db/schemas/profiles";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -20,6 +20,9 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   let profile = username
     ? await db.query.profilesTable.findFirst({
         where: eq(profilesTable.username, username),
+        with: {
+          presentations: true,
+        },
       })
     : null;
 
@@ -29,7 +32,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return redirect("/unknown-profile");
   }
 
-  const returnData: IProfile & { isOwnProfile?: boolean } = {
+  const returnData: IProfileFull = {
     ...profile,
     isOwnProfile,
   };
@@ -41,6 +44,7 @@ export default function ProfileIdPage() {
   const { username } = useParams();
 
   const { data: profile, refetch } = useFetchProfile({ username });
+
   const { isOwnProfile } = profile;
 
   return (

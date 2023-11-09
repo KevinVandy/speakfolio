@@ -72,3 +72,8 @@ export const profilesTableRelations = relations(profilesTable, ({ many }) => ({
 }));
 
 export type IProfile = typeof profilesTable.$inferSelect;
+
+export type IProfileFull = IProfile & {
+  isOwnProfile: boolean;
+  presentations?: (typeof presentationsTable.$inferSelect)[];
+};

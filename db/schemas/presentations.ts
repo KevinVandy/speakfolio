@@ -32,7 +32,10 @@ export const presentationsTable = pgTable("presentations", {
 export const presentationsTableRelations = relations(
   presentationsTable,
   ({ one }) => ({
-    profile: one(profilesTable),
+    profile: one(profilesTable, {
+      fields: [presentationsTable.profileId],
+      references: [profilesTable.id],
+    }),
   })
 );
 
