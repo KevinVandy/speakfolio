@@ -26,7 +26,7 @@ import { IconLock } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profileVisibilityEnum, profilesTable } from "db/schemas/profiles";
+import { profileVisibilityEnum, profilesTable } from "db/schemas/profilesTable";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -39,7 +39,7 @@ interface ProfileUpdateResponse {
 
 const profileSchema = z.object({
   id: z.string().uuid(),
-  profileVisibility: z.enum(profileVisibilityEnum.enumValues),
+  visibility: z.enum(profileVisibilityEnum.enumValues),
   userId: z.string().uuid(),
 });
 
@@ -77,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
     await db
       .update(profilesTable)
       .set({
-        profileVisibility: data.profileVisibility,
+        visibility: data.visibility,
       })
       .where(eq(profilesTable.id, data.id));
     return redirect("../");
@@ -174,8 +174,8 @@ export default function EditProfileSettingsModal() {
             <Radio.Group
               description="Who can view your profile"
               label="Profile Visibility"
-              name="profileVisibility"
-              {...form.getInputProps("profileVisibility")}
+              name="visibility"
+              {...form.getInputProps("visibility")}
             >
               <Group mt="md">
                 <Radio label="Public" value="public" />
@@ -184,10 +184,9 @@ export default function EditProfileSettingsModal() {
               </Group>
             </Radio.Group>
             <Text c="dimmed" fs="italic" size="sm">
-              {form.getTransformedValues().profileVisibility === "public" ? (
+              {form.getTransformedValues().visibility === "public" ? (
                 "Everyone can search for and view your profile"
-              ) : form.getTransformedValues().profileVisibility ===
-                "private" ? (
+              ) : form.getTransformedValues().visibility === "private" ? (
                 <Flex align="center" gap="xs">
                   <IconLock size="1rem" /> Only you can view your profile
                 </Flex>

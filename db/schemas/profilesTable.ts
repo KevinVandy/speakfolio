@@ -2,12 +2,14 @@ import { relations } from "drizzle-orm";
 import {
   pgEnum,
   pgTable,
+  real,
   text,
   timestamp,
   unique,
   uuid,
 } from "drizzle-orm/pg-core";
-import { presentationsTable } from "./presentations";
+import { presentationsTable } from "./presentationsTable";
+import { profilesBiosTable } from "./profilesBiosTable";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
   "public",
@@ -35,28 +37,28 @@ export const profilesTable = pgTable(
   "profiles",
   {
     areasOfExpertise: text("areas_of_expertise").default(""),
-    bio: text("bio").default(""),
     company: text("company").default(""),
     contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    displayName: text("display_name").notNull(),
     headline: text("headline").default(""),
     id: uuid("id").defaultRandom().primaryKey().notNull(),
     jobTitle: text("job_title").default(""),
+    latitude: real("latitude"),
+    location: text("location").default(""),
+    longitude: real("longitude"),
+    name: text("name").notNull(),
     profession: text("profession").default(""),
     profileColor: profileColorEnum("profile_color").default("blue"),
     profileImageUrl: text("profile_image_url"),
-    profileVisibility: profileVisibilityEnum("profile_visibility")
-      .default("public")
-      .notNull(),
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
     userId: uuid("user_id"), //fk to auth.users
     username: text("username").notNull(),
+    visibility: profileVisibilityEnum("visibility").default("public").notNull(),
   },
   (table) => {
     return {
@@ -67,9 +69,13 @@ export const profilesTable = pgTable(
   }
 );
 
-export const profilesTableRelations = relations(profilesTable, ({ many }) => ({
-  presentations: many(presentationsTable),
-}));
+export const profilesTableRelations = relations(
+  profilesTable,
+  ({ many, one }) => ({
+    bio: one(profilesBiosTable),
+    presentations: many(presentationsTable),
+  })
+);
 
 export type IProfile = typeof profilesTable.$inferSelect;
 

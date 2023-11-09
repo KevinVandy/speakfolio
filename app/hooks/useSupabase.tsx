@@ -5,7 +5,7 @@ import {
   type SupabaseClient,
   createBrowserClient,
 } from "@supabase/auth-helpers-remix";
-import { type IProfile } from "db/schemas/profiles";
+import { type IProfile } from "db/schemas/profilesTable";
 
 interface SupabaseContextValues {
   loggedInUserProfile: IProfile | null;

@@ -24,11 +24,12 @@ import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
+import { profilesBiosTable } from "db/schemas/profilesBiosTable";
 import {
   type IProfileFull,
   profileColorEnum,
   profilesTable,
-} from "db/schemas/profiles";
+} from "db/schemas/profilesTable";
 import { ProfileAboutFieldset } from "./ProfileAbout";
 import { ProfileBioFieldset } from "./ProfileBio";
 import { ProfileCustomizationFieldset } from "./ProfileCustomization";
@@ -69,7 +70,6 @@ const profileSchema = z.object({
     .optional()
     .nullish()
     .transform((s) => s || null),
-  displayName: z.string().min(1, { message: "Display Name is required" }),
   headline: z
     .string()
     .max(100, { message: "Headline max 100 characters" })
@@ -81,6 +81,7 @@ const profileSchema = z.object({
     .max(100, { message: "Job Title max 100 characters" })
     .optional()
     .nullish(),
+  name: z.string().min(1, { message: "Display Name is required" }),
   profession: z
     .string()
     .max(100, { message: "Profession max 100 characters" })
@@ -129,22 +130,26 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile
   try {
+    //TODO: update profile and profileBios in a transaction
     await db
       .update(profilesTable)
       .set({
         areasOfExpertise: data.areasOfExpertise,
-        bio: data.bio,
         company: data.company,
         contactEmail: data.contactEmail,
         coverImageUrl: data.coverImageUrl,
-        displayName: data.displayName,
         headline: data.headline,
         jobTitle: data.jobTitle,
+        name: data.name,
         profession: data.profession,
         profileColor: data.profileColor,
         profileImageUrl: data.profileImageUrl,
       })
       .where(eq(profilesTable.id, data.id));
+    await db
+      .update(profilesBiosTable)
+      .set({ bio: data.bio })
+      .where(eq(profilesBiosTable.profileId, data.id));
     return redirect("../");
   } catch (error) {
     console.error(error);

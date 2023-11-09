@@ -28,7 +28,8 @@ import { useForm, zodResolver } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { z } from "zod";
 import { db } from "db/connection";
-import { profilesTable } from "db/schemas/profiles";
+import { profilesBiosTable } from "db/schemas/profilesBiosTable";
+import { profilesTable } from "db/schemas/profilesTable";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface SignUpPostResponse {
@@ -94,11 +95,17 @@ export async function action({ request }: ActionFunctionArgs) {
     if (!authResult?.data?.user?.id) {
       throw new Error("Failed to create user");
     }
-    await db.insert(profilesTable).values({
-      displayName: data.name,
-      profileVisibility: "public",
-      userId: authResult.data.user.id,
-      username: data.username,
+    const profileInsertResult = await db
+      .insert(profilesTable)
+      .values({
+        name: data.name,
+        userId: authResult.data.user.id,
+        username: data.username,
+        visibility: "public",
+      })
+      .returning({ insertedId: profilesTable.id });
+    await db.insert(profilesBiosTable).values({
+      profileId: profileInsertResult[0].insertedId,
     });
   } catch (error) {
     console.error(error);

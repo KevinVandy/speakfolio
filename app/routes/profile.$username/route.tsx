@@ -1,9 +1,16 @@
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Link, Outlet, useParams } from "@remix-run/react";
-import { Button } from "@mantine/core";
+import {
+  Avatar,
+  BackgroundImage,
+  Center,
+  Flex,
+  Stack,
+  Title,
+} from "@mantine/core";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { type IProfileFull, profilesTable } from "db/schemas/profiles";
+import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -21,6 +28,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     ? await db.query.profilesTable.findFirst({
         where: eq(profilesTable.username, username),
         with: {
+          bio: true,
           presentations: true,
         },
       })
@@ -28,7 +36,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   const isOwnProfile = profile?.userId === session?.user?.id;
 
-  if (!profile || (!isOwnProfile && profile.profileVisibility === "private")) {
+  if (!profile || (!isOwnProfile && profile.visibility === "private")) {
     return redirect("/unknown-profile");
   }
 
@@ -48,17 +56,27 @@ export default function ProfileIdPage() {
   const { isOwnProfile } = profile;
 
   return (
-    <div>
-      <button onClick={() => refetch()}>Refetch</button>
-      {isOwnProfile && (
-        <>
-          <Button component={Link} to="edit">
-            Edit Profile
-          </Button>
-        </>
-      )}
-      <Outlet />
-      <pre>{JSON.stringify(profile, null, 2)}</pre>
-    </div>
+    <Stack gap="md">
+      {isOwnProfile && <Outlet />}
+      <BackgroundImage mb="xl" radius="xs" src={profile.coverImageUrl ?? ""}>
+        <Flex mih="200px" style={{ alignItems: "flex-end" }}>
+          <Avatar
+            color={profile.profileColor ?? "blue"}
+            radius="100%"
+            size="120px"
+            src={profile.profileImageUrl ?? ""}
+            style={{ transform: "translateY(50px)" }}
+            variant="filled"
+          />
+        </Flex>
+      </BackgroundImage>
+      <Title mt="lg" order={2} ta="center">
+        {profile.name}
+      </Title>
+
+      <pre style={{ whiteSpace: "pre-wrap" }}>
+        {JSON.stringify(profile, null, 2)}
+      </pre>
+    </Stack>
   );
 }

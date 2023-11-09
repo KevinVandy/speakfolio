@@ -86,10 +86,10 @@ export function ProfileCustomizationFieldset({ form, setStep }: Props) {
         <TextInput
           description="The name you want to be displayed on your profile (Full Name)"
           label="Display Name"
-          name="displayName"
+          name="name"
           placeholder="Enter your name"
           withAsterisk
-          {...form.getInputProps("displayName")}
+          {...form.getInputProps("name")}
         />
         <TextInput
           description="Public email address"

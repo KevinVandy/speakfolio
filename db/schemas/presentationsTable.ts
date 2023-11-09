@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { profilesTable } from "./profiles";
+import { profilesTable } from "./profilesTable";
 
 export const presentationStatusEnum = pgEnum("presentation_status", [
   "archived",

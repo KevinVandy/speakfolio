@@ -1,3 +1,4 @@
-export * from "./schemas/profiles";
+export * from "./schemas/profilesTable";
 export * from "./schemas/enums";
-export * from "./schemas/presentations";
+export * from "./schemas/presentationsTable";
+export * from "./schemas/profilesBiosTable";

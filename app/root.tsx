@@ -30,7 +30,7 @@ import mantineNProgressStyles from "@mantine/nprogress/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesTable } from "db/schemas/profiles";
+import { profilesTable } from "db/schemas/profilesTable";
 import { Layout } from "./components/Layout";
 import { SupabaseProvider } from "./hooks/useSupabase";
 import theme from "./styles/theme";
