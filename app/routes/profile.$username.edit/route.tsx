@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -6,6 +6,7 @@ import {
   useNavigate,
   useNavigation,
   useParams,
+  useSearchParams,
 } from "@remix-run/react";
 import {
   Accordion,
@@ -175,9 +176,13 @@ export default function EditProfileModal() {
   });
 
   const [opened, { close, open }] = useDisclosure(false);
-  const [currentStep, setCurrentStep] = useState<null | string>(
-    "customization"
-  );
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentStep = searchParams.get("currentStep");
+  const setCurrentStep = (step: null | string) => {
+    setSearchParams((prev) => ({ ...prev, currentStep: step }));
+  };
 
   const closeEditModal = () => {
     close();
@@ -201,8 +206,14 @@ export default function EditProfileModal() {
   };
 
   useEffect(() => {
-    if (!profile || !isOwnProfile) return navigate("../");
-    else open();
+    if (!profile || !isOwnProfile) {
+      return navigate("../");
+    } else {
+      open();
+    }
+    if (!currentStep) {
+      setCurrentStep("customization");
+    }
   }, []);
 
   //sync back-end errors with form
