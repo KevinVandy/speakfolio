@@ -3,14 +3,15 @@ import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 
 export const profilesBiosTable = pgTable("profiles_bios", {
-  bio: text("bio").default(""),
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
+  plainText: text("plain_text").default(""),
   profileId: uuid("profile_id")
     .references(() => profilesTable.id)
     .notNull(),
+  richText: text("bio_rich_text").default(""),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),

@@ -17,9 +17,9 @@ export function ProfileBioFieldset({ form, setStep }: Props) {
           label="Bio"
           maxLength={4000}
           minRows={5}
-          name="bio"
+          name="bio.plainText"
           placeholder="Bio"
-          {...form.getInputProps("bio")}
+          {...form.getInputProps("bio.plainText")}
         />
         <Flex gap="md" justify="center">
           <Button onClick={() => setStep("about")} variant="subtle">

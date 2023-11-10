@@ -80,6 +80,7 @@ export const profilesTableRelations = relations(
 export type IProfile = typeof profilesTable.$inferSelect;
 
 export type IProfileFull = IProfile & {
+  bio?: Partial<typeof profilesBiosTable.$inferSelect>;
   isOwnProfile: boolean;
   presentations?: (typeof presentationsTable.$inferSelect)[];
 };

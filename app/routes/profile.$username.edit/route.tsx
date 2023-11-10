@@ -35,6 +35,7 @@ import { ProfileBioFieldset } from "./ProfileBio";
 import { ProfileCustomizationFieldset } from "./ProfileCustomization";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { transformDotNotation } from "~/util/transformDotNotation";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -49,8 +50,13 @@ const profileSchema = z.object({
     .optional()
     .nullish(),
   bio: z
-    .string()
-    .max(4000, { message: "Bio max 4000 characters" })
+    .object({
+      plainText: z
+        .string()
+        .max(4000, { message: "Bio max 4000 characters" })
+        .optional()
+        .nullish(),
+    })
     .optional()
     .nullish(),
   company: z
@@ -59,9 +65,12 @@ const profileSchema = z.object({
     .optional()
     .nullish(),
   contactEmail: z
-    .string()
-    .email({ message: "Contact email is not a valid email" })
-    .optional(),
+    .union([
+      z.string().email({ message: "Contact email is not a valid email" }),
+      z.string().length(0),
+    ])
+    .optional()
+    .nullish(),
   coverImageUrl: z
     .union([
       z.string().url({ message: "Cover Photo must be a valid URL" }),
@@ -110,7 +119,11 @@ export async function action({ request }: ActionFunctionArgs) {
   };
 
   //get data from form
-  const rawData = Object.fromEntries(await request.formData());
+  const rawData = transformDotNotation(
+    Object.fromEntries(await request.formData())
+  );
+
+  console.log("raw", rawData);
 
   //validate data
   const validationResult = profileSchema.safeParse(rawData);
@@ -146,10 +159,12 @@ export async function action({ request }: ActionFunctionArgs) {
         profileImageUrl: data.profileImageUrl,
       })
       .where(eq(profilesTable.id, data.id));
-    await db
-      .update(profilesBiosTable)
-      .set({ bio: data.bio })
-      .where(eq(profilesBiosTable.profileId, data.id));
+    if (data.bio?.plainText) {
+      await db
+        .update(profilesBiosTable)
+        .set({ plainText: data.bio.plainText })
+        .where(eq(profilesBiosTable.profileId, data.id));
+    }
     return redirect("../");
   } catch (error) {
     console.error(error);

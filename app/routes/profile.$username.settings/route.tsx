@@ -39,8 +39,8 @@ interface ProfileUpdateResponse {
 
 const profileSchema = z.object({
   id: z.string().uuid(),
-  visibility: z.enum(profileVisibilityEnum.enumValues),
   userId: z.string().uuid(),
+  visibility: z.enum(profileVisibilityEnum.enumValues),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

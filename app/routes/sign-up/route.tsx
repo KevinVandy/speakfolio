@@ -230,7 +230,12 @@ export default function SignUpPage() {
                 isUsernameAvailable
               }
             >
-              <Text color="green">{`${debouncedUsername} is available!`}</Text>
+              <Text c="green">
+                Claim{" "}
+                <Anchor>
+                  {`speakfolio.com/profile/${debouncedUsername} !`}
+                </Anchor>
+              </Text>
             </Collapse>
             <TextInput
               label="Email"

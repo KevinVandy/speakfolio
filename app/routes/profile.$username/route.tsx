@@ -1,13 +1,6 @@
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Link, Outlet, useParams } from "@remix-run/react";
-import {
-  Avatar,
-  BackgroundImage,
-  Center,
-  Flex,
-  Stack,
-  Title,
-} from "@mantine/core";
+import { Outlet, useParams } from "@remix-run/react";
+import { Avatar, BackgroundImage, Flex, Stack, Title } from "@mantine/core";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
@@ -28,7 +21,13 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     ? await db.query.profilesTable.findFirst({
         where: eq(profilesTable.username, username),
         with: {
-          bio: true,
+          bio: {
+            columns: {
+              id: true,
+              plainText: true,
+              richText: true,
+            },
+          },
           presentations: true,
         },
       })
@@ -40,10 +39,10 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     return redirect("/unknown-profile");
   }
 
-  const returnData: IProfileFull = {
+  const returnData = {
     ...profile,
     isOwnProfile,
-  };
+  } as IProfileFull;
 
   return json(returnData);
 }
@@ -51,7 +50,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 export default function ProfileIdPage() {
   const { username } = useParams();
 
-  const { data: profile, refetch } = useFetchProfile({ username });
+  const { data: profile } = useFetchProfile({ username });
 
   const { isOwnProfile } = profile;
 
