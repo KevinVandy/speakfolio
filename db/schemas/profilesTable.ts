@@ -10,6 +10,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentationsTable";
 import { profilesBiosTable } from "./profilesBiosTable";
+import { profilesLinksTable } from "./profilesLinksTable";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
   "public",
@@ -73,6 +74,7 @@ export const profilesTableRelations = relations(
   profilesTable,
   ({ many, one }) => ({
     bio: one(profilesBiosTable),
+    links: many(profilesLinksTable),
     presentations: many(presentationsTable),
   })
 );

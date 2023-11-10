@@ -9,6 +9,6 @@ export default {
   },
   driver: "pg",
   out: "./db/migrations",
-  schema: "./db/schemas/*",
+  schema: "./db/schema.ts",
   verbose: true,
 } satisfies Config;

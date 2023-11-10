@@ -7,6 +7,11 @@ const theme: MantineThemeOverride = {
     },
   },
   cursorType: "pointer",
+  headings: {
+    sizes: {
+      h2: { fontSize: "30pt", lineHeight: "2rem" },
+    },
+  },
   primaryColor: "pink",
 };
 

@@ -1,6 +1,14 @@
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Outlet, useParams } from "@remix-run/react";
-import { Avatar, BackgroundImage, Flex, Stack, Title } from "@mantine/core";
+import {
+  Avatar,
+  BackgroundImage,
+  Flex,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
+import { IconMapPin } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
@@ -49,29 +57,43 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 export default function ProfileIdPage() {
   const { username } = useParams();
-
   const { data: profile } = useFetchProfile({ username });
-
   const { isOwnProfile } = profile;
 
   return (
     <Stack gap="md">
       {isOwnProfile && <Outlet />}
-      <BackgroundImage mb="xl" radius="xs" src={profile.coverImageUrl ?? ""}>
+      <BackgroundImage radius="sm" src={profile.coverImageUrl ?? ""}>
         <Flex mih="200px" style={{ alignItems: "flex-end" }}>
           <Avatar
             color={profile.profileColor ?? "blue"}
             radius="100%"
-            size="120px"
+            size="160px"
             src={profile.profileImageUrl ?? ""}
-            style={{ transform: "translateY(50px)" }}
+            style={{ transform: "translateY(72px)" }}
             variant="filled"
           />
         </Flex>
       </BackgroundImage>
-      <Title mt="lg" order={2} ta="center">
-        {profile.name}
-      </Title>
+      <Flex>
+        <Title ml="180px" order={2}>
+          {profile.name}
+        </Title>
+        {profile.location ? (
+          <Flex align="center" c="dimmed" gap="4px" pl="md">
+            <IconMapPin />
+            <Text c="dimmed" size="xl">
+              {profile.location}
+            </Text>
+          </Flex>
+        ) : null}
+      </Flex>
+      <Text mt="xl" ta="center" tt="uppercase">
+        {profile.headline}
+      </Text>
+      <Text c="blue" fw="bold" ta="center">
+        {profile.jobTitle} {profile.company && `at ${profile.company}`}
+      </Text>
 
       <pre style={{ whiteSpace: "pre-wrap" }}>
         {JSON.stringify(profile, null, 2)}

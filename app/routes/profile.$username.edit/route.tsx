@@ -90,6 +90,11 @@ const profileSchema = z.object({
     .max(100, { message: "Job Title max 100 characters" })
     .optional()
     .nullish(),
+  location: z
+    .string()
+    .max(100, { message: "Location max 100 characters" })
+    .optional()
+    .nullish(),
   name: z.string().min(1, { message: "Display Name is required" }),
   profession: z
     .string()
@@ -153,6 +158,7 @@ export async function action({ request }: ActionFunctionArgs) {
         coverImageUrl: data.coverImageUrl,
         headline: data.headline,
         jobTitle: data.jobTitle,
+        location: data.location,
         name: data.name,
         profession: data.profession,
         profileColor: data.profileColor,
