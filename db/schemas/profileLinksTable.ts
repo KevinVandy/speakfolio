@@ -27,13 +27,13 @@ export const profilesLinksTable = pgTable("profile_links", {
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  link: text("link").notNull(),
   profileId: uuid("profile_id").references(() => profilesTable.id),
   site: linkSiteEnum("site").default("Other"),
   title: text("title").default(""),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
+  url: text("url").notNull(),
 });
 
 export const profilesLinksTableRelations = relations(

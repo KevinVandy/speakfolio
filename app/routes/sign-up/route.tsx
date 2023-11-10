@@ -28,7 +28,7 @@ import { useForm, zodResolver } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
 import { z } from "zod";
 import { db } from "db/connection";
-import { profilesBiosTable } from "db/schemas/profilesBiosTable";
+import { profileBiosTable } from "db/schemas/profileBiosTable";
 import { profilesTable } from "db/schemas/profilesTable";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -104,7 +104,7 @@ export async function action({ request }: ActionFunctionArgs) {
         visibility: "public",
       })
       .returning({ insertedId: profilesTable.id });
-    await db.insert(profilesBiosTable).values({
+    await db.insert(profileBiosTable).values({
       profileId: profileInsertResult[0].insertedId,
     });
   } catch (error) {

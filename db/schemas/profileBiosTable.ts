@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 
-export const profilesBiosTable = pgTable("profiles_bios", {
+export const profileBiosTable = pgTable("profile_bios", {
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -11,17 +11,17 @@ export const profilesBiosTable = pgTable("profiles_bios", {
   profileId: uuid("profile_id")
     .references(() => profilesTable.id)
     .notNull(),
-  richText: text("bio_rich_text").default(""),
+  richText: text("rich_text").default(""),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
 });
 
-export const profilesBiosTableRelations = relations(
-  profilesBiosTable,
+export const profileBiosTableRelations = relations(
+  profileBiosTable,
   ({ one }) => ({
     profile: one(profilesTable, {
-      fields: [profilesBiosTable.profileId],
+      fields: [profileBiosTable.profileId],
       references: [profilesTable.id],
     }),
   })

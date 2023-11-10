@@ -71,6 +71,13 @@
       "when": 1699586602075,
       "tag": "0009_handy_vulture",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1699626775089,
+      "tag": "0010_aberrant_tombstone",
+      "breakpoints": true
     }
   ]
 }

@@ -9,8 +9,8 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentationsTable";
-import { profilesBiosTable } from "./profilesBiosTable";
-import { profilesLinksTable } from "./profilesLinksTable";
+import { profileBiosTable } from "./profileBiosTable";
+import { profilesLinksTable } from "./profileLinksTable";
 
 export const profileVisibilityEnum = pgEnum("profile_visibility", [
   "public",
@@ -73,7 +73,7 @@ export const profilesTable = pgTable(
 export const profilesTableRelations = relations(
   profilesTable,
   ({ many, one }) => ({
-    bio: one(profilesBiosTable),
+    bio: one(profileBiosTable),
     links: many(profilesLinksTable),
     presentations: many(presentationsTable),
   })
@@ -82,7 +82,7 @@ export const profilesTableRelations = relations(
 export type IProfile = typeof profilesTable.$inferSelect;
 
 export type IProfileFull = IProfile & {
-  bio?: Partial<typeof profilesBiosTable.$inferSelect>;
+  bio?: Partial<typeof profileBiosTable.$inferSelect>;
   isOwnProfile: boolean;
   presentations?: (typeof presentationsTable.$inferSelect)[];
 };

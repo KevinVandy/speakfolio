@@ -24,7 +24,7 @@ import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesBiosTable } from "db/schemas/profilesBiosTable";
+import { profileBiosTable } from "db/schemas/profileBiosTable";
 import {
   type IProfileFull,
   profileColorEnum,
@@ -90,6 +90,15 @@ const profileSchema = z.object({
     .max(100, { message: "Job Title max 100 characters" })
     .optional()
     .nullish(),
+  links: z.array(
+    z.object({
+      title: z.string().max(100, { message: "Link label max 100 characters" }),
+      url: z
+        .string()
+        .url({ message: "Link URL must be a valid URL" })
+        .max(100, { message: "Link URL max 100 characters" }),
+    })
+  ),
   location: z
     .string()
     .max(100, { message: "Location max 100 characters" })
@@ -167,9 +176,9 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(eq(profilesTable.id, data.id));
     if (data.bio?.plainText) {
       await db
-        .update(profilesBiosTable)
+        .update(profileBiosTable)
         .set({ plainText: data.bio.plainText })
-        .where(eq(profilesBiosTable.profileId, data.id));
+        .where(eq(profileBiosTable.profileId, data.id));
     }
     return redirect("../");
   } catch (error) {
