@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -12,6 +12,7 @@ import {
   Accordion,
   Button,
   Collapse,
+  Flex,
   LoadingOverlay,
   Modal,
   SimpleGrid,
@@ -27,15 +28,17 @@ import { db } from "db/connection";
 import { profileBiosTable } from "db/schemas/profileBiosTable";
 import {
   type IProfileFull,
-  profileColorEnum,
+  profileColors,
   profilesTable,
 } from "db/schemas/profilesTable";
 import { ProfileAboutFieldset } from "./ProfileAbout";
 import { ProfileBioFieldset } from "./ProfileBio";
 import { ProfileCustomizationFieldset } from "./ProfileCustomization";
+import { ProfileLinksFieldset } from "./ProfileLinks";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { linkSites, profileLinksTable } from "db/schema";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -90,15 +93,23 @@ const profileSchema = z.object({
     .max(100, { message: "Job Title max 100 characters" })
     .optional()
     .nullish(),
-  links: z.array(
-    z.object({
-      title: z.string().max(100, { message: "Link label max 100 characters" }),
-      url: z
-        .string()
-        .url({ message: "Link URL must be a valid URL" })
-        .max(100, { message: "Link URL max 100 characters" }),
-    })
-  ),
+  links: z
+    .array(
+      z.object({
+        site: z.enum(linkSites),
+        title: z
+          .string()
+          .max(100, { message: "Link label max 100 characters" })
+          .optional()
+          .nullish(),
+        url: z
+          .string()
+          .url({ message: "Link URL must be a valid URL" })
+          .max(100, { message: "Link URL max 100 characters" }),
+      })
+    )
+    .optional()
+    .nullish(),
   location: z
     .string()
     .max(100, { message: "Location max 100 characters" })
@@ -110,7 +121,7 @@ const profileSchema = z.object({
     .max(100, { message: "Profession max 100 characters" })
     .optional()
     .nullish(),
-  profileColor: z.enum(profileColorEnum.enumValues),
+  profileColor: z.enum(profileColors),
   profileImageUrl: z
     .union([
       z.string().url({ message: "Profile Image must be a valid URL" }),
@@ -136,6 +147,8 @@ export async function action({ request }: ActionFunctionArgs) {
   const rawData = transformDotNotation(
     Object.fromEntries(await request.formData())
   );
+
+  console.log("links", rawData.links);
 
   console.log("raw", rawData);
 
@@ -180,6 +193,14 @@ export async function action({ request }: ActionFunctionArgs) {
         .set({ plainText: data.bio.plainText })
         .where(eq(profileBiosTable.profileId, data.id));
     }
+    await db
+      .delete(profileLinksTable)
+      .where(eq(profileLinksTable.profileId, data.id));
+    if (data.links?.length) {
+      await db
+        .insert(profileLinksTable)
+        .values(data.links.map((link) => ({ ...link, profileId: data.id })));
+    }
     return redirect("../");
   } catch (error) {
     console.error(error);
@@ -195,10 +216,42 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
+interface StepProps {
+  backNextButtons: React.ReactNode;
+  form: ReturnType<typeof useForm<IProfileFull>>;
+  setStep: (step: string) => void;
+}
+
+const steps = [
+  {
+    component: (props: StepProps) => (
+      <ProfileCustomizationFieldset {...props} />
+    ),
+    id: "customization",
+    title: "Profile Customization",
+  },
+  {
+    component: (props: StepProps) => <ProfileAboutFieldset {...props} />,
+    id: "about",
+    title: "About You",
+  },
+  {
+    component: (props: StepProps) => <ProfileBioFieldset {...props} />,
+    id: "bio",
+    title: "Your Bio",
+  },
+  {
+    component: (props: StepProps) => <ProfileLinksFieldset {...props} />,
+    id: "links",
+    title: "Social Links",
+  },
+];
+
 export default function EditProfileModal() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { username } = useParams();
 
   const { data: profile } = useFetchProfile({ username });
@@ -210,18 +263,18 @@ export default function EditProfileModal() {
     validate: zodResolver(profileSchema),
   });
 
-  const [opened, { close, open }] = useDisclosure(false);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  const currentStep = searchParams.get("currentStep");
+  const initialCurrentStep = searchParams.get("currentStep");
+  const [currentStep, _setCurrentStep] = useState(initialCurrentStep);
   const setCurrentStep = (step: null | string) => {
-    setSearchParams((prev) => ({ ...prev, currentStep: step }));
+    _setCurrentStep(step);
+    history.replaceState(null, "", `?currentStep=${step}`);
   };
+
+  const [opened, { close, open }] = useDisclosure(false);
 
   const closeEditModal = () => {
     close();
-    setTimeout(() => navigate("../"), 500);
+    setTimeout(() => navigate(".."), 500);
   };
 
   const openConfirmCancelModal = () =>
@@ -258,25 +311,43 @@ export default function EditProfileModal() {
     }
   }, [actionData]);
 
-  const steps = [
-    {
-      component: (
-        <ProfileCustomizationFieldset form={form} setStep={setCurrentStep} />
-      ),
-      id: "customization",
-      title: "Profile Customization",
-    },
-    {
-      component: <ProfileAboutFieldset form={form} setStep={setCurrentStep} />,
-      id: "about",
-      title: "About You",
-    },
-    {
-      component: <ProfileBioFieldset form={form} setStep={setCurrentStep} />,
-      id: "bio",
-      title: "Your Bio",
-    },
-  ];
+  const currentStepIndex = useMemo(
+    () => steps.findIndex((step) => step.id === currentStep),
+    [currentStep]
+  );
+
+  const goToNextStep = () => {
+    const nextStep = steps[currentStepIndex + 1];
+    if (nextStep) {
+      setCurrentStep(nextStep.id);
+    }
+  };
+
+  const goToPreviousStep = () => {
+    const previousStep = steps[currentStepIndex - 1];
+    if (previousStep) {
+      setCurrentStep(previousStep.id);
+    }
+  };
+
+  const backNextButtons = (
+    <Flex gap="md" justify="center">
+      <Button
+        disabled={currentStepIndex === 0}
+        onClick={goToPreviousStep}
+        variant="subtle"
+      >
+        Back
+      </Button>
+      <Button
+        disabled={currentStepIndex === steps.length - 1}
+        onClick={goToNextStep}
+        variant="subtle"
+      >
+        Next
+      </Button>
+    </Flex>
+  );
 
   return (
     <Modal
@@ -284,7 +355,7 @@ export default function EditProfileModal() {
       onClose={handleCancel}
       opened={opened}
       size="lg"
-      title={"Edit Your Profile"}
+      title={"Edit Your Speakfolio"}
     >
       <Form
         method="post"
@@ -304,7 +375,13 @@ export default function EditProfileModal() {
               <Collapse in={currentStep !== step.id}>
                 <Accordion.Control>{step.title}</Accordion.Control>
               </Collapse>
-              <Accordion.Panel py="lg">{step.component}</Accordion.Panel>
+              <Accordion.Panel py="lg">
+                {step.component({
+                  backNextButtons,
+                  form,
+                  setStep: setCurrentStep,
+                })}
+              </Accordion.Panel>
             </Accordion.Item>
           ))}
         </Accordion>

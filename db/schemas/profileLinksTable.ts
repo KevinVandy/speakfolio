@@ -2,7 +2,7 @@ import { relations } from "drizzle-orm";
 import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 
-export const linkSiteEnum = pgEnum("link_site", [
+export const linkSites = [
   "Behance",
   "BlueSky",
   "Blog",
@@ -20,9 +20,11 @@ export const linkSiteEnum = pgEnum("link_site", [
   "Twitter",
   "Website",
   "YouTube",
-]);
+] as const;
 
-export const profilesLinksTable = pgTable("profile_links", {
+export const linkSiteEnum = pgEnum("link_site", linkSites);
+
+export const profileLinksTable = pgTable("profile_links", {
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
@@ -36,14 +38,14 @@ export const profilesLinksTable = pgTable("profile_links", {
   url: text("url").notNull(),
 });
 
-export const profilesLinksTableRelations = relations(
-  profilesLinksTable,
+export const profileLinksTableRelations = relations(
+  profileLinksTable,
   ({ one }) => ({
     profile: one(profilesTable, {
-      fields: [profilesLinksTable.profileId],
+      fields: [profileLinksTable.profileId],
       references: [profilesTable.id],
     }),
   })
 );
 
-export type IProfileLink = typeof profilesLinksTable.$inferSelect;
+export type IProfileLink = typeof profileLinksTable.$inferSelect;

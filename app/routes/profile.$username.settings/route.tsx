@@ -26,7 +26,7 @@ import { IconLock } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profileVisibilityEnum, profilesTable } from "db/schemas/profilesTable";
+import { profileVisibilities, profilesTable } from "db/schemas/profilesTable";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -40,7 +40,7 @@ interface ProfileUpdateResponse {
 const profileSchema = z.object({
   id: z.string().uuid(),
   userId: z.string().uuid(),
-  visibility: z.enum(profileVisibilityEnum.enumValues),
+  visibility: z.enum(profileVisibilities),
 });
 
 export async function action({ request }: ActionFunctionArgs) {

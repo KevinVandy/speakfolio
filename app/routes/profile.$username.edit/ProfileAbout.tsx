@@ -1,8 +1,6 @@
 import {
   Autocomplete,
-  Button,
   Fieldset,
-  Flex,
   Stack,
   TextInput,
   Textarea,
@@ -11,11 +9,11 @@ import { type useForm } from "@mantine/form";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
+  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
-  setStep: (step: string) => void;
 }
 
-export function ProfileAboutFieldset({ form, setStep }: Props) {
+export function ProfileAboutFieldset({ backNextButtons, form }: Props) {
   return (
     <Fieldset legend="About You">
       <Stack gap="md">
@@ -63,14 +61,7 @@ export function ProfileAboutFieldset({ form, setStep }: Props) {
           placeholder="List up to 10 areas of expertise"
           {...form.getInputProps("areasOfExpertise")}
         />
-        <Flex gap="md" justify="center">
-          <Button onClick={() => setStep("customization")} variant="subtle">
-            Back
-          </Button>
-          <Button onClick={() => setStep("bio")} variant="subtle">
-            Next
-          </Button>
-        </Flex>
+        {backNextButtons}
       </Stack>
     </Fieldset>
   );

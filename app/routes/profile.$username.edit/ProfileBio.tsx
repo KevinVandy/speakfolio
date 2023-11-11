@@ -1,13 +1,13 @@
-import { Button, Fieldset, Flex, Stack, Textarea } from "@mantine/core";
+import { Fieldset, Stack, Textarea } from "@mantine/core";
 import { type useForm } from "@mantine/form";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
+  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
-  setStep: (step: string) => void;
 }
 
-export function ProfileBioFieldset({ form, setStep }: Props) {
+export function ProfileBioFieldset({ backNextButtons, form }: Props) {
   return (
     <Fieldset legend="Your Bio">
       <Stack gap="md">
@@ -21,14 +21,7 @@ export function ProfileBioFieldset({ form, setStep }: Props) {
           placeholder="Bio"
           {...form.getInputProps("bio.plainText")}
         />
-        <Flex gap="md" justify="center">
-          <Button onClick={() => setStep("about")} variant="subtle">
-            Back
-          </Button>
-          <Button disabled variant="subtle">
-            Next
-          </Button>
-        </Flex>
+        {backNextButtons}
       </Stack>
     </Fieldset>
   );

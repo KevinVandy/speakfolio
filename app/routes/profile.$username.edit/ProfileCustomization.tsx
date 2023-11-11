@@ -1,10 +1,8 @@
 import {
   Avatar,
   BackgroundImage,
-  Button,
   Center,
   Fieldset,
-  Flex,
   Select,
   Stack,
   TextInput,
@@ -15,11 +13,12 @@ import { IconAt, IconCircle } from "@tabler/icons-react";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
+  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
   setStep: (step: string) => void;
 }
 
-export function ProfileCustomizationFieldset({ form, setStep }: Props) {
+export function ProfileCustomizationFieldset({ backNextButtons, form }: Props) {
   const theme = useMantineTheme();
 
   return (
@@ -99,14 +98,7 @@ export function ProfileCustomizationFieldset({ form, setStep }: Props) {
           placeholder="Enter your public contact email"
           {...form.getInputProps("contactEmail")}
         />
-        <Flex gap="md" justify="center">
-          <Button disabled variant="subtle">
-            Back
-          </Button>
-          <Button onClick={() => setStep("about")} variant="subtle">
-            Next
-          </Button>
-        </Flex>
+        {backNextButtons}
       </Stack>
     </Fieldset>
   );

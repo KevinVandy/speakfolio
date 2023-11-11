@@ -10,15 +10,20 @@ import {
 } from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentationsTable";
 import { profileBiosTable } from "./profileBiosTable";
-import { profilesLinksTable } from "./profileLinksTable";
+import { profileLinksTable } from "./profileLinksTable";
 
-export const profileVisibilityEnum = pgEnum("profile_visibility", [
+export const profileVisibilities = [
   "public",
   "private",
   "signed_in_users",
-]);
+] as const;
 
-export const profileColorEnum = pgEnum("profile_color", [
+export const profileVisibilityEnum = pgEnum(
+  "profile_visibility",
+  profileVisibilities
+);
+
+export const profileColors = [
   "red",
   "blue",
   "green",
@@ -32,7 +37,9 @@ export const profileColorEnum = pgEnum("profile_color", [
   "lime",
   "teal",
   "gray",
-]);
+] as const;
+
+export const profileColorEnum = pgEnum("profile_color", profileColors);
 
 export const profilesTable = pgTable(
   "profiles",
@@ -74,7 +81,7 @@ export const profilesTableRelations = relations(
   profilesTable,
   ({ many, one }) => ({
     bio: one(profileBiosTable),
-    links: many(profilesLinksTable),
+    links: many(profileLinksTable),
     presentations: many(presentationsTable),
   })
 );
@@ -84,5 +91,6 @@ export type IProfile = typeof profilesTable.$inferSelect;
 export type IProfileFull = IProfile & {
   bio?: Partial<typeof profileBiosTable.$inferSelect>;
   isOwnProfile: boolean;
-  presentations?: (typeof presentationsTable.$inferSelect)[];
+  links?: Array<Partial<typeof profileLinksTable.$inferSelect>>;
+  presentations?: Array<typeof presentationsTable.$inferSelect>;
 };

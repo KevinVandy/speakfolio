@@ -36,6 +36,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
               richText: true,
             },
           },
+          links: true,
           presentations: true,
         },
       })
