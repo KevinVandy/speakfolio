@@ -18,13 +18,6 @@ export function ProfileAboutFieldset({ backNextButtons, form }: Props) {
     <Fieldset legend="About You">
       <Stack gap="md">
         <TextInput
-          description="The region where you live or are willing to travel to"
-          label="Location"
-          name="location"
-          placeholder="Location"
-          {...form.getInputProps("location")}
-        />
-        <TextInput
           description="(Optional) A 1-line description of yourself"
           label="Headline"
           name="headline"

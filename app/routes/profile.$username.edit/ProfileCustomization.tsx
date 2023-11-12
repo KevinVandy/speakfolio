@@ -9,7 +9,7 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { type useForm } from "@mantine/form";
-import { IconAt, IconCircle } from "@tabler/icons-react";
+import { IconCircle } from "@tabler/icons-react";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
@@ -91,12 +91,11 @@ export function ProfileCustomizationFieldset({ backNextButtons, form }: Props) {
           {...form.getInputProps("name")}
         />
         <TextInput
-          description="Public email address"
-          label="Contact Email"
-          leftSection={<IconAt size="1rem" />}
-          name="contactEmail"
-          placeholder="Enter your public contact email"
-          {...form.getInputProps("contactEmail")}
+          description="(Optional) The region where you live or are willing to travel to"
+          label="Location"
+          name="location"
+          placeholder="Location"
+          {...form.getInputProps("location")}
         />
         {backNextButtons}
       </Stack>

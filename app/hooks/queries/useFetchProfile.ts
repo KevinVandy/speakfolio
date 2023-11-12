@@ -15,9 +15,8 @@ export function useFetchProfile({ username }: Params) {
   const loaderData = useRouteLoaderData<typeof loader>(routeId)!;
 
   useEffect(() => {
-    queueMicrotask(() =>
-      queryClient.setQueryData([routeId, routeUrl], loaderData as any)
-    );
+    console.log("setting query data", loaderData);
+    queryClient.setQueryData([routeId, routeUrl], { ...loaderData });
   }, [loaderData]);
 
   return useQuery({

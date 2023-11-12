@@ -9,6 +9,7 @@ import {
 } from "@mantine/core";
 import { type useForm } from "@mantine/form";
 import {
+  IconAt,
   IconBrandFacebook,
   IconBrandGithub,
   IconBrandInstagram,
@@ -64,11 +65,16 @@ export function ProfileLinksFieldset({ backNextButtons, form }: Props) {
     );
   };
 
-  console.log(form.errors);
-
   return (
     <Fieldset legend="Social Links">
-      {/* <input name="links" type="hidden" {...form.getInputProps("links")} /> */}
+      <TextInput
+        description="Public email address"
+        label="Contact Email"
+        leftSection={<IconAt size="1rem" />}
+        name="contactEmail"
+        placeholder="Enter your public contact email"
+        {...form.getInputProps("contactEmail")}
+      />
       {form.getTransformedValues().links?.map((link, index) => (
         <>
           <input

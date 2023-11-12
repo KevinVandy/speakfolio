@@ -263,11 +263,17 @@ export default function EditProfileModal() {
     validate: zodResolver(profileSchema),
   });
 
-  const initialCurrentStep = searchParams.get("currentStep");
-  const [currentStep, _setCurrentStep] = useState(initialCurrentStep);
-  const setCurrentStep = (step: null | string) => {
-    _setCurrentStep(step);
-    history.replaceState(null, "", `?currentStep=${step}`);
+  const initialCurrentStep = searchParams.get("step");
+  const [step, _setCurrentStep] = useState(initialCurrentStep);
+  const setCurrentStep = (newStep: null | string) => {
+    _setCurrentStep(newStep);
+    const url = new URL(window.location.href);
+    if (newStep === "bio") {
+      url.searchParams.delete("tab");
+    } else if (newStep) {
+      url.searchParams.set("tab", newStep);
+    }
+    window.history.replaceState({}, "", url.toString());
   };
 
   const [opened, { close, open }] = useDisclosure(false);
@@ -299,7 +305,7 @@ export default function EditProfileModal() {
     } else {
       open();
     }
-    if (!currentStep) {
+    if (!step) {
       setCurrentStep("customization");
     }
   }, []);
@@ -311,20 +317,20 @@ export default function EditProfileModal() {
     }
   }, [actionData]);
 
-  const currentStepIndex = useMemo(
-    () => steps.findIndex((step) => step.id === currentStep),
-    [currentStep]
+  const stepIndex = useMemo(
+    () => steps.findIndex((s) => s.id === step),
+    [step]
   );
 
   const goToNextStep = () => {
-    const nextStep = steps[currentStepIndex + 1];
+    const nextStep = steps[stepIndex + 1];
     if (nextStep) {
       setCurrentStep(nextStep.id);
     }
   };
 
   const goToPreviousStep = () => {
-    const previousStep = steps[currentStepIndex - 1];
+    const previousStep = steps[stepIndex - 1];
     if (previousStep) {
       setCurrentStep(previousStep.id);
     }
@@ -333,14 +339,14 @@ export default function EditProfileModal() {
   const backNextButtons = (
     <Flex gap="md" justify="center">
       <Button
-        disabled={currentStepIndex === 0}
+        disabled={stepIndex === 0}
         onClick={goToPreviousStep}
         variant="subtle"
       >
         Back
       </Button>
       <Button
-        disabled={currentStepIndex === steps.length - 1}
+        disabled={stepIndex === steps.length - 1}
         onClick={goToNextStep}
         variant="subtle"
       >
@@ -367,16 +373,16 @@ export default function EditProfileModal() {
           chevron={<IconPlus />}
           onChange={setCurrentStep}
           pos="relative"
-          value={currentStep}
+          value={step}
         >
           <LoadingOverlay visible={navigation.state === "submitting"} />
-          {steps.map((step) => (
-            <Accordion.Item key={step.id} value={step.id}>
-              <Collapse in={currentStep !== step.id}>
-                <Accordion.Control>{step.title}</Accordion.Control>
+          {steps.map((s) => (
+            <Accordion.Item key={s.id} value={s.id}>
+              <Collapse in={step !== s.id}>
+                <Accordion.Control>{s.title}</Accordion.Control>
               </Collapse>
               <Accordion.Panel py="lg">
-                {step.component({
+                {s.component({
                   backNextButtons,
                   form,
                   setStep: setCurrentStep,
