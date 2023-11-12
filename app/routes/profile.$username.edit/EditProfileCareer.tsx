@@ -9,21 +9,13 @@ import { type useForm } from "@mantine/form";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
-  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
 }
 
-export function ProfileAboutFieldset({ backNextButtons, form }: Props) {
+export function EditProfileCareerFieldset({ form }: Props) {
   return (
-    <Fieldset legend="About You">
+    <Fieldset variant="unstyled">
       <Stack gap="md">
-        <TextInput
-          description="(Optional) A 1-line description of yourself"
-          label="Headline"
-          name="headline"
-          placeholder="Headline"
-          {...form.getInputProps("headline")}
-        />
         <Autocomplete
           data={commonProfessions}
           description="(Optional) Your profession or industry"
@@ -54,7 +46,6 @@ export function ProfileAboutFieldset({ backNextButtons, form }: Props) {
           placeholder="List up to 10 areas of expertise"
           {...form.getInputProps("areasOfExpertise")}
         />
-        {backNextButtons}
       </Stack>
     </Fieldset>
   );

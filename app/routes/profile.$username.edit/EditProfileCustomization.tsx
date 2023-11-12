@@ -13,16 +13,14 @@ import { IconCircle } from "@tabler/icons-react";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
-  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
-  setStep: (step: string) => void;
 }
 
-export function ProfileCustomizationFieldset({ backNextButtons, form }: Props) {
+export function EditProfileCustomizationFieldset({ form }: Props) {
   const theme = useMantineTheme();
 
   return (
-    <Fieldset legend="Profile Customization">
+    <Fieldset variant="unstyled">
       <Stack gap="md">
         <BackgroundImage
           mb="xl"
@@ -97,7 +95,13 @@ export function ProfileCustomizationFieldset({ backNextButtons, form }: Props) {
           placeholder="Location"
           {...form.getInputProps("location")}
         />
-        {backNextButtons}
+        <TextInput
+          description="(Optional) A 1-line description of yourself"
+          label="Headline"
+          name="headline"
+          placeholder="Headline"
+          {...form.getInputProps("headline")}
+        />
       </Stack>
     </Fieldset>
   );

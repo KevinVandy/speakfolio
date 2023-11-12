@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -9,36 +9,33 @@ import {
   useSearchParams,
 } from "@remix-run/react";
 import {
-  Accordion,
   Button,
-  Collapse,
-  Flex,
   LoadingOverlay,
   Modal,
   SimpleGrid,
+  Tabs,
   Text,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
+import { linkSites, profileLinksTable } from "db/schema";
 import { profileBiosTable } from "db/schemas/profileBiosTable";
 import {
   type IProfileFull,
   profileColors,
   profilesTable,
 } from "db/schemas/profilesTable";
-import { ProfileAboutFieldset } from "./ProfileAbout";
-import { ProfileBioFieldset } from "./ProfileBio";
-import { ProfileCustomizationFieldset } from "./ProfileCustomization";
-import { ProfileLinksFieldset } from "./ProfileLinks";
+import { EditProfileBioFieldset } from "./EditProfileBio";
+import { EditProfileCareerFieldset } from "./EditProfileCareer";
+import { EditProfileCustomizationFieldset } from "./EditProfileCustomization";
+import { EditProfileLinksFieldset } from "./EditProfileLinks";
 import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
-import { linkSites, profileLinksTable } from "db/schema";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -148,10 +145,6 @@ export async function action({ request }: ActionFunctionArgs) {
     Object.fromEntries(await request.formData())
   );
 
-  console.log("links", rawData.links);
-
-  console.log("raw", rawData);
-
   //validate data
   const validationResult = profileSchema.safeParse(rawData);
   const { success } = validationResult;
@@ -201,7 +194,7 @@ export async function action({ request }: ActionFunctionArgs) {
         .insert(profileLinksTable)
         .values(data.links.map((link) => ({ ...link, profileId: data.id })));
     }
-    return redirect("../");
+    return redirect("..");
   } catch (error) {
     console.error(error);
     returnData = {
@@ -217,7 +210,6 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 interface StepProps {
-  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
   setStep: (step: string) => void;
 }
@@ -225,29 +217,40 @@ interface StepProps {
 const steps = [
   {
     component: (props: StepProps) => (
-      <ProfileCustomizationFieldset {...props} />
+      <EditProfileCustomizationFieldset {...props} />
     ),
     id: "customization",
     title: "Profile Customization",
   },
   {
-    component: (props: StepProps) => <ProfileAboutFieldset {...props} />,
-    id: "about",
-    title: "About You",
+    component: (props: StepProps) => <EditProfileLinksFieldset {...props} />,
+    id: "links",
+    title: "Social Links",
   },
   {
-    component: (props: StepProps) => <ProfileBioFieldset {...props} />,
+    component: (props: StepProps) => <EditProfileBioFieldset {...props} />,
     id: "bio",
     title: "Your Bio",
   },
   {
-    component: (props: StepProps) => <ProfileLinksFieldset {...props} />,
-    id: "links",
-    title: "Social Links",
+    component: (props: StepProps) => <EditProfileCareerFieldset {...props} />,
+    id: "career",
+    title: "Career",
+  },
+  {
+    component: (props: StepProps) => "hello",
+    id: "past-talks",
+    title: "Past Talks",
+  },
+  {
+    component: (props: StepProps) => "hello",
+    id: "prepared-talks",
+    title: "Prepared Talks",
   },
 ];
 
 export default function EditProfileModal() {
+  const isMobile = useMediaQuery("(max-width: 768px)");
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
@@ -263,10 +266,10 @@ export default function EditProfileModal() {
     validate: zodResolver(profileSchema),
   });
 
-  const initialCurrentStep = searchParams.get("step");
-  const [step, _setCurrentStep] = useState(initialCurrentStep);
-  const setCurrentStep = (newStep: null | string) => {
-    _setCurrentStep(newStep);
+  const initialCurrentStep = searchParams.get("tab");
+  const [tab, _setTab] = useState(initialCurrentStep);
+  const setTab = (newStep: null | string) => {
+    _setTab(newStep);
     const url = new URL(window.location.href);
     if (newStep === "bio") {
       url.searchParams.delete("tab");
@@ -305,8 +308,8 @@ export default function EditProfileModal() {
     } else {
       open();
     }
-    if (!step) {
-      setCurrentStep("customization");
+    if (!tab) {
+      setTab("customization");
     }
   }, []);
 
@@ -317,50 +320,12 @@ export default function EditProfileModal() {
     }
   }, [actionData]);
 
-  const stepIndex = useMemo(
-    () => steps.findIndex((s) => s.id === step),
-    [step]
-  );
-
-  const goToNextStep = () => {
-    const nextStep = steps[stepIndex + 1];
-    if (nextStep) {
-      setCurrentStep(nextStep.id);
-    }
-  };
-
-  const goToPreviousStep = () => {
-    const previousStep = steps[stepIndex - 1];
-    if (previousStep) {
-      setCurrentStep(previousStep.id);
-    }
-  };
-
-  const backNextButtons = (
-    <Flex gap="md" justify="center">
-      <Button
-        disabled={stepIndex === 0}
-        onClick={goToPreviousStep}
-        variant="subtle"
-      >
-        Back
-      </Button>
-      <Button
-        disabled={stepIndex === steps.length - 1}
-        onClick={goToNextStep}
-        variant="subtle"
-      >
-        Next
-      </Button>
-    </Flex>
-  );
-
   return (
     <Modal
       closeOnClickOutside={!form.isDirty()}
       onClose={handleCancel}
       opened={opened}
-      size="lg"
+      size="xl"
       title={"Edit Your Speakfolio"}
     >
       <Form
@@ -369,53 +334,67 @@ export default function EditProfileModal() {
       >
         <input name="id" type="hidden" value={profile.id} />
         <input name="userId" type="hidden" value={profile.userId!} />
-        <Accordion
-          chevron={<IconPlus />}
-          onChange={setCurrentStep}
+        <Tabs
+          color={form.getTransformedValues().profileColor ?? "pink"}
+          my="md"
+          onChange={setTab}
+          orientation={isMobile ? "horizontal" : "vertical"}
           pos="relative"
-          value={step}
+          value={tab || "bio"}
         >
           <LoadingOverlay visible={navigation.state === "submitting"} />
+          <Tabs.List>
+            {steps.map((s) => (
+              <Tabs.Tab
+                fw={s.id === tab ? "bold" : "normal"}
+                key={s.id}
+                miw={!isMobile ? "185px" : undefined}
+                value={s.id}
+              >
+                {s.title}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
           {steps.map((s) => (
-            <Accordion.Item key={s.id} value={s.id}>
-              <Collapse in={step !== s.id}>
-                <Accordion.Control>{s.title}</Accordion.Control>
-              </Collapse>
-              <Accordion.Panel py="lg">
-                {s.component({
-                  backNextButtons,
-                  form,
-                  setStep: setCurrentStep,
-                })}
-              </Accordion.Panel>
-            </Accordion.Item>
+            <Tabs.Panel
+              key={s.id}
+              px={!isMobile ? "lg" : undefined}
+              py={isMobile ? "md" : undefined}
+              value={s.id}
+            >
+              {s.component({
+                form,
+                setStep: setTab,
+              })}
+              {Object.values(form.errors).map((error, i) => (
+                <Text c="red" key={i}>
+                  {error}
+                </Text>
+              ))}
+              <SimpleGrid
+                bg="inherit"
+                bottom={0}
+                cols={2}
+                mt="xl"
+                p="2px"
+                pos="sticky"
+                w="100%"
+              >
+                <Button onClick={handleCancel} type="button" variant="default">
+                  Cancel
+                </Button>
+                <Button
+                  color="blue"
+                  disabled={!form.isDirty()}
+                  loading={navigation.state === "submitting"}
+                  type="submit"
+                >
+                  Save Changes
+                </Button>
+              </SimpleGrid>
+            </Tabs.Panel>
           ))}
-        </Accordion>
-        {Object.values(form.errors).map((error, i) => (
-          <Text c="red" key={i}>
-            {error}
-          </Text>
-        ))}
-        <SimpleGrid
-          bg="inherit"
-          bottom={0}
-          cols={2}
-          my="xl"
-          pos="sticky"
-          w="100%"
-        >
-          <Button onClick={handleCancel} type="button" variant="default">
-            Cancel
-          </Button>
-          <Button
-            color="blue"
-            disabled={!form.isDirty()}
-            loading={navigation.state === "submitting"}
-            type="submit"
-          >
-            Save Changes
-          </Button>
-        </SimpleGrid>
+        </Tabs>
       </Form>
     </Modal>
   );

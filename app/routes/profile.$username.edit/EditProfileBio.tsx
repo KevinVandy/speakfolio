@@ -3,13 +3,12 @@ import { type useForm } from "@mantine/form";
 import { type IProfileFull } from "db/schema";
 
 interface Props {
-  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
 }
 
-export function ProfileBioFieldset({ backNextButtons, form }: Props) {
+export function EditProfileBioFieldset({ form }: Props) {
   return (
-    <Fieldset legend="Your Bio">
+    <Fieldset variant="unstyled">
       <Stack gap="md">
         <Textarea
           autosize
@@ -21,7 +20,6 @@ export function ProfileBioFieldset({ backNextButtons, form }: Props) {
           placeholder="Bio"
           {...form.getInputProps("bio.plainText")}
         />
-        {backNextButtons}
       </Stack>
     </Fieldset>
   );

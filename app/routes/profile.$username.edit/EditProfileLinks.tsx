@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Button,
   Fieldset,
   Pill,
+  PillsInput,
   Select,
   Stack,
   TextInput,
+  Tooltip,
 } from "@mantine/core";
 import { type useForm } from "@mantine/form";
 import {
@@ -37,11 +39,10 @@ export const linkIconMap = {
 };
 
 interface Props {
-  backNextButtons: React.ReactNode;
   form: ReturnType<typeof useForm<IProfileFull>>;
 }
 
-export function ProfileLinksFieldset({ backNextButtons, form }: Props) {
+export function EditProfileLinksFieldset({ form }: Props) {
   const [searchValue, setSearchValue] = useState("");
   const [newSite, setNewSite] = useState<any>("");
   const [newUrl, setNewUrl] = useState("");
@@ -66,7 +67,7 @@ export function ProfileLinksFieldset({ backNextButtons, form }: Props) {
   };
 
   return (
-    <Fieldset legend="Social Links">
+    <Fieldset variant="unstyled">
       <TextInput
         description="Public email address"
         label="Contact Email"
@@ -76,44 +77,42 @@ export function ProfileLinksFieldset({ backNextButtons, form }: Props) {
         {...form.getInputProps("contactEmail")}
       />
       {form.getTransformedValues().links?.map((link, index) => (
-        <>
+        <Fragment key={`${index}-${link.site}`}>
           <input
-            key={`${index}-${link.site}`}
             name={`links.${index}.site`}
             type="hidden"
             value={link.site!}
           />
-          <input
-            key={`${index}-${link.url}`}
-            name={`links.${index}.url`}
-            type="hidden"
-            value={link.url!}
-          />
+          <input name={`links.${index}.url`} type="hidden" value={link.url!} />
           {link.title && (
             <input
-              key={`${index}-${link.title}`}
               name={`links.${index}.title`}
               type="hidden"
               value={link.title}
             />
           )}
-        </>
+        </Fragment>
       ))}
-      <Stack gap="md">
-        {form.getTransformedValues().links?.map((link, index) => {
-          return (
-            <>
-              <Pill
-                key={index}
-                onRemove={() => removeLink(link?.site as string)}
-                withRemoveButton
-              >
-                {link.site}
-              </Pill>
-            </>
-          );
-        })}
-        <Stack>
+      <Fieldset mt="xl">
+        <Stack gap="md">
+          <PillsInput
+            description="Links to your social media profiles"
+            label="Social Links"
+            mt="md"
+          >
+            {form.getTransformedValues().links?.map((link, index) => {
+              return (
+                <Tooltip key={link.site} label={link.url}>
+                  <Pill
+                    onRemove={() => removeLink(link?.site as string)}
+                    withRemoveButton
+                  >
+                    {link.title || link.site}
+                  </Pill>
+                </Tooltip>
+              );
+            })}
+          </PillsInput>
           <Select
             data={linkSites.filter(
               (site) =>
@@ -138,8 +137,7 @@ export function ProfileLinksFieldset({ backNextButtons, form }: Props) {
             Add
           </Button>
         </Stack>
-        {backNextButtons}
-      </Stack>
+      </Fieldset>
     </Fieldset>
   );
 }
