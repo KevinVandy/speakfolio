@@ -65,6 +65,11 @@ const profileSchema = z.object({
         .max(4000, { message: "Bio max 4000 characters" })
         .optional()
         .nullish(),
+      richText: z
+        .string()
+        .max(6000, { message: "Bio max 6000 characters" })
+        .optional()
+        .nullish(),
     })
     .optional()
     .nullish(),
@@ -189,10 +194,10 @@ export async function action({ request }: ActionFunctionArgs) {
         profileImageUrl: data.profileImageUrl,
       })
       .where(eq(profilesTable.id, data.id));
-    if (data.bio?.plainText) {
+    if (data.bio?.richText) {
       await db
         .update(profileBiosTable)
-        .set({ plainText: data.bio.plainText })
+        .set({ richText: data.bio.richText })
         .where(eq(profileBiosTable.profileId, data.id));
     }
     await db
@@ -343,7 +348,11 @@ export default function EditProfileModal() {
       closeOnClickOutside={!form.isDirty()}
       onClose={handleCancel}
       opened={opened}
-      size="xl"
+      size={
+        tab === "bio" && form.getTransformedValues().bio?.richText
+          ? "clamp(400px, 80vw, 800px)"
+          : "xl"
+      }
       title={"Edit Your Speakfolio"}
     >
       <Form

@@ -36,7 +36,6 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
           bio: {
             columns: {
               id: true,
-              plainText: true,
               richText: true,
             },
           },

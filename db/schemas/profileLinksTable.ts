@@ -32,9 +32,6 @@ export const profileLinksTable = pgTable("profile_links", {
   profileId: uuid("profile_id").references(() => profilesTable.id),
   site: linkSiteEnum("site").default("Other"),
   title: text("title").default(""),
-  updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
-    .defaultNow()
-    .notNull(),
   url: text("url").notNull(),
 });
 

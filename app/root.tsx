@@ -27,6 +27,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import mantineNProgressStyles from "@mantine/nprogress/styles.css";
+import mantineTipTapStyles from "@mantine/tiptap/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
@@ -41,6 +42,7 @@ export const links: LinksFunction = () => [
   { href: mantineDateStyles, rel: "stylesheet" },
   { href: mantineNProgressStyles, rel: "stylesheet" },
   { href: mantineCarouselStyles, rel: "stylesheet" },
+  { href: mantineTipTapStyles, rel: "stylesheet" },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({

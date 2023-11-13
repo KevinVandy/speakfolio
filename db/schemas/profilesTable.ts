@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  integer,
   pgEnum,
   pgTable,
   real,
@@ -65,6 +66,7 @@ export const profilesTable = pgTable(
       .notNull(),
     userId: uuid("user_id"), //fk to auth.users
     username: text("username").notNull(),
+    views: integer("views").default(0),
     visibility: profileVisibilityEnum("visibility").default("public").notNull(),
   },
   (table) => {

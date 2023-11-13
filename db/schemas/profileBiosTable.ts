@@ -7,7 +7,6 @@ export const profileBiosTable = pgTable("profile_bios", {
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  plainText: text("plain_text").default(""),
   profileId: uuid("profile_id")
     .references(() => profilesTable.id)
     .notNull(),
