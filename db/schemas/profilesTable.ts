@@ -36,7 +36,6 @@ export const profileColors = [
   "cyan",
   "lime",
   "teal",
-  "gray",
 ] as const;
 
 export const profileColorEnum = pgEnum("profile_color", profileColors);

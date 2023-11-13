@@ -5,7 +5,6 @@ import {
   useActionData,
   useNavigate,
   useNavigation,
-  useParams,
 } from "@remix-run/react";
 import {
   Button,
@@ -27,7 +26,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileVisibilities, profilesTable } from "db/schemas/profilesTable";
-import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { useSupabase } from "~/hooks/useSupabase";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -99,10 +98,9 @@ export default function EditProfileSettingsModal() {
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
-  const { username } = useParams();
   const { session } = useSupabase();
 
-  const { data: profile } = useFetchProfile({ username });
+  const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
   const form = useForm({

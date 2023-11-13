@@ -1,49 +1,23 @@
 import { useState } from "react";
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Link, Outlet, useParams, useSearchParams } from "@remix-run/react";
+import { Outlet, useSearchParams } from "@remix-run/react";
+import { Stack, Tabs } from "@mantine/core";
 import {
-  ActionIcon,
-  Avatar,
-  BackgroundImage,
-  Flex,
-  Stack,
-  Tabs,
-  Text,
-  Title,
-  Tooltip,
-} from "@mantine/core";
-import {
-  IconBrandFacebook,
-  IconBrandGithub,
-  IconBrandInstagram,
-  IconBrandLinkedin,
-  IconBrandMedium,
-  IconBrandTiktok,
-  IconBrandTwitch,
-  IconBrandTwitter,
-  IconBrandX,
-  IconBrandYoutube,
-  IconEdit,
-  IconMapPin,
+  IconBriefcase,
+  IconPodium,
+  IconPresentation,
+  IconUser,
 } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
-import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
+import { ProfileBio } from "./ProfileBio";
+import { ProfileCareer } from "./ProfileCareer";
+import { ProfileHead } from "./ProfileHead";
+import { ProfilePastTalks } from "./ProfilePastTalks";
+import { ProfilePreparedTalks } from "./ProfilePreparedTalks";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
-
-const linkIconMap = {
-  Facebook: <IconBrandFacebook color="#4267B2" />,
-  GitHub: <IconBrandGithub color="#333" />,
-  Instagram: <IconBrandInstagram color="#E1306C" />,
-  LinkedIn: <IconBrandLinkedin color="#0077B5" />,
-  Medium: <IconBrandMedium color="#000" />,
-  Other: <IconBrandX color="#000" />,
-  TikTok: <IconBrandTiktok color="#000" />,
-  Twitch: <IconBrandTwitch color="#9146FF" />,
-  Twitter: <IconBrandTwitter color="#1DA1F2" />,
-  YouTube: <IconBrandYoutube color="#FF0000" />,
-} as Record<string, React.ReactNode>;
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const { username } = params;
@@ -86,11 +60,39 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return json(returnData);
 }
 
+interface TabProps {}
+
+const tabs = [
+  {
+    Component: (props: TabProps) => <ProfileBio {...props} />,
+    Icon: () => <IconUser />,
+    id: "bio",
+    title: "Bio",
+  },
+  {
+    Component: (props: TabProps) => <ProfileCareer {...props} />,
+    Icon: () => <IconBriefcase />,
+    id: "career",
+    title: "Career",
+  },
+  {
+    Component: (props: TabProps) => <ProfilePastTalks {...props} />,
+    Icon: () => <IconPodium />,
+    id: "past-talks",
+    title: "Past Talks",
+  },
+  {
+    Component: (props: TabProps) => <ProfilePreparedTalks {...props} />,
+    Icon: () => <IconPresentation />,
+    id: "prepared-talks",
+    title: "Prepared Talks",
+  },
+];
+
 export default function ProfileIdPage() {
-  const { username } = useParams();
   const [searchParams] = useSearchParams();
 
-  const { data: profile } = useFetchProfile({ username });
+  const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
   const initialCurrentStep = searchParams.get("tab") ?? "bio";
@@ -111,84 +113,25 @@ export default function ProfileIdPage() {
   return (
     <Stack gap="md">
       {isOwnProfile && <Outlet />}
-      <BackgroundImage
-        pos="relative"
-        radius="sm"
-        src={profile.coverImageUrl ?? ""}
-      >
-        <Tooltip label="Edit Your Profile">
-          <ActionIcon
-            component={Link}
-            pos="absolute"
-            right={10}
-            to="edit"
-            top={10}
-          >
-            <IconEdit />
-          </ActionIcon>
-        </Tooltip>
-        <Flex align="flex-end" mih="200px" ml="lg">
-          <Avatar
-            color={profile.profileColor ?? "blue"}
-            radius="100%"
-            size="160px"
-            src={profile.profileImageUrl ?? ""}
-            style={{ transform: "translateY(72px)" }}
-            variant="filled"
-          />
-        </Flex>
-      </BackgroundImage>
-      <Flex justify="space-between">
-        <Flex mt="-8px">
-          <Title ml="190px" order={2}>
-            {profile.name}
-          </Title>
-          {profile.location ? (
-            <Flex align="center" c="dimmed" gap="4px" pl="md">
-              <IconMapPin />
-              <Text c="dimmed" size="xl">
-                {profile.location}
-              </Text>
-            </Flex>
-          ) : null}
-        </Flex>
-        <Flex>
-          {profile.links?.map((link) => (
-            <Tooltip key={link.site} label={link.title || link.site}>
-              <a href={link.url} rel="noreferrer" target="_blank">
-                <ActionIcon color="none" variant="transparent">
-                  {linkIconMap[link.site!]}
-                </ActionIcon>
-              </a>
-            </Tooltip>
-          ))}
-        </Flex>
-      </Flex>
-      <Title fw="normal" my="md" order={3} size="lg" ta="center">
-        {profile.headline}
-      </Title>
+      <ProfileHead />
       <Tabs
         color={profile.profileColor ?? "pink"}
         onChange={setTab}
         value={tab || "bio"}
       >
         <Tabs.List justify="center">
-          <Tabs.Tab value="bio">Bio</Tabs.Tab>
-          <Tabs.Tab value="career">Career</Tabs.Tab>
-          <Tabs.Tab value="past-talks">Past Talks</Tabs.Tab>
-          <Tabs.Tab value="prepared-talks">Prepared Talks</Tabs.Tab>
+          {tabs.map((t) => (
+            <Tabs.Tab key={t.id} leftSection={<t.Icon />} value={t.id}>
+              {t.title}
+            </Tabs.Tab>
+          ))}
         </Tabs.List>
-
-        <Tabs.Panel value="bio">
-          <pre style={{ fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
-            {profile.bio?.plainText}
-          </pre>
-        </Tabs.Panel>
-        <Tabs.Panel value="career">Career</Tabs.Panel>
-        <Tabs.Panel value="past-talks">Past Talks</Tabs.Panel>
-        <Tabs.Panel value="prepared-talks">Prepared Talks</Tabs.Panel>
+        {tabs.map((t) => (
+          <Tabs.Panel key={t.id} value={t.id}>
+            <t.Component />
+          </Tabs.Panel>
+        ))}
       </Tabs>
-
       <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
         {JSON.stringify(profile, null, 2)}
       </pre>

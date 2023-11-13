@@ -5,7 +5,6 @@ import {
   useActionData,
   useNavigate,
   useNavigation,
-  useParams,
   useSearchParams,
 } from "@remix-run/react";
 import {
@@ -15,10 +14,20 @@ import {
   SimpleGrid,
   Tabs,
   Text,
+  useMantineTheme,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
+import {
+  IconAdjustments,
+  IconBriefcase,
+  IconPodium,
+  IconPresentation,
+  IconSettings,
+  IconSocial,
+  IconUser,
+} from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
@@ -33,7 +42,7 @@ import { EditProfileBioFieldset } from "./EditProfileBio";
 import { EditProfileCareerFieldset } from "./EditProfileCareer";
 import { EditProfileCustomizationFieldset } from "./EditProfileCustomization";
 import { EditProfileLinksFieldset } from "./EditProfileLinks";
-import { useFetchProfile } from "~/hooks/queries/useFetchProfile";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 
@@ -211,53 +220,64 @@ export async function action({ request }: ActionFunctionArgs) {
 
 interface StepProps {
   form: ReturnType<typeof useForm<IProfileFull>>;
-  setStep: (step: string) => void;
 }
 
-const steps = [
+const tabs = [
   {
-    component: (props: StepProps) => (
+    Component: (props: StepProps) => (
       <EditProfileCustomizationFieldset {...props} />
     ),
+    Icon: (props: any) => <IconAdjustments {...props} />,
     id: "customization",
     title: "Profile Customization",
   },
   {
-    component: (props: StepProps) => <EditProfileLinksFieldset {...props} />,
+    Component: (props: StepProps) => <EditProfileLinksFieldset {...props} />,
+    Icon: (props: any) => <IconSocial {...props} />,
     id: "links",
     title: "Social Links",
   },
   {
-    component: (props: StepProps) => <EditProfileBioFieldset {...props} />,
+    Component: (props: StepProps) => <EditProfileBioFieldset {...props} />,
+    Icon: (props: any) => <IconUser {...props} />,
     id: "bio",
-    title: "Your Bio",
+    title: "Bio",
   },
   {
-    component: (props: StepProps) => <EditProfileCareerFieldset {...props} />,
+    Component: (props: StepProps) => <EditProfileCareerFieldset {...props} />,
+    Icon: (props: any) => <IconBriefcase {...props} />,
     id: "career",
     title: "Career",
   },
   {
-    component: (props: StepProps) => "hello",
+    Component: (props: StepProps) => "hello",
+    Icon: (props: any) => <IconPodium {...props} />,
     id: "past-talks",
     title: "Past Talks",
   },
   {
-    component: (props: StepProps) => "hello",
+    Component: (props: StepProps) => "hello",
+    Icon: (props: any) => <IconPresentation {...props} />,
     id: "prepared-talks",
     title: "Prepared Talks",
+  },
+  {
+    Component: (props: StepProps) => null,
+    Icon: (props: any) => <IconSettings {...props} />,
+    id: "settings",
+    title: "Account Settings",
   },
 ];
 
 export default function EditProfileModal() {
+  const theme = useMantineTheme();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const actionData = useActionData<typeof action>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { username } = useParams();
 
-  const { data: profile } = useFetchProfile({ username });
+  const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
   const form = useForm<IProfileFull>({
@@ -271,9 +291,7 @@ export default function EditProfileModal() {
   const setTab = (newStep: null | string) => {
     _setTab(newStep);
     const url = new URL(window.location.href);
-    if (newStep === "bio") {
-      url.searchParams.delete("tab");
-    } else if (newStep) {
+    if (newStep) {
       url.searchParams.set("tab", newStep);
     }
     window.history.replaceState({}, "", url.toString());
@@ -286,11 +304,11 @@ export default function EditProfileModal() {
     setTimeout(() => navigate(".."), 500);
   };
 
-  const openConfirmCancelModal = () =>
+  const openConfirmCancelModal = (onConfirm?: () => void) =>
     modals.openConfirmModal({
       children: <Text size="sm">None of your changes will be saved</Text>,
       labels: { cancel: "Continue Editing", confirm: "Discard" },
-      onConfirm: closeEditModal,
+      onConfirm: onConfirm ?? closeEditModal,
       title: "Are you sure you want to discard your changes?",
     });
 
@@ -336,36 +354,55 @@ export default function EditProfileModal() {
         <input name="userId" type="hidden" value={profile.userId!} />
         <Tabs
           color={form.getTransformedValues().profileColor ?? "pink"}
+          mih="400px"
           my="md"
-          onChange={setTab}
+          onChange={(newTab) => newTab !== "settings" && setTab(newTab)}
           orientation={isMobile ? "horizontal" : "vertical"}
           pos="relative"
           value={tab || "bio"}
         >
           <LoadingOverlay visible={navigation.state === "submitting"} />
           <Tabs.List>
-            {steps.map((s) => (
+            {tabs.map((t) => (
               <Tabs.Tab
-                fw={s.id === tab ? "bold" : "normal"}
-                key={s.id}
-                miw={!isMobile ? "185px" : undefined}
-                value={s.id}
+                key={t.id}
+                leftSection={
+                  <t.Icon
+                    color={
+                      t.id === tab
+                        ? theme.colors[
+                            form.getTransformedValues().profileColor ?? "pink"
+                          ][8]
+                        : undefined
+                    }
+                  />
+                }
+                miw={!isMobile ? "220px" : undefined}
+                value={t.id}
+                {...(t.id === "settings" && {
+                  bottom: 0,
+                  onClick: () => {
+                    if (form.isDirty()) {
+                      openConfirmCancelModal(() => navigate("../settings"));
+                    } else {
+                      navigate("../settings");
+                    }
+                  },
+                  pos: "absolute",
+                })}
               >
-                {s.title}
+                {t.title}
               </Tabs.Tab>
             ))}
           </Tabs.List>
-          {steps.map((s) => (
+          {tabs.map((t) => (
             <Tabs.Panel
-              key={s.id}
+              key={t.id}
               px={!isMobile ? "lg" : undefined}
               py={isMobile ? "md" : undefined}
-              value={s.id}
+              value={t.id}
             >
-              {s.component({
-                form,
-                setStep: setTab,
-              })}
+              <t.Component form={form} />
               {Object.values(form.errors).map((error, i) => (
                 <Text c="red" key={i}>
                   {error}
