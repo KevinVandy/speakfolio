@@ -8,9 +8,10 @@ import SubScript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
-import { useEditor } from "@tiptap/react";
+import { BubbleMenu, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { type IProfileFull } from "db/schema";
+import xss from "xss";
 
 interface Props {
   form: ReturnType<typeof useForm<IProfileFull>>;
@@ -30,14 +31,19 @@ export function EditProfileBioFieldset({ form }: Props) {
     ],
   });
 
-  const [editorHTML] = useDebouncedValue(editor?.getHTML(), 500);
+  const [dirtyDebouncedBio] = useDebouncedValue(editor?.getHTML() || "", 500);
 
   useEffect(() => {
-    form.setFieldValue("bio.richText", editorHTML);
-  }, [editorHTML]);
+    const cleanBio = xss(dirtyDebouncedBio);
+    form.setFieldValue("bio.richText", cleanBio);
+  }, [dirtyDebouncedBio]);
 
   return (
-    <Fieldset variant="unstyled">
+    <Fieldset
+      h="clamp(400px, 70vh, 1000px)"
+      style={{ overflow: "auto" }}
+      variant="unstyled"
+    >
       <input
         name="bio.richText"
         type="hidden"
@@ -45,7 +51,11 @@ export function EditProfileBioFieldset({ form }: Props) {
       />
       <Stack gap="md">
         <RichTextEditor editor={editor}>
-          <RichTextEditor.Toolbar sticky stickyOffset={60}>
+          <RichTextEditor.Toolbar
+            sticky
+            stickyOffset={0}
+            style={{ justifyContent: "center" }}
+          >
             <RichTextEditor.ControlsGroup>
               <RichTextEditor.Bold />
               <RichTextEditor.Italic />
@@ -80,6 +90,16 @@ export function EditProfileBioFieldset({ form }: Props) {
             </RichTextEditor.ControlsGroup>
           </RichTextEditor.Toolbar>
           <RichTextEditor.Content />
+          <BubbleMenu editor={editor!}>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Bold />
+              <RichTextEditor.Italic />
+              <RichTextEditor.Link />
+              <RichTextEditor.OrderedList />
+              <RichTextEditor.BulletList />
+              <RichTextEditor.ClearFormatting />
+            </RichTextEditor.ControlsGroup>
+          </BubbleMenu>
         </RichTextEditor>
       </Stack>
     </Fieldset>

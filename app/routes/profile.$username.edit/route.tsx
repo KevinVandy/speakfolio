@@ -45,6 +45,7 @@ import { EditProfileLinksFieldset } from "./EditProfileLinks";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import xss from "xss";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -195,9 +196,10 @@ export async function action({ request }: ActionFunctionArgs) {
       })
       .where(eq(profilesTable.id, data.id));
     if (data.bio?.richText) {
+      const cleanBio = xss(data.bio.richText);
       await db
         .update(profileBiosTable)
-        .set({ richText: data.bio.richText })
+        .set({ richText: cleanBio })
         .where(eq(profileBiosTable.profileId, data.id));
     }
     await db
@@ -348,11 +350,7 @@ export default function EditProfileModal() {
       closeOnClickOutside={!form.isDirty()}
       onClose={handleCancel}
       opened={opened}
-      size={
-        tab === "bio" && form.getTransformedValues().bio?.richText
-          ? "clamp(400px, 80vw, 800px)"
-          : "xl"
-      }
+      size={tab === "bio" ? "clamp(800px, 80vw, 960px)" : "xl"}
       title={"Edit Your Speakfolio"}
     >
       <Form

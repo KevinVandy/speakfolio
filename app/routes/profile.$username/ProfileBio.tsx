@@ -1,31 +1,36 @@
 import { Link } from "@remix-run/react";
-import { ActionIcon, Box, Tooltip } from "@mantine/core";
+import { Box, Button, Center } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import xss from "xss";
 
 export function ProfileBio() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
+  const dirtyBio = profile.bio?.richText || "";
+  const cleanBio = xss(dirtyBio);
+
   return (
-    <pre style={{ fontFamily: "inherit", whiteSpace: "pre-wrap" }}>
+    <>
       {profile.bio?.richText ? (
-        <Box dangerouslySetInnerHTML={{ __html: profile.bio.richText }} />
+        <Box dangerouslySetInnerHTML={{ __html: cleanBio }} />
       ) : (
         "No bio yet."
       )}{" "}
       {isOwnProfile && (
-        <Tooltip label="Edit Your Bio">
-          <ActionIcon
+        <Center>
+          <Button
             component={Link}
+            leftSection={<IconEdit size="10pt" />}
             size="xs"
-            style={{ transform: "translateY(6px)" }}
             to="edit?tab=bio"
+            variant="subtle"
           >
-            <IconEdit />
-          </ActionIcon>
-        </Tooltip>
+            Edit Bio
+          </Button>
+        </Center>
       )}
-    </pre>
+    </>
   );
 }
