@@ -1,14 +1,19 @@
+import { useEffect } from "react";
 import { Link } from "@remix-run/react";
 import {
   ActionIcon,
+  Alert,
+  Anchor,
   Avatar,
   BackgroundImage,
+  Collapse,
   Flex,
   Text,
   Title,
   Tooltip,
   useMantineColorScheme,
 } from "@mantine/core";
+import { useSessionStorage } from "@mantine/hooks";
 import {
   IconBrandFacebook,
   IconBrandGithub,
@@ -29,6 +34,24 @@ export function ProfileHead() {
   const { colorScheme } = useMantineColorScheme();
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
+
+  const [isAlertVisible, setIsAlertVisible] = useSessionStorage({
+    defaultValue: false,
+    key: "profileVisibilityAlert",
+  });
+
+  useEffect(() => {
+    const storedAlertVisibility = sessionStorage.getItem(
+      "profileVisibilityAlert"
+    );
+    if (
+      isOwnProfile &&
+      profile.visibility !== "public" &&
+      storedAlertVisibility !== "false"
+    ) {
+      setIsAlertVisible(true);
+    }
+  }, []);
 
   const linkIconMap = {
     Facebook: <IconBrandFacebook color="#4267B2" />,
@@ -51,6 +74,38 @@ export function ProfileHead() {
 
   return (
     <>
+      {profile.isOwnProfile && profile.visibility !== "public" ? (
+        <Collapse in={isAlertVisible}>
+          <>
+            {profile.visibility === "private" ? (
+              <Alert
+                color="orange"
+                onClose={() => setIsAlertVisible(false)}
+                title="Your profile is currently private."
+                withCloseButton
+              >
+                Only you can see it. You can change your{" "}
+                <Anchor component={Link} to="settings">
+                  visibility settings here
+                </Anchor>
+              </Alert>
+            ) : (
+              <Alert
+                color="blue"
+                onClose={() => setIsAlertVisible(false)}
+                title="Your profile is hidden from search engines."
+                withCloseButton
+              >
+                Only you and other logged in Speakfolio users can see it. You
+                can change your{" "}
+                <Anchor component={Link} to="settings">
+                  visibility settings here
+                </Anchor>
+              </Alert>
+            )}
+          </>
+        </Collapse>
+      ) : null}
       <BackgroundImage
         pos="relative"
         radius="sm"
@@ -94,7 +149,7 @@ export function ProfileHead() {
             </Flex>
           ) : null}
         </Flex>
-        <Flex>
+        <Flex gap="4px">
           {profile.links?.map((link) => (
             <Tooltip key={link.site} label={link.title || link.site}>
               <a href={link.url} rel="noreferrer" target="_blank">

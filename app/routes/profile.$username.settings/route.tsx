@@ -185,7 +185,7 @@ export default function EditProfileSettingsModal() {
               {form.getTransformedValues().visibility === "public" ? (
                 "Everyone can search for and view your profile"
               ) : form.getTransformedValues().visibility === "private" ? (
-                <Flex align="center" gap="xs">
+                <Flex align="center" component="span" gap="xs">
                   <IconLock size="1rem" /> Only you can view your profile
                 </Flex>
               ) : (

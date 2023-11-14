@@ -34,7 +34,7 @@ export const Layout = ({ children }: Props) => {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: 50 }}
       navbar={{
         breakpoint: "sm",
         collapsed: { desktop: true, mobile: !opened },
@@ -42,8 +42,8 @@ export const Layout = ({ children }: Props) => {
       }}
       padding="md"
     >
-      <AppShell.Header p="0">
-        <Flex justify="space-between" p="md" w="100%">
+      <AppShell.Header style={{ alignItems: "center", display: "flex" }}>
+        <Flex align="center" justify="space-between" p="sm" w="100%">
           <Flex>
             <Burger
               display={isMobile ? "block" : "none"}
@@ -51,7 +51,7 @@ export const Layout = ({ children }: Props) => {
               opened={opened}
             />
             <Link style={{ textDecoration: "none" }} to="/">
-              <Title fz="xl" lh="xs" m="0" order={1}>
+              <Title c="pink" fz="xl" lh="xs" m="0" order={1}>
                 Speakfolio
               </Title>
             </Link>
@@ -118,7 +118,9 @@ export const Layout = ({ children }: Props) => {
       >
         {children}
       </AppShell.Main>
-      <AppShell.Footer p="md">Footer</AppShell.Footer>
+      <AppShell.Footer p="md">
+        © {new Date().getFullYear()} Kevin Van Cott{" "}
+      </AppShell.Footer>
     </AppShell>
   );
 };
