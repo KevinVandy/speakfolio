@@ -87,7 +87,7 @@ export const Layout = ({ children }: Props) => {
                   <Menu.Item
                     onClick={() =>
                       navigate(
-                        `/profile/${loggedInUserProfile?.username}/settings`
+                        `/profile/${loggedInUserProfile?.username}/edit/settings`
                       )
                     }
                   >
