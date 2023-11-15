@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Outlet, useSearchParams } from "@remix-run/react";
+import { Outlet, useMatches, useNavigate, useParams } from "@remix-run/react";
 import { Stack, Tabs } from "@mantine/core";
 import {
   IconBriefcase,
@@ -11,11 +11,7 @@ import {
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
-import { ProfileBio } from "./ProfileBio";
-import { ProfileCareer } from "./ProfileCareer";
 import { ProfileHead } from "./ProfileHead";
-import { ProfilePastTalks } from "./ProfilePastTalks";
-import { ProfilePreparedTalks } from "./ProfilePreparedTalks";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
@@ -59,29 +55,23 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   return json(returnData);
 }
 
-interface TabProps {}
-
 const tabs = [
   {
-    Component: (props: TabProps) => <ProfileBio {...props} />,
     Icon: () => <IconUser />,
-    id: "bio",
+    id: "_index",
     title: "Bio",
   },
   {
-    Component: (props: TabProps) => <ProfileCareer {...props} />,
     Icon: () => <IconBriefcase />,
     id: "career",
     title: "Career",
   },
   {
-    Component: (props: TabProps) => <ProfilePastTalks {...props} />,
     Icon: () => <IconPodium />,
     id: "past-talks",
     title: "Past Talks",
   },
   {
-    Component: (props: TabProps) => <ProfilePreparedTalks {...props} />,
     Icon: () => <IconPresentation />,
     id: "prepared-talks",
     title: "Prepared Talks",
@@ -89,34 +79,30 @@ const tabs = [
 ];
 
 export default function ProfileIdPage() {
-  const [searchParams] = useSearchParams();
+  const { username } = useParams();
+  const matches = useMatches();
+  const navigate = useNavigate();
 
   const profile = useProfileLoader();
-  const { isOwnProfile } = profile;
 
-  const initialCurrentStep = searchParams.get("tab") ?? "bio";
-  const [tab, _setTab] = useState<null | string | undefined>(
-    initialCurrentStep
+  const [tab, _setTab] = useState<null | string>(
+    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index"
   );
-  const setTab = (newTab: null | string) => {
-    _setTab(newTab !== "bio" ? newTab : undefined);
-    const url = new URL(window.location.href);
-    if (newTab === "bio") {
-      url.searchParams.delete("tab");
-    } else if (newTab) {
-      url.searchParams.set("tab", newTab);
-    }
-    window.history.replaceState({}, "", url.toString());
+
+  const setTab = (tab: null | string) => {
+    _setTab(tab);
+    if (tab === "_index") navigate(`/profile/${username}`);
+    else if (tab && tabs.map((t) => t.id).includes(tab))
+      navigate(`/profile/${username}/${tab}`);
   };
 
   return (
     <Stack gap="md">
-      {isOwnProfile && <Outlet />}
       <ProfileHead />
       <Tabs
         color={profile.profileColor ?? "pink"}
         onChange={setTab}
-        value={tab || "bio"}
+        value={tab || "_index"}
       >
         <Tabs.List justify="center">
           {tabs.map((t) => (
@@ -125,11 +111,7 @@ export default function ProfileIdPage() {
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        {tabs.map((t) => (
-          <Tabs.Panel key={t.id} value={t.id}>
-            <t.Component />
-          </Tabs.Panel>
-        ))}
+        <Outlet />
       </Tabs>
       <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
         {JSON.stringify(profile, null, 2)}

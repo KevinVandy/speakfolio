@@ -85,7 +85,7 @@ export function ProfileHead() {
                 withCloseButton
               >
                 Only you can see it. You can change your{" "}
-                <Anchor component={Link} to="settings">
+                <Anchor component={Link} to="edit/settings">
                   visibility settings here
                 </Anchor>
               </Alert>
@@ -98,7 +98,7 @@ export function ProfileHead() {
               >
                 Only you and other logged in Speakfolio users can see it. You
                 can change your{" "}
-                <Anchor component={Link} to="settings">
+                <Anchor component={Link} to="edit/settings">
                   visibility settings here
                 </Anchor>
               </Alert>
@@ -117,7 +117,7 @@ export function ProfileHead() {
               component={Link}
               pos="absolute"
               right={10}
-              to="edit"
+              to={`/profile/${profile.username}/edit/customization`}
               top={10}
             >
               <IconEdit />

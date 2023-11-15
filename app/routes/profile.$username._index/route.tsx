@@ -1,10 +1,10 @@
 import { Link } from "@remix-run/react";
 import { Box, Button, Center } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import xss from "xss";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
-export function ProfileBio() {
+export default function ProfileBioTab() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
@@ -24,7 +24,7 @@ export function ProfileBio() {
             component={Link}
             leftSection={<IconEdit size="10pt" />}
             size="xs"
-            to="edit?tab=bio"
+            to={`/profile/${profile.username}/edit/bio`}
             variant="subtle"
           >
             Edit Bio

@@ -1,0 +1,138 @@
+import { useEffect } from "react";
+import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
+import { Form, useActionData, useOutletContext } from "@remix-run/react";
+import { Autocomplete, Stack, Text, TextInput, Textarea } from "@mantine/core";
+import { useForm, zodResolver } from "@mantine/form";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { db } from "db/connection";
+import { profilesTable } from "db/schema";
+import { type EditProfileOutletContext } from "../profile.$username.edit/route";
+import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { transformDotNotation } from "~/util/transformDotNotation";
+
+const profileCareerSchema = z.object({
+  areasOfExpertise: z
+    .string()
+    .max(100, { message: "Max 100 characters" })
+    .optional()
+    .nullish(),
+  company: z
+    .string()
+    .max(100, { message: "Company name max 100 characters" })
+    .optional()
+    .nullish(),
+  id: z.string().uuid(),
+  jobTitle: z
+    .string()
+    .max(100, { message: "Job Title max 100 characters" })
+    .optional()
+    .nullish(),
+  profession: z
+    .string()
+    .max(100, { message: "Profession max 100 characters" })
+    .optional()
+    .nullish(),
+  userId: z.string().uuid(),
+});
+
+interface ProfileUpdateResponse {
+  data: any;
+  errors: any;
+  success: boolean;
+}
+
+export async function action({ request }: ActionFunctionArgs) {
+  const response = new Response();
+  const supabase = getSupabaseServerClient({ request, response });
+
+  let returnData: ProfileUpdateResponse = {
+    data: {},
+    errors: {},
+    success: false,
+  };
+
+  //get data from form
+  const rawData = transformDotNotation(
+    Object.fromEntries(await request.formData())
+  );
+
+  //validate data
+  const validationResult = profileCareerSchema.safeParse(rawData);
+  const { success } = validationResult;
+  if (!success) {
+    const errors = validationResult.error.formErrors.fieldErrors;
+    returnData = { ...returnData, data: rawData, errors, success };
+    return json(returnData, { status: 422 });
+  }
+  const { data } = validationResult;
+
+  //validate auth
+  const authUser = await supabase.auth.getUser();
+  if (!authUser || authUser.data.user?.id !== data.userId) {
+    return redirect("/sign-in");
+  }
+
+  //update profile bio
+  try {
+    await db
+      .update(profilesTable)
+      .set({
+        areasOfExpertise: data.areasOfExpertise,
+        company: data.company,
+        jobTitle: data.jobTitle,
+        profession: data.profession,
+      })
+      .where(eq(profilesTable.id, data.id));
+    return redirect("../..");
+  } catch (error) {
+    console.error(error);
+    returnData = {
+      ...returnData,
+      data,
+      errors: {
+        form: "Error updating profile",
+      },
+      success: false,
+    };
+    return json(returnData, { status: 422 });
+  }
+}
+
+export default function EditProfileCareerTab() {
+  // const { formRef } = useOutletContext<EditProfileOutletContext>();
+  const actionData = useActionData<typeof action>();
+  const profile = useProfileLoader();
+
+  const form = useForm({
+    initialErrors: actionData?.errors,
+    initialValues: actionData?.data ?? profile!,
+    validate: zodResolver(profileCareerSchema),
+  });
+
+  //sync back-end errors with form
+  useEffect(() => {
+    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
+      form.setErrors({ ...form.errors, ...actionData.errors });
+    }
+  }, [actionData]);
+
+  return (
+    <Form
+      method="post"
+      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+    >
+      <input name="id" type="hidden" value={profile.id} />
+      <input name="userId" type="hidden" value={profile.userId!} />
+      <Stack gap="md"></Stack>
+      {Object.values(form?.errors ?? []).map((error, i) => (
+        <Text c="red" key={i}>
+          {error}
+        </Text>
+      ))}
+      <SaveContinueCancelButtons disabled={!form.isDirty()} />
+    </Form>
+  );
+}

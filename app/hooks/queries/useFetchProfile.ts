@@ -15,7 +15,6 @@ export function useFetchProfile({ username }: Params) {
   const loaderData = useRouteLoaderData<typeof loader>(routeId)!;
 
   useEffect(() => {
-    console.log("setting query data", loaderData);
     queryClient.setQueryData([routeId, routeUrl], { ...loaderData });
   }, [loaderData]);
 
