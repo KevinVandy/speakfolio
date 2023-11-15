@@ -82,13 +82,12 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
-    if (data.bio?.richText) {
-      const cleanBio = xss(data.bio.richText);
-      await db
-        .update(profileBiosTable)
-        .set({ richText: cleanBio })
-        .where(eq(profileBiosTable.profileId, data.id));
-    }
+    const cleanBio = xss(data.bio?.richText ?? "");
+    await db
+      .update(profileBiosTable)
+      .set({ richText: cleanBio })
+      .where(eq(profileBiosTable.profileId, data.id));
+
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -105,16 +104,23 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileBioTab() {
-  const { formRef } = useOutletContext<EditProfileOutletContext>();
+  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
   const form = useForm({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
+    initialValues: actionData?.data ?? {
+      bio: {
+        richText: profile.bio?.richText ?? "",
+      },
+    },
     validate: zodResolver(profileBioSchema),
   });
-  formRef.current = form;
+
+  useEffect(() => {
+    setIsDirty(form.isDirty());
+  }, [form]);
 
   //sync back-end errors with form
   useEffect(() => {
@@ -124,7 +130,7 @@ export default function EditProfileBioTab() {
   }, [actionData]);
 
   const editor = useEditor({
-    content: form.getTransformedValues().bio?.richText || "",
+    content: form.values.bio?.richText || "",
     extensions: [
       StarterKit,
       Underline,
@@ -136,11 +142,16 @@ export default function EditProfileBioTab() {
     ],
   });
 
-  const [dirtyDebouncedBio] = useDebouncedValue(editor?.getHTML() || "", 500);
+  const [dirtyDebouncedBio] = useDebouncedValue(
+    editor?.getHTML().trim() || "",
+    500
+  );
 
   useEffect(() => {
-    const cleanBio = xss(dirtyDebouncedBio);
-    form.setFieldValue("bio.richText", cleanBio);
+    const cleanBio = dirtyDebouncedBio;
+    if (cleanBio !== form.values.bio?.richText) {
+      form.setFieldValue("bio.richText", cleanBio);
+    }
   }, [dirtyDebouncedBio]);
 
   return (
@@ -153,7 +164,7 @@ export default function EditProfileBioTab() {
       <input
         name="bio.richText"
         type="hidden"
-        value={form.getTransformedValues().bio?.richText ?? ""}
+        value={form.values.bio?.richText ?? ""}
       />
       <Stack
         gap="md"
@@ -217,7 +228,7 @@ export default function EditProfileBioTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons />
+      <SaveContinueCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

@@ -102,7 +102,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileCareerTab() {
-  const { formRef } = useOutletContext<EditProfileOutletContext>();
+  // const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -111,7 +111,7 @@ export default function EditProfileCareerTab() {
     initialValues: actionData?.data ?? profile!,
     validate: zodResolver(profileCareerSchema),
   });
-  formRef.current = form;
+  // formRef.current = form;
 
   //sync back-end errors with form
   useEffect(() => {
@@ -133,7 +133,7 @@ export default function EditProfileCareerTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons />
+      <SaveContinueCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

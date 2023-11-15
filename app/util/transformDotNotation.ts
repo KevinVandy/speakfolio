@@ -37,14 +37,3 @@ export function transformDotNotation(obj: { [key: string]: JsonValue }): {
 
   return result;
 }
-
-// // Example usage
-// const input = {
-//   'person.name': 'John',
-//   'person.age': 30,
-//   'person.children.0.name': 'Alice',
-//   'person.children.1.name': 'Bob'
-// };
-
-// const output = transformDotNotation(input);
-// console.log(output);

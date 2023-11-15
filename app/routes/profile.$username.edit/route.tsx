@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Outlet,
   useMatches,
@@ -6,13 +6,13 @@ import {
   useNavigation,
 } from "@remix-run/react";
 import {
+  Box,
   LoadingOverlay,
   Modal,
   Tabs,
   Text,
   useMantineTheme,
 } from "@mantine/core";
-import { type useForm } from "@mantine/form";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import {
@@ -24,7 +24,6 @@ import {
   IconSocial,
   IconUser,
 } from "@tabler/icons-react";
-import { type IProfileFull } from "db/schemas/profilesTable";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
 const tabs = [
@@ -73,23 +72,22 @@ export default function EditProfileModal() {
   const navigate = useNavigate();
   const matches = useMatches();
 
-  const [tab, setTab] = useState<string>(
-    () => matches.pop()?.id?.split?.(".")?.pop() ?? "customization"
-  );
+  const [tab, setTab] = useState<string>(() => {
+    const path = matches.pop()?.id?.split?.(".")?.pop() ?? "customization";
+    if (tabs.map((t) => t.id).includes(path)) return path;
+    return "customization";
+  });
 
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
   const [opened, { close, open }] = useDisclosure(false);
 
-  const formRef = useRef<ReturnType<
-    typeof useForm<Partial<IProfileFull>>
-  > | null>(null);
-  const form = formRef.current;
+  const [isDirty, setIsDirty] = useState(false);
 
   const closeEditModal = () => {
     close();
-    setTimeout(() => navigate(".."), 500);
+    setTimeout(() => navigate(`/profile/${profile?.username}`), 500);
   };
 
   const openConfirmCancelModal = (onConfirm?: () => void) =>
@@ -101,7 +99,7 @@ export default function EditProfileModal() {
     });
 
   const handleCancel = () => {
-    if (form?.isDirty()) {
+    if (isDirty) {
       openConfirmCancelModal();
     } else {
       closeEditModal();
@@ -110,33 +108,29 @@ export default function EditProfileModal() {
 
   useEffect(() => {
     if (!profile || !isOwnProfile) {
-      navigate("..");
+      navigate(`/profile/${profile?.username}`);
     } else {
       open();
     }
   }, []);
 
   useEffect(() => {
-    if (tab) navigate(tab);
+    if (tab) navigate(`/profile/${profile?.username}/edit/${tab}`);
   }, [tab]);
 
   return (
     <Modal
-      closeOnClickOutside={!form?.isDirty()}
+      closeOnClickOutside={!isDirty}
       onClose={handleCancel}
       opened={opened}
       size={"960px"}
       title={"Edit Your Speakfolio"}
     >
       <Tabs
-        color={
-          form?.getTransformedValues().profileColor ??
-          profile.profileColor ??
-          "pink"
-        }
+        color={profile.profileColor!}
         mih="400px"
         my="md"
-        onChange={(newTab) => setTab(newTab!)}
+        onChange={setTab as any}
         orientation={isMobile ? "horizontal" : "vertical"}
         pos="relative"
         value={tab ?? "customization"}
@@ -150,11 +144,7 @@ export default function EditProfileModal() {
                 <t.Icon
                   color={
                     t.id === tab
-                      ? theme.colors[
-                          form?.getTransformedValues().profileColor ??
-                            profile.profileColor ??
-                            "pink"
-                        ][8]
+                      ? theme.colors[profile.profileColor!][8]
                       : undefined
                   }
                 />
@@ -170,24 +160,20 @@ export default function EditProfileModal() {
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        {tabs.map((t) => (
-          <Tabs.Panel
-            key={t.id}
-            px={!isMobile ? "lg" : undefined}
-            py={isMobile ? "md" : undefined}
-            value={t.id}
-          >
-            <Outlet context={{ formRef, onCancel: handleCancel }} />
-          </Tabs.Panel>
-        ))}
+        <Box
+          display="grid"
+          px={!isMobile ? "lg" : undefined}
+          py={isMobile ? "md" : undefined}
+          w="100%"
+        >
+          <Outlet context={{ onCancel: handleCancel, setIsDirty }} />
+        </Box>
       </Tabs>
     </Modal>
   );
 }
 
 export type EditProfileOutletContext = {
-  formRef: React.MutableRefObject<ReturnType<
-    typeof useForm<Partial<IProfileFull>>
-  > | null>;
   onCancel: () => void;
+  setIsDirty: (isDirty: boolean) => void;
 };

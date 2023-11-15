@@ -121,7 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileLinksTab() {
-  const { formRef } = useOutletContext<EditProfileOutletContext>();
+  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -135,8 +135,10 @@ export default function EditProfileLinksTab() {
       }!,
     validate: zodResolver(profileLinksSchema),
   });
-  // @ts-ignore
-  formRef.current = form;
+  
+  useEffect(() => {
+    setIsDirty(form.isDirty());
+  }, [form]);
 
   //sync back-end errors with form
   useEffect(() => {
@@ -251,7 +253,7 @@ export default function EditProfileLinksTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons />
+      <SaveContinueCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

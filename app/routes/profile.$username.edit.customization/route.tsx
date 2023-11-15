@@ -122,7 +122,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileCustomizationTab() {
-  const { formRef } = useOutletContext<EditProfileOutletContext>();
+  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const theme = useMantineTheme();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
@@ -132,7 +132,10 @@ export default function EditProfileCustomizationTab() {
     initialValues: actionData?.data ?? profile!,
     validate: zodResolver(profileCustomizationSchema),
   });
-  formRef.current = form;
+  
+  useEffect(() => {
+    setIsDirty(form.isDirty());
+  }, [form]);
 
   //sync back-end errors with form
   useEffect(() => {
@@ -235,7 +238,7 @@ export default function EditProfileCustomizationTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons />
+      <SaveContinueCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

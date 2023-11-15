@@ -117,7 +117,7 @@ export function ProfileHead() {
               component={Link}
               pos="absolute"
               right={10}
-              to="edit/customization"
+              to={`/profile/${profile.username}/edit/customization`}
               top={10}
             >
               <IconEdit />

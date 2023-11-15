@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useOutletContext } from "@remix-run/react";
 import { Flex, Group, Radio, Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { IconLock } from "@tabler/icons-react";
@@ -8,6 +8,7 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileVisibilities, profilesTable } from "db/schemas/profilesTable";
+import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { useSupabase } from "~/hooks/useSupabase";
@@ -62,7 +63,7 @@ export async function action({ request }: ActionFunctionArgs) {
         visibility: data.visibility,
       })
       .where(eq(profilesTable.id, data.id));
-    return redirect("../");
+    return redirect("../..");
   } catch (error) {
     console.error(error);
     returnData = {
@@ -78,6 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileSettingsModal() {
+  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const { session } = useSupabase();
 
@@ -88,6 +90,10 @@ export default function EditProfileSettingsModal() {
     initialValues: actionData?.data ?? profile!,
     validate: zodResolver(profileSchema),
   });
+
+  useEffect(() => {
+    setIsDirty(form.isDirty());
+  }, [form]);
 
   //sync back-end errors with form
   useEffect(() => {

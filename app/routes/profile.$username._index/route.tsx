@@ -4,7 +4,7 @@ import { IconEdit } from "@tabler/icons-react";
 import xss from "xss";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
-export function ProfileBio() {
+export default function ProfileBioTab() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
@@ -24,7 +24,7 @@ export function ProfileBio() {
             component={Link}
             leftSection={<IconEdit size="10pt" />}
             size="xs"
-            to="edit/bio"
+            to={`/profile/${profile.username}/edit/bio`}
             variant="subtle"
           >
             Edit Bio
