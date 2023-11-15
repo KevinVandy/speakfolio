@@ -86,13 +86,13 @@ export default function ProfileIdPage() {
   const profile = useProfileLoader();
 
   const [tab, _setTab] = useState<null | string>(
-    () => matches.pop()?.id?.split?.(".")?.pop() ?? "_index"
+    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index"
   );
 
   const setTab = (tab: null | string) => {
     _setTab(tab);
     if (tab === "_index") navigate(`/profile/${username}`);
-    else if (tab && tab !== "_index" && tabs.map((t) => t.id).includes(tab))
+    else if (tab && tabs.map((t) => t.id).includes(tab))
       navigate(`/profile/${username}/${tab}`);
   };
 
