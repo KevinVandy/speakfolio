@@ -64,13 +64,14 @@ export const profilesTable = pgTable(
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    userId: uuid("user_id"), //fk to auth.users
+    userId: uuid("user_id"), //fk to auth.users.id
     username: text("username").notNull(),
     views: integer("views").default(0),
     visibility: profileVisibilityEnum("visibility").default("public").notNull(),
   },
   (table) => {
     return {
+      profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
       profileUsernameUnique: unique("profile_username_unique").on(
         table.username
       ),

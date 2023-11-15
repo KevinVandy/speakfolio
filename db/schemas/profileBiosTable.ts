@@ -8,7 +8,10 @@ export const profileBiosTable = pgTable("profile_bios", {
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   profileId: uuid("profile_id")
-    .references(() => profilesTable.id)
+    .references(() => profilesTable.id,{
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    })
     .notNull(),
   richText: text("rich_text").default(""),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })

@@ -29,7 +29,10 @@ export const profileLinksTable = pgTable("profile_links", {
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  profileId: uuid("profile_id").references(() => profilesTable.id),
+  profileId: uuid("profile_id").references(() => profilesTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   site: linkSiteEnum("site").default("Other"),
   title: text("title").default(""),
   url: text("url").notNull(),

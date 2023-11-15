@@ -18,7 +18,10 @@ export const presentationsTable = pgTable("presentations", {
   headline: text("headline").default(""),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   lastPresentedAt: text("last_presented_at").default(""),
-  profileId: uuid("profile_id").references(() => profilesTable.id),
+  profileId: uuid("profile_id").references(() => profilesTable.id, {
+    onDelete: "cascade",
+    onUpdate: "cascade",
+  }),
   slidesUrl: text("slides_url").default(""),
   status: presentationStatusEnum("status").default("draft"),
   timesPresented: text("times_presented").default(""),

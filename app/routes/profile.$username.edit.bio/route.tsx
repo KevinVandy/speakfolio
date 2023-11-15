@@ -14,7 +14,7 @@ import { BubbleMenu, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import xss from "xss";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileBiosTable } from "db/schema";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
@@ -24,21 +24,10 @@ import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 
 const profileBioSchema = z.object({
-  bio: z
-    .object({
-      plainText: z
-        .string()
-        .max(4000, { message: "Bio max 4000 characters" })
-        .optional()
-        .nullish(),
-      richText: z
-        .string()
-        .max(6000, { message: "Bio max 6000 characters" })
-        .optional()
-        .nullish(),
-    })
-    .optional()
-    .nullish(),
+  bio: z.object({
+    id: z.string().uuid(),
+    richText: z.string().max(6000, { message: "Bio max 6000 characters" }),
+  }),
   id: z.string().uuid(),
   userId: z.string().uuid(),
 });
@@ -86,8 +75,12 @@ export async function action({ request }: ActionFunctionArgs) {
     await db
       .update(profileBiosTable)
       .set({ richText: cleanBio })
-      .where(eq(profileBiosTable.profileId, data.id));
-
+      .where(
+        and(
+          eq(profileBiosTable.id, data.bio.id),
+          eq(profileBiosTable.profileId, data.id)
+        )
+      );
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -112,8 +105,11 @@ export default function EditProfileBioTab() {
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       bio: {
+        id: profile.bio?.id ?? "",
         richText: profile.bio?.richText ?? "",
       },
+      id: profile.id,
+      userId: profile.userId!,
     },
     validate: zodResolver(profileBioSchema),
   });
@@ -148,6 +144,7 @@ export default function EditProfileBioTab() {
   );
 
   useEffect(() => {
+    if (!dirtyDebouncedBio) return;
     const cleanBio = dirtyDebouncedBio;
     if (cleanBio !== form.values.bio?.richText) {
       form.setFieldValue("bio.richText", cleanBio);
@@ -161,6 +158,7 @@ export default function EditProfileBioTab() {
     >
       <input name="id" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
+      <input name="bio.id" type="hidden" value={form.values.bio?.id ?? ""} />
       <input
         name="bio.richText"
         type="hidden"
