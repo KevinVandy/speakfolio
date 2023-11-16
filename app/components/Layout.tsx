@@ -7,7 +7,7 @@ import {
   Button,
   Flex,
   Menu,
-  Title,
+  Text,
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
@@ -51,9 +51,20 @@ export const Layout = ({ children }: Props) => {
               opened={opened}
             />
             <Link style={{ textDecoration: "none" }} to="/">
-              <Title c="pink" fz="xl" lh="xs" m="0" order={1}>
+              <Text
+                c="pink"
+                component="h1"
+                fz="xl"
+                gradient={{
+                  from: "pink",
+                  to: loggedInUserProfile?.profileColor ?? "blue",
+                }}
+                lh="xs"
+                m="0"
+                variant="gradient"
+              >
                 Speakfolio
-              </Title>
+              </Text>
             </Link>
           </Flex>
           <Flex align="center" gap="md">

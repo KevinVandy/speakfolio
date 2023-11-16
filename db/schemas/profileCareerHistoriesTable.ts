@@ -10,7 +10,6 @@ export const profileCareerHistoriesTable = pgTable("profile_career_histories", {
   description: text("description").default(""),
   endDate: date("end_date", { mode: "string" }),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  isCurrent: text("is_current").default("false"),
   jobTitle: text("job_title").default(""),
   profileId: uuid("profile_id").references(() => profilesTable.id, {
     onDelete: "cascade",
