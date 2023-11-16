@@ -161,7 +161,7 @@ export function ProfileHead() {
           ))}
         </Flex>
       </Flex>
-      <Title fw="normal" my="md" order={3} size="lg" ta="center">
+      <Title fs="italic" fw="normal" my="md" order={3} size="xl" ta="center">
         {profile.headline}
       </Title>
     </>

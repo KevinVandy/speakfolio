@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentationsTable";
 import { profileBiosTable } from "./profileBiosTable";
+import { profileCareerHistoriesTable } from "./profileCareerHistoriesTable";
 import { profileLinksTable } from "./profileLinksTable";
 
 export const profileVisibilities = [
@@ -45,7 +46,6 @@ export const profilesTable = pgTable(
   "profiles",
   {
     areasOfExpertise: text("areas_of_expertise").default(""),
-    company: text("company").default(""),
     contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
@@ -53,7 +53,6 @@ export const profilesTable = pgTable(
       .notNull(),
     headline: text("headline").default(""),
     id: uuid("id").defaultRandom().primaryKey().notNull(),
-    jobTitle: text("job_title").default(""),
     latitude: real("latitude"),
     location: text("location").default(""),
     longitude: real("longitude"),
@@ -83,6 +82,7 @@ export const profilesTableRelations = relations(
   profilesTable,
   ({ many, one }) => ({
     bio: one(profileBiosTable),
+    careerHistories: many(profileCareerHistoriesTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
   })

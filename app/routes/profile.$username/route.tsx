@@ -89,11 +89,11 @@ export default function ProfileIdPage() {
     () => matches[2]?.id?.split?.(".")?.pop() ?? "_index"
   );
 
-  const setTab = (tab: null | string) => {
-    _setTab(tab);
-    if (tab === "_index") navigate(`/profile/${username}`);
-    else if (tab && tabs.map((t) => t.id).includes(tab))
-      navigate(`/profile/${username}/${tab}`);
+  const setTab = (newTab: null | string) => {
+    _setTab(newTab);
+    if (newTab === "_index") navigate(`/profile/${username}`);
+    else if (newTab && newTab !== tab && tabs.map((t) => t.id).includes(newTab))
+      navigate(`/profile/${username}/${newTab}`);
   };
 
   return (

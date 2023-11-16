@@ -19,17 +19,17 @@ const profileCareerSchema = z.object({
     .max(100, { message: "Max 100 characters" })
     .optional()
     .nullish(),
-  company: z
-    .string()
-    .max(100, { message: "Company name max 100 characters" })
-    .optional()
-    .nullish(),
+  // company: z
+  //   .string()
+  //   .max(100, { message: "Company name max 100 characters" })
+  //   .optional()
+  //   .nullish(),
   id: z.string().uuid(),
-  jobTitle: z
-    .string()
-    .max(100, { message: "Job Title max 100 characters" })
-    .optional()
-    .nullish(),
+  // jobTitle: z
+  //   .string()
+  //   .max(100, { message: "Job Title max 100 characters" })
+  //   .optional()
+  //   .nullish(),
   profession: z
     .string()
     .max(100, { message: "Profession max 100 characters" })
@@ -81,8 +81,6 @@ export async function action({ request }: ActionFunctionArgs) {
       .update(profilesTable)
       .set({
         areasOfExpertise: data.areasOfExpertise,
-        company: data.company,
-        jobTitle: data.jobTitle,
         profession: data.profession,
       })
       .where(eq(profilesTable.id, data.id));
@@ -139,20 +137,20 @@ export default function EditProfileCareerTab() {
           placeholder="Profession"
           {...form.getInputProps("profession")}
         />
-        <TextInput
+        {/* <TextInput
           description="(Optional) Your job title"
           label="Job Title"
           name="jobTitle"
           placeholder="Job Title"
           {...form.getInputProps("jobTitle")}
-        />
-        <TextInput
+        /> */}
+        {/* <TextInput
           description="(Optional) Your company"
           label="Company"
           name="company"
           placeholder="Company"
           {...form.getInputProps("company")}
-        />
+        /> */}
         <Textarea
           label="Areas of Expertise"
           maxLength={100}
