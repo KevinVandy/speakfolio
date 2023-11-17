@@ -5,7 +5,7 @@ import { type IProfileOutletContext } from "../profile.$username/route";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { xssOptions } from "~/util/xssOptions";
 
-export default function ProfileBioTab() {
+export default function ProfileOverviewTab() {
   const { setTab } = useOutletContext<IProfileOutletContext>();
   const profile = useProfileLoader();
 

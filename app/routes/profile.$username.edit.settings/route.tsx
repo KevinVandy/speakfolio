@@ -79,7 +79,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileSettingsModal() {
-  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const { session } = useSupabase();
 
@@ -148,7 +148,7 @@ export default function EditProfileSettingsModal() {
       ))}
       <SaveContinueCancelButtons
         disabled={!form.isDirty()}
-        onCancel={() => {}}
+        onCancel={onCancel}
       />
     </Form>
   );

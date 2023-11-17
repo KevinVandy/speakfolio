@@ -121,7 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileLinksTab() {
-  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -255,7 +255,7 @@ export default function EditProfileLinksTab() {
       ))}
       <SaveContinueCancelButtons
         disabled={!form.isDirty()}
-        onCancel={() => {}}
+        onCancel={onCancel}
       />
     </Form>
   );

@@ -101,7 +101,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileCustomizationTab() {
-  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const theme = useMantineTheme();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
@@ -190,7 +190,7 @@ export default function EditProfileCustomizationTab() {
       ))}
       <SaveContinueCancelButtons
         disabled={!form.isDirty()}
-        onCancel={() => {}}
+        onCancel={onCancel}
       />
     </Form>
   );

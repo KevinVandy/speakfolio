@@ -4,6 +4,7 @@ import {
   useMatches,
   useNavigate,
   useNavigation,
+  useOutletContext,
 } from "@remix-run/react";
 import {
   Box,
@@ -21,6 +22,8 @@ import {
   IconSettings,
   IconSocial,
 } from "@tabler/icons-react";
+import ProfileOverviewTab from "../profile.$username._index/route";
+import { type IProfileOutletContext } from "../profile.$username/route";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
 const tabs = [
@@ -47,19 +50,20 @@ const tabs = [
 ];
 
 export default function EditProfileModal() {
-  const theme = useMantineTheme();
-  const isMobile = useMediaQuery("(max-width: 768px)");
-
+  const { setTab } = useOutletContext<IProfileOutletContext>();
   const navigation = useNavigation();
   const navigate = useNavigate();
   const matches = useMatches();
+
+  const theme = useMantineTheme();
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
   const [opened, { close, open }] = useDisclosure(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [tab, _setTab] = useState<string>(() => {
+  const [editTab, _setEditTab] = useState<string>(() => {
     const path = matches[3]?.id?.split?.(".")?.pop() ?? "pictures";
     if (tabs.map((t) => t.id).includes(path)) return path;
     return "pictures";
@@ -67,6 +71,7 @@ export default function EditProfileModal() {
 
   const closeEditModal = () => {
     close();
+    setTab("_index");
     setTimeout(() => navigate(`/profile/${profile?.username}`), 500);
   };
 
@@ -86,17 +91,17 @@ export default function EditProfileModal() {
     }
   };
 
-  const navigateTab = (newTab: string) => {
-    _setTab(newTab);
+  const navigateEditTab = (newTab: string) => {
+    _setEditTab(newTab);
     navigate(`/profile/${profile?.username}/edit/${newTab}`);
   };
 
-  const setTab = (newTab: null | string) => {
+  const setEditTab = (newTab: null | string) => {
     if (!newTab) return;
     if (isDirty) {
-      openConfirmCancelModal(() => navigateTab(newTab));
+      openConfirmCancelModal(() => navigateEditTab(newTab));
     } else {
-      navigateTab(newTab);
+      navigateEditTab(newTab);
     }
   };
 
@@ -109,57 +114,60 @@ export default function EditProfileModal() {
   }, []);
 
   return (
-    <Modal
-      closeOnClickOutside={!isDirty}
-      onClose={handleCancel}
-      opened={opened}
-      size={"xl"}
-      title={"Customize Your Speakfolio"}
-    >
-      <Tabs
-        color={profile.profileColor!}
-        mih="400px"
-        my="md"
-        onChange={setTab as any}
-        orientation={isMobile ? "horizontal" : "vertical"}
-        pos="relative"
-        value={tab ?? "customization"}
+    <>
+      <ProfileOverviewTab />
+      <Modal
+        closeOnClickOutside={!isDirty}
+        onClose={handleCancel}
+        opened={opened}
+        size={"xl"}
+        title={"Customize Your Speakfolio"}
       >
-        <LoadingOverlay visible={navigation.state === "submitting"} />
-        <Tabs.List>
-          {tabs.map((t) => (
-            <Tabs.Tab
-              key={t.id}
-              leftSection={
-                <t.Icon
-                  color={
-                    t.id === tab
-                      ? theme.colors[profile.profileColor!][8]
-                      : undefined
-                  }
-                />
-              }
-              miw={!isMobile ? "220px" : undefined}
-              value={t.id}
-              {...(t.id === "settings" && {
-                bottom: 0,
-                pos: "absolute",
-              })}
-            >
-              {t.title}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-        <Box
-          display="grid"
-          px={!isMobile ? "lg" : undefined}
-          py={isMobile ? "md" : undefined}
-          w="100%"
+        <Tabs
+          color={profile.profileColor!}
+          mih="400px"
+          my="md"
+          onChange={setEditTab as any}
+          orientation={isMobile ? "horizontal" : "vertical"}
+          pos="relative"
+          value={editTab ?? "customization"}
         >
-          <Outlet context={{ onCancel: handleCancel, setIsDirty }} />
-        </Box>
-      </Tabs>
-    </Modal>
+          <LoadingOverlay visible={navigation.state === "submitting"} />
+          <Tabs.List>
+            {tabs.map((t) => (
+              <Tabs.Tab
+                key={t.id}
+                leftSection={
+                  <t.Icon
+                    color={
+                      t.id === editTab
+                        ? theme.colors[profile.profileColor!][8]
+                        : undefined
+                    }
+                  />
+                }
+                miw={!isMobile ? "220px" : undefined}
+                value={t.id}
+                {...(t.id === "settings" && {
+                  bottom: 0,
+                  pos: "absolute",
+                })}
+              >
+                {t.title}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Box
+            display="grid"
+            px={!isMobile ? "lg" : undefined}
+            py={isMobile ? "md" : undefined}
+            w="100%"
+          >
+            <Outlet context={{ onCancel: handleCancel, setIsDirty }} />
+          </Box>
+        </Tabs>
+      </Modal>
+    </>
   );
 }
 
