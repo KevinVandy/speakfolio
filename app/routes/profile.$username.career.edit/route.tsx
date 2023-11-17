@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
-import { Autocomplete, Stack, Text, TextInput, Textarea } from "@mantine/core";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
+import { Autocomplete, Stack, Text, Textarea } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
+import { modals } from "@mantine/modals";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schema";
-import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -84,7 +84,7 @@ export async function action({ request }: ActionFunctionArgs) {
         profession: data.profession,
       })
       .where(eq(profilesTable.id, data.id));
-    return redirect("../..");
+    return redirect("..");
   } catch (error) {
     console.error(error);
     returnData = {
@@ -100,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileCareerTab() {
-  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -110,16 +110,28 @@ export default function EditProfileCareerTab() {
     validate: zodResolver(profileCareerSchema),
   });
 
-  useEffect(() => {
-    setIsDirty(form.isDirty());
-  }, [form]);
-
   //sync back-end errors with form
   useEffect(() => {
     if (actionData && Object.keys(actionData?.errors ?? {}).length) {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
   }, [actionData]);
+
+  const openConfirmCancelModal = (onConfirm?: () => void) =>
+    modals.openConfirmModal({
+      children: <Text size="sm">None of your changes will be saved</Text>,
+      labels: { cancel: "Continue Editing", confirm: "Discard" },
+      onConfirm: onConfirm ?? (() => navigate("..")),
+      title: "Are you sure you want to discard your changes?",
+    });
+
+  const handleCancel = () => {
+    if (form.isDirty()) {
+      openConfirmCancelModal();
+    } else {
+      navigate("..");
+    }
+  };
 
   return (
     <Form
@@ -128,7 +140,7 @@ export default function EditProfileCareerTab() {
     >
       <input name="id" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
-      <Stack gap="md">
+      <Stack gap="md" m="auto" maw="600px" my="xl">
         <Autocomplete
           data={commonProfessions}
           description="(Optional) Your profession or industry"
@@ -159,13 +171,16 @@ export default function EditProfileCareerTab() {
           placeholder="List up to 10 areas of expertise"
           {...form.getInputProps("areasOfExpertise")}
         />
+        {Object.values(form?.errors ?? []).map((error, i) => (
+          <Text c="red" key={i}>
+            {error}
+          </Text>
+        ))}
+        <SaveContinueCancelButtons
+          disabled={!form.isDirty()}
+          onCancel={handleCancel}
+        />
       </Stack>
-      {Object.values(form?.errors ?? []).map((error, i) => (
-        <Text c="red" key={i}>
-          {error}
-        </Text>
-      ))}
-      <SaveContinueCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

@@ -135,7 +135,7 @@ export default function EditProfileLinksTab() {
       }!,
     validate: zodResolver(profileLinksSchema),
   });
-  
+
   useEffect(() => {
     setIsDirty(form.isDirty());
   }, [form]);
@@ -253,7 +253,10 @@ export default function EditProfileLinksTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons disabled={!form.isDirty()} />
+      <SaveContinueCancelButtons
+        disabled={!form.isDirty()}
+        onCancel={() => {}}
+      />
     </Form>
   );
 }

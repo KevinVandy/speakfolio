@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
-import { Autocomplete, Stack, Text, TextInput, Textarea } from "@mantine/core";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
+import { Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
+import { modals } from "@mantine/modals";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schema";
-import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -101,8 +101,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function EditProfileCareerTab() {
-  // const { formRef } = useOutletContext<EditProfileOutletContext>();
+export default function EditProfilePreparedTalksTab() {
+  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -119,6 +119,22 @@ export default function EditProfileCareerTab() {
     }
   }, [actionData]);
 
+  const openConfirmCancelModal = (onConfirm?: () => void) =>
+    modals.openConfirmModal({
+      children: <Text size="sm">None of your changes will be saved</Text>,
+      labels: { cancel: "Continue Editing", confirm: "Discard" },
+      onConfirm: onConfirm ?? (() => navigate("..")),
+      title: "Are you sure you want to discard your changes?",
+    });
+
+  const handleCancel = () => {
+    if (form.isDirty()) {
+      openConfirmCancelModal();
+    } else {
+      navigate("..");
+    }
+  };
+
   return (
     <Form
       method="post"
@@ -132,7 +148,10 @@ export default function EditProfileCareerTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons disabled={!form.isDirty()} />
+      <SaveContinueCancelButtons
+        disabled={!form.isDirty()}
+        onCancel={handleCancel}
+      />
     </Form>
   );
 }

@@ -1,15 +1,17 @@
-import { useOutletContext } from "@remix-run/react";
-import { Button, SimpleGrid } from "@mantine/core";
-import { type EditProfileOutletContext } from "~/routes/profile.$username.edit/route";
+import { Button, SimpleGrid, type SimpleGridProps } from "@mantine/core";
 
-interface Props {
+interface Props extends SimpleGridProps {
   disabled?: boolean;
   loading?: boolean;
+  onCancel: () => void;
 }
 
-export function SaveContinueCancelButtons({ disabled, loading }: Props) {
-  const { onCancel } = useOutletContext<EditProfileOutletContext>();
-
+export function SaveContinueCancelButtons({
+  disabled,
+  loading,
+  onCancel,
+  ...rest
+}: Props) {
   return (
     <SimpleGrid
       bg="inherit"
@@ -19,6 +21,7 @@ export function SaveContinueCancelButtons({ disabled, loading }: Props) {
       p="2px"
       pos="sticky"
       w="100%"
+      {...rest}
     >
       <Button onClick={onCancel} type="button" variant="default">
         Cancel

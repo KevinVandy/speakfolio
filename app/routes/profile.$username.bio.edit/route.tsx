@@ -1,9 +1,15 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
-import { Stack, Text } from "@mantine/core";
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useNavigation,
+} from "@remix-run/react";
+import { Flex, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useDebouncedValue } from "@mantine/hooks";
+import { modals } from "@mantine/modals";
 import { Link, RichTextEditor } from "@mantine/tiptap";
 import Highlight from "@tiptap/extension-highlight";
 import SubScript from "@tiptap/extension-subscript";
@@ -17,11 +23,11 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileBiosTable } from "db/schema";
-import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { xssOptions } from "~/util/xssOptions";
 
 const profileBioSchema = z.object({
   bio: z.object({
@@ -71,7 +77,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
-    const cleanBio = xss(data.bio?.richText ?? "");
+    const cleanBio = xss(data.bio?.richText ?? "", xssOptions);
     await db
       .update(profileBiosTable)
       .set({ richText: cleanBio })
@@ -81,7 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
           eq(profileBiosTable.profileId, data.id)
         )
       );
-    return redirect("../..");
+    return redirect("..");
   } catch (error) {
     console.error(error);
     returnData = {
@@ -97,7 +103,8 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileBioTab() {
-  const { setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const navigate = useNavigate();
+  const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -113,10 +120,6 @@ export default function EditProfileBioTab() {
     },
     validate: zodResolver(profileBioSchema),
   });
-
-  useEffect(() => {
-    setIsDirty(form.isDirty());
-  }, [form]);
 
   //sync back-end errors with form
   useEffect(() => {
@@ -138,18 +141,30 @@ export default function EditProfileBioTab() {
     ],
   });
 
-  const [dirtyDebouncedBio] = useDebouncedValue(
-    editor?.getHTML().trim() || "",
-    500
-  );
+  const [debouncedBio] = useDebouncedValue(editor?.getHTML() || "", 500);
 
   useEffect(() => {
-    if (!dirtyDebouncedBio) return;
-    const cleanBio = dirtyDebouncedBio;
-    if (cleanBio !== form.values.bio?.richText) {
-      form.setFieldValue("bio.richText", cleanBio);
+    if (!debouncedBio) return;
+    if (debouncedBio !== form.values.bio?.richText) {
+      form.setFieldValue("bio.richText", debouncedBio);
     }
-  }, [dirtyDebouncedBio]);
+  }, [debouncedBio]);
+
+  const openConfirmCancelModal = (onConfirm?: () => void) =>
+    modals.openConfirmModal({
+      children: <Text size="sm">None of your changes will be saved</Text>,
+      labels: { cancel: "Continue Editing", confirm: "Discard" },
+      onConfirm: onConfirm ?? (() => navigate("..")),
+      title: "Are you sure you want to discard your changes?",
+    });
+
+  const handleCancel = () => {
+    if (form.isDirty()) {
+      openConfirmCancelModal();
+    } else {
+      navigate("..");
+    }
+  };
 
   return (
     <Form
@@ -164,11 +179,8 @@ export default function EditProfileBioTab() {
         type="hidden"
         value={form.values.bio?.richText ?? ""}
       />
-      <Stack
-        gap="md"
-        h="clamp(400px, 70vh, 1000px)"
-        style={{ overflow: "auto" }}
-      >
+      <Stack gap="md" pos="relative" py="xl">
+        <LoadingOverlay visible={navigation.state === "submitting"} />
         <RichTextEditor editor={editor}>
           <RichTextEditor.Toolbar
             sticky
@@ -188,6 +200,7 @@ export default function EditProfileBioTab() {
               <RichTextEditor.H3 />
               <RichTextEditor.H4 />
               <RichTextEditor.H5 />
+              <RichTextEditor.H6 />
             </RichTextEditor.ControlsGroup>
             <RichTextEditor.ControlsGroup>
               <RichTextEditor.Blockquote />
@@ -226,7 +239,14 @@ export default function EditProfileBioTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons disabled={!form.isDirty()} />
+      <Flex justify="flex-end" style={{ justifySelf: "flex-end" }}>
+        <SaveContinueCancelButtons
+          disabled={!form.isDirty()}
+          loading={navigation.state === "submitting"}
+          maw="300px"
+          onCancel={handleCancel}
+        />
+      </Flex>
     </Form>
   );
 }

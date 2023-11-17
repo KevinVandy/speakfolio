@@ -1,22 +1,30 @@
 import { Link, useOutlet } from "@remix-run/react";
-import { Button, Center } from "@mantine/core";
+import { Box, Button, Center } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
+import xss from "xss";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { xssOptions } from "~/util/xssOptions";
 
-export default function ProfileCareerTab() {
+export default function ProfileBioTab() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
+  const dirtyBio = profile.bio?.richText || "";
+  const cleanBio = xss(dirtyBio, xssOptions);
+
   const outlet = useOutlet();
 
-  if (outlet) {
+  if (isOwnProfile && outlet) {
     return outlet;
   }
 
   return (
     <>
-      <h1>Career</h1>
-      <p>Coming soon...</p>
+      {profile.bio?.richText ? (
+        <Box dangerouslySetInnerHTML={{ __html: cleanBio }} />
+      ) : (
+        "No bio yet."
+      )}{" "}
       {isOwnProfile && (
         <Center>
           <Button
@@ -26,7 +34,7 @@ export default function ProfileCareerTab() {
             to={`edit`}
             variant="subtle"
           >
-            Edit Career
+            Edit Bio
           </Button>
         </Center>
       )}

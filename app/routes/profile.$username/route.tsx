@@ -4,6 +4,7 @@ import { Outlet, useMatches, useNavigate, useParams } from "@remix-run/react";
 import { Stack, Tabs } from "@mantine/core";
 import {
   IconBriefcase,
+  IconMicrophone2,
   IconPodium,
   IconPresentation,
   IconUser,
@@ -57,8 +58,13 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 const tabs = [
   {
-    Icon: () => <IconUser />,
+    Icon: () => <IconMicrophone2 />,
     id: "_index",
+    title: "Overview",
+  },
+  {
+    Icon: () => <IconUser />,
+    id: "bio",
     title: "Bio",
   },
   {
@@ -111,11 +117,15 @@ export default function ProfileIdPage() {
             </Tabs.Tab>
           ))}
         </Tabs.List>
-        <Outlet />
+        <Outlet context={{ setTab }} />
       </Tabs>
       <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
         {JSON.stringify(profile, null, 2)}
       </pre>
     </Stack>
   );
+}
+
+export interface IProfileOutletContext {
+  setTab: (newTab: null | string) => void;
 }

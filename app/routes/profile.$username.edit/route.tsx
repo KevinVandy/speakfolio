@@ -17,20 +17,18 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import {
   IconAdjustments,
-  IconBriefcase,
-  IconPodium,
-  IconPresentation,
+  IconPhoto,
   IconSettings,
   IconSocial,
-  IconUser,
 } from "@tabler/icons-react";
-import ProfileBioTab from "../profile.$username._index/route";
-import ProfileCareerTab from "../profile.$username.career/route";
-import ProfilePastTalksTab from "../profile.$username.past-talks/route";
-import ProfilePreparedTalksTab from "../profile.$username.prepared-talks/route";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
 const tabs = [
+  {
+    Icon: (props: any) => <IconPhoto {...props} />,
+    id: "pictures",
+    title: "Profile Pictures",
+  },
   {
     Icon: (props: any) => <IconAdjustments {...props} />,
     id: "customization",
@@ -40,26 +38,6 @@ const tabs = [
     Icon: (props: any) => <IconSocial {...props} />,
     id: "links",
     title: "Social Links",
-  },
-  {
-    Icon: (props: any) => <IconUser {...props} />,
-    id: "bio",
-    title: "Bio",
-  },
-  {
-    Icon: (props: any) => <IconBriefcase {...props} />,
-    id: "career",
-    title: "Career",
-  },
-  {
-    Icon: (props: any) => <IconPodium {...props} />,
-    id: "past-talks",
-    title: "Past Talks",
-  },
-  {
-    Icon: (props: any) => <IconPresentation {...props} />,
-    id: "prepared-talks",
-    title: "Prepared Talks",
   },
   {
     Icon: (props: any) => <IconSettings {...props} />,
@@ -82,9 +60,9 @@ export default function EditProfileModal() {
   const [opened, { close, open }] = useDisclosure(false);
   const [isDirty, setIsDirty] = useState(false);
   const [tab, _setTab] = useState<string>(() => {
-    const path = matches[3]?.id?.split?.(".")?.pop() ?? "customization";
+    const path = matches[3]?.id?.split?.(".")?.pop() ?? "pictures";
     if (tabs.map((t) => t.id).includes(path)) return path;
-    return "customization";
+    return "pictures";
   });
 
   const closeEditModal = () => {
@@ -131,68 +109,57 @@ export default function EditProfileModal() {
   }, []);
 
   return (
-    <>
-      {tab === "career" ? (
-        <ProfileCareerTab />
-      ) : tab === "past-talks" ? (
-        <ProfilePastTalksTab />
-      ) : tab === "prepared-talks" ? (
-        <ProfilePreparedTalksTab />
-      ) : (
-        <ProfileBioTab />
-      )}
-      <Modal
-        closeOnClickOutside={!isDirty}
-        onClose={handleCancel}
-        opened={opened}
-        size={"960px"}
-        title={"Edit Your Speakfolio"}
+    <Modal
+      closeOnClickOutside={!isDirty}
+      onClose={handleCancel}
+      opened={opened}
+      size={"xl"}
+      title={"Customize Your Speakfolio"}
+    >
+      <Tabs
+        color={profile.profileColor!}
+        mih="400px"
+        my="md"
+        onChange={setTab as any}
+        orientation={isMobile ? "horizontal" : "vertical"}
+        pos="relative"
+        value={tab ?? "customization"}
       >
-        <Tabs
-          color={profile.profileColor!}
-          mih="400px"
-          my="md"
-          onChange={setTab as any}
-          orientation={isMobile ? "horizontal" : "vertical"}
-          pos="relative"
-          value={tab ?? "customization"}
+        <LoadingOverlay visible={navigation.state === "submitting"} />
+        <Tabs.List>
+          {tabs.map((t) => (
+            <Tabs.Tab
+              key={t.id}
+              leftSection={
+                <t.Icon
+                  color={
+                    t.id === tab
+                      ? theme.colors[profile.profileColor!][8]
+                      : undefined
+                  }
+                />
+              }
+              miw={!isMobile ? "220px" : undefined}
+              value={t.id}
+              {...(t.id === "settings" && {
+                bottom: 0,
+                pos: "absolute",
+              })}
+            >
+              {t.title}
+            </Tabs.Tab>
+          ))}
+        </Tabs.List>
+        <Box
+          display="grid"
+          px={!isMobile ? "lg" : undefined}
+          py={isMobile ? "md" : undefined}
+          w="100%"
         >
-          <LoadingOverlay visible={navigation.state === "submitting"} />
-          <Tabs.List>
-            {tabs.map((t) => (
-              <Tabs.Tab
-                key={t.id}
-                leftSection={
-                  <t.Icon
-                    color={
-                      t.id === tab
-                        ? theme.colors[profile.profileColor!][8]
-                        : undefined
-                    }
-                  />
-                }
-                miw={!isMobile ? "220px" : undefined}
-                value={t.id}
-                {...(t.id === "settings" && {
-                  bottom: 0,
-                  pos: "absolute",
-                })}
-              >
-                {t.title}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-          <Box
-            display="grid"
-            px={!isMobile ? "lg" : undefined}
-            py={isMobile ? "md" : undefined}
-            w="100%"
-          >
-            <Outlet context={{ onCancel: handleCancel, setIsDirty }} />
-          </Box>
-        </Tabs>
-      </Modal>
-    </>
+          <Outlet context={{ onCancel: handleCancel, setIsDirty }} />
+        </Box>
+      </Tabs>
+    </Modal>
   );
 }
 

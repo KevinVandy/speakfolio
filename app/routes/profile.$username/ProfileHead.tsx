@@ -1,19 +1,14 @@
-import { useEffect } from "react";
 import { Link } from "@remix-run/react";
 import {
   ActionIcon,
-  Alert,
-  Anchor,
   Avatar,
   BackgroundImage,
-  Collapse,
   Flex,
   Text,
   Title,
   Tooltip,
   useMantineColorScheme,
 } from "@mantine/core";
-import { useSessionStorage } from "@mantine/hooks";
 import {
   IconBrandFacebook,
   IconBrandGithub,
@@ -28,30 +23,13 @@ import {
   IconEdit,
   IconMapPin,
 } from "@tabler/icons-react";
+import { ProfileAlerts } from "./ProfileAlerts";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
 export function ProfileHead() {
   const { colorScheme } = useMantineColorScheme();
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
-
-  const [isAlertVisible, setIsAlertVisible] = useSessionStorage({
-    defaultValue: false,
-    key: "profileVisibilityAlert",
-  });
-
-  useEffect(() => {
-    const storedAlertVisibility = sessionStorage.getItem(
-      "profileVisibilityAlert"
-    );
-    if (
-      isOwnProfile &&
-      profile.visibility !== "public" &&
-      storedAlertVisibility !== "false"
-    ) {
-      setIsAlertVisible(true);
-    }
-  }, []);
 
   const linkIconMap = {
     Facebook: <IconBrandFacebook color="#4267B2" />,
@@ -74,50 +52,19 @@ export function ProfileHead() {
 
   return (
     <>
-      {profile.isOwnProfile && profile.visibility !== "public" ? (
-        <Collapse in={isAlertVisible}>
-          <>
-            {profile.visibility === "private" ? (
-              <Alert
-                color="orange"
-                onClose={() => setIsAlertVisible(false)}
-                title="Your profile is currently private."
-                withCloseButton
-              >
-                Only you can see it. You can change your{" "}
-                <Anchor component={Link} to="edit/settings">
-                  visibility settings here
-                </Anchor>
-              </Alert>
-            ) : (
-              <Alert
-                color="blue"
-                onClose={() => setIsAlertVisible(false)}
-                title="Your profile is hidden from search engines."
-                withCloseButton
-              >
-                Only you and other logged in Speakfolio users can see it. You
-                can change your{" "}
-                <Anchor component={Link} to="edit/settings">
-                  visibility settings here
-                </Anchor>
-              </Alert>
-            )}
-          </>
-        </Collapse>
-      ) : null}
+      <ProfileAlerts />
       <BackgroundImage
         pos="relative"
         radius="sm"
         src={profile.coverImageUrl ?? ""}
       >
         {isOwnProfile && (
-          <Tooltip label="Edit Your Profile">
+          <Tooltip label="Update your profile pictures">
             <ActionIcon
               component={Link}
               pos="absolute"
               right={10}
-              to={`/profile/${profile.username}/edit/customization`}
+              to={`/profile/${profile.username}/edit/pictures`}
               top={10}
             >
               <IconEdit />
@@ -148,6 +95,19 @@ export function ProfileHead() {
               </Text>
             </Flex>
           ) : null}
+          {isOwnProfile && (
+            <Tooltip label="Edit Your Profile">
+              <ActionIcon
+                component={Link}
+                ml="xs"
+                mt="sm"
+                size="sm"
+                to={`/profile/${profile.username}/edit/customization`}
+              >
+                <IconEdit />
+              </ActionIcon>
+            </Tooltip>
+          )}
         </Flex>
         <Flex gap="4px">
           {profile.links?.map((link) => (

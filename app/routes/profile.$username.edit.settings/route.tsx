@@ -146,7 +146,10 @@ export default function EditProfileSettingsModal() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons />
+      <SaveContinueCancelButtons
+        disabled={!form.isDirty()}
+        onCancel={() => {}}
+      />
     </Form>
   );
 }
