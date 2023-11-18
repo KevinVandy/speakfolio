@@ -11,7 +11,7 @@ import { profileVisibilities, profilesTable } from "db/schemas/profilesTable";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { useSupabase } from "~/hooks/useSupabase";
+import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 interface ProfileUpdateResponse {
@@ -81,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function EditProfileSettingsModal() {
   const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const actionData = useActionData<typeof action>();
-  const { session } = useSupabase();
+  const { session } = useRootLoader();
 
   const profile = useProfileLoader();
 

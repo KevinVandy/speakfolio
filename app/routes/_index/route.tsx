@@ -9,7 +9,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useSupabase } from "~/hooks/useSupabase";
+import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 
 export const meta: MetaFunction = () => {
   return [
@@ -19,7 +19,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function IndexPage() {
-  const { loggedInUserProfile, session } = useSupabase();
+  const { loggedInUserProfile, session } = useRootLoader();
 
   return (
     <Stack gap="xl" justify="center">

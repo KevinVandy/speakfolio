@@ -11,7 +11,6 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
-  useLoaderData,
   useNavigation,
 } from "@remix-run/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -33,6 +32,7 @@ import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schemas/profilesTable";
 import { Layout } from "./components/Layout";
+import { useRootLoader } from "./hooks/loaders/useRootLoader";
 import { SupabaseProvider } from "./hooks/useSupabase";
 import theme from "./styles/theme";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
@@ -95,7 +95,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function App() {
   const navigation = useNavigation();
-  const { env, loggedInUserProfile, session } = useLoaderData<typeof loader>();
+  const { env, loggedInUserProfile, session } = useRootLoader();
 
   useEffect(() => {
     if (navigation.state === "loading") {

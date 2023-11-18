@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useNavigate } from "@remix-run/react";
-import { Autocomplete, Stack, Text, Textarea } from "@mantine/core";
+import { Autocomplete, Fieldset, Stack, Text, Textarea } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
 import { z } from "zod";
@@ -149,20 +149,6 @@ export default function EditProfileCareerTab() {
           placeholder="Profession"
           {...form.getInputProps("profession")}
         />
-        {/* <TextInput
-          description="(Optional) Your job title"
-          label="Job Title"
-          name="jobTitle"
-          placeholder="Job Title"
-          {...form.getInputProps("jobTitle")}
-        /> */}
-        {/* <TextInput
-          description="(Optional) Your company"
-          label="Company"
-          name="company"
-          placeholder="Company"
-          {...form.getInputProps("company")}
-        /> */}
         <Textarea
           label="Areas of Expertise"
           maxLength={100}
@@ -180,6 +166,22 @@ export default function EditProfileCareerTab() {
           disabled={!form.isDirty()}
           onCancel={handleCancel}
         />
+        <Fieldset>
+        {/* <TextInput
+          description="(Optional) Your job title"
+          label="Job Title"
+          name="jobTitle"
+          placeholder="Job Title"
+          {...form.getInputProps("jobTitle")}
+        /> */}
+        {/* <TextInput
+          description="(Optional) Your company"
+          label="Company"
+          name="company"
+          placeholder="Company"
+          {...form.getInputProps("company")}
+        /> */}
+        </Fieldset>
       </Stack>
     </Form>
   );

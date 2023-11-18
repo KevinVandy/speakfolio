@@ -63,16 +63,18 @@ export default function EditProfileModal() {
 
   const [opened, { close, open }] = useDisclosure(false);
   const [isDirty, setIsDirty] = useState(false);
-  const [editTab, _setEditTab] = useState<string>(() => {
-    const path = matches[3]?.id?.split?.(".")?.pop() ?? "pictures";
-    if (tabs.map((t) => t.id).includes(path)) return path;
-    return "pictures";
+  const [editTab, _setEditTab] = useState<null | string>(() => {
+    const path = matches[3]?.id?.split?.(".")?.pop();
+    if (path && tabs.map((t) => t.id).includes(path)) return path;
+    return null;
   });
 
   const closeEditModal = () => {
     close();
-    setTab("_index");
-    setTimeout(() => navigate(`/profile/${profile?.username}`), 500);
+    setTimeout(() => {
+      navigate(`/profile/${profile?.username}`);
+      setTab("_index");
+    }, 500);
   };
 
   const openConfirmCancelModal = (onConfirm?: () => void) =>
@@ -111,6 +113,7 @@ export default function EditProfileModal() {
     } else {
       open();
     }
+    if (!editTab) setEditTab("pictures");
   }, []);
 
   return (
@@ -127,7 +130,7 @@ export default function EditProfileModal() {
           color={profile.profileColor!}
           mih="400px"
           my="md"
-          onChange={setEditTab as any}
+          onChange={setEditTab}
           orientation={isMobile ? "horizontal" : "vertical"}
           pos="relative"
           value={editTab ?? "customization"}

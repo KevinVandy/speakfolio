@@ -14,6 +14,7 @@ import {
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useSupabase } from "../hooks/useSupabase";
+import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 
 interface Props {
   children: React.ReactNode;
@@ -22,7 +23,9 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
 
-  const { loggedInUserProfile, session, supabase } = useSupabase();
+  const { loggedInUserProfile, session } = useRootLoader();
+
+  const supabase = useSupabase();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {

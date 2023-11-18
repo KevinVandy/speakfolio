@@ -1,22 +1,24 @@
 import { Link, useOutlet } from "@remix-run/react";
-import { Button, Center } from "@mantine/core";
+import { Button, Center, Stack, Text, Title } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
 export default function ProfileCareerTab() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
-
+  
   const outlet = useOutlet();
 
-  if (outlet) {
+  if (isOwnProfile && outlet) {
     return outlet;
   }
 
   return (
-    <>
-      <h1>Career</h1>
-      <p>Coming soon...</p>
+    <Stack justify="center">
+      <Title mt="xl" ta="center">
+        {profile.profession}
+      </Title>
+      <Text ta="center">{profile.areasOfExpertise}</Text>
       {isOwnProfile && (
         <Center>
           <Button
@@ -30,6 +32,6 @@ export default function ProfileCareerTab() {
           </Button>
         </Center>
       )}
-    </>
+    </Stack>
   );
 }

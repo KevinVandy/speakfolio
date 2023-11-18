@@ -7,15 +7,7 @@ import {
 } from "@supabase/auth-helpers-remix";
 import { type IProfile } from "db/schemas/profilesTable";
 
-interface SupabaseContextValues {
-  loggedInUserProfile: IProfile | null;
-  session: Session | null;
-  supabase: SupabaseClient;
-}
-
-const SupabaseContext = createContext<SupabaseContextValues>(
-  {} as SupabaseContextValues
-);
+const SupabaseContext = createContext<SupabaseClient>({} as SupabaseClient);
 
 interface Props {
   children: React.ReactNode;
@@ -27,12 +19,7 @@ interface Props {
   session: Session;
 }
 
-export function SupabaseProvider({
-  children,
-  env,
-  loggedInUserProfile,
-  session,
-}: Props) {
+export function SupabaseProvider({ children, env, session }: Props) {
   const { revalidate } = useRevalidator();
 
   const [supabase] = useState(() =>
@@ -60,9 +47,7 @@ export function SupabaseProvider({
   }, [serverAccessToken, supabase, revalidate]);
 
   return (
-    <SupabaseContext.Provider
-      value={{ loggedInUserProfile, session, supabase }}
-    >
+    <SupabaseContext.Provider value={supabase}>
       {children}
     </SupabaseContext.Provider>
   );
