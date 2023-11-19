@@ -92,6 +92,9 @@ export type IProfile = typeof profilesTable.$inferSelect;
 
 export type IProfileFull = IProfile & {
   bio?: Partial<typeof profileBiosTable.$inferSelect>;
+  careerHistories?: Array<
+    Partial<typeof profileCareerHistoriesTable.$inferSelect>
+  >;
   isOwnProfile: boolean;
   links?: Array<Partial<typeof profileLinksTable.$inferSelect>>;
   presentations?: Array<typeof presentationsTable.$inferSelect>;

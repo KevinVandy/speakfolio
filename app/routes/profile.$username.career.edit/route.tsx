@@ -1,17 +1,30 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useNavigate } from "@remix-run/react";
-import { Autocomplete, Fieldset, Stack, Text, Textarea } from "@mantine/core";
+import {
+  Form,
+  Link,
+  Outlet,
+  useActionData,
+  useNavigate,
+} from "@remix-run/react";
+import { Autocomplete, Button, Stack, Text, Textarea } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesTable } from "db/schema";
+import { type IProfileFull, profilesTable } from "db/schema";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+
+type IProfileCareerForm = Partial<
+  Pick<
+    IProfileFull,
+    "areasOfExpertise" | "careerHistories" | "id" | "profession" | "userId"
+  >
+>;
 
 const profileCareerSchema = z.object({
   areasOfExpertise: z
@@ -19,22 +32,12 @@ const profileCareerSchema = z.object({
     .max(100, { message: "Max 100 characters" })
     .optional()
     .nullish(),
-  // company: z
-  //   .string()
-  //   .max(100, { message: "Company name max 100 characters" })
-  //   .optional()
-  //   .nullish(),
-  id: z.string().uuid(),
-  // jobTitle: z
-  //   .string()
-  //   .max(100, { message: "Job Title max 100 characters" })
-  //   .optional()
-  //   .nullish(),
   profession: z
     .string()
     .max(100, { message: "Profession max 100 characters" })
     .optional()
     .nullish(),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
 });
 
@@ -83,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
         areasOfExpertise: data.areasOfExpertise,
         profession: data.profession,
       })
-      .where(eq(profilesTable.id, data.id));
+      .where(eq(profilesTable.id, data.profileId));
     return redirect("..");
   } catch (error) {
     console.error(error);
@@ -104,9 +107,15 @@ export default function EditProfileCareerTab() {
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
-  const form = useForm({
+  const form = useForm<IProfileCareerForm>({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
+    initialValues: actionData?.data ?? {
+      areasOfExpertise: profile.areasOfExpertise,
+      careerHistories: profile.careerHistories,
+      profession: profile.profession,
+      profileId: profile.id,
+      userId: profile.userId,
+    },
     validate: zodResolver(profileCareerSchema),
   });
 
@@ -134,56 +143,63 @@ export default function EditProfileCareerTab() {
   };
 
   return (
-    <Form
-      method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
-    >
-      <input name="id" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
-      <Stack gap="md" m="auto" maw="600px" my="xl">
-        <Autocomplete
-          data={commonProfessions}
-          description="(Optional) Your profession or industry"
-          label="Profession"
-          name="profession"
-          placeholder="Profession"
-          {...form.getInputProps("profession")}
-        />
-        <Textarea
-          label="Areas of Expertise"
-          maxLength={100}
-          minRows={2}
-          name="areasOfExpertise"
-          placeholder="List up to 10 areas of expertise"
-          {...form.getInputProps("areasOfExpertise")}
-        />
-        {Object.values(form?.errors ?? []).map((error, i) => (
-          <Text c="red" key={i}>
-            {error}
-          </Text>
-        ))}
-        <SaveContinueCancelButtons
-          disabled={!form.isDirty()}
-          onCancel={handleCancel}
-        />
-        <Fieldset>
-        {/* <TextInput
-          description="(Optional) Your job title"
-          label="Job Title"
-          name="jobTitle"
-          placeholder="Job Title"
-          {...form.getInputProps("jobTitle")}
-        /> */}
-        {/* <TextInput
-          description="(Optional) Your company"
-          label="Company"
-          name="company"
-          placeholder="Company"
-          {...form.getInputProps("company")}
-        /> */}
-        </Fieldset>
-      </Stack>
-    </Form>
+    <>
+      <Outlet />
+      <Form
+        method="post"
+        onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      >
+        <input name="profileId" type="hidden" value={profile.id} />
+        <input name="userId" type="hidden" value={profile.userId!} />
+        {form
+          .getTransformedValues()
+          .careerHistories?.map((careerHistory, i) => (
+            <>
+              <input
+                key={i}
+                name={`careerHistories.${i}.id`}
+                type="hidden"
+                value={careerHistory.id}
+              />
+              <input
+                key={i}
+                name={`careerHistories.${i}.userId`}
+                type="hidden"
+              />
+            </>
+          ))}
+        <Stack gap="md" m="auto" maw="600px" my="xl">
+          <Autocomplete
+            data={commonProfessions}
+            description="(Optional) Your profession or industry"
+            label="Profession"
+            name="profession"
+            placeholder="Profession"
+            {...form.getInputProps("profession")}
+          />
+          <Textarea
+            label="Areas of Expertise"
+            maxLength={100}
+            minRows={2}
+            name="areasOfExpertise"
+            placeholder="List up to 10 areas of expertise"
+            {...form.getInputProps("areasOfExpertise")}
+          />
+          {Object.values(form?.errors ?? []).map((error, i) => (
+            <Text c="red" key={i}>
+              {error}
+            </Text>
+          ))}
+          <Button component={Link} to="history">
+            Add
+          </Button>
+          <SaveContinueCancelButtons
+            disabled={!form.isDirty()}
+            onCancel={handleCancel}
+          />
+        </Stack>
+      </Form>
+    </>
   );
 }
 

@@ -22,19 +22,21 @@ import xss from "xss";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profileBiosTable } from "db/schema";
+import { type IProfileFull, profileBiosTable } from "db/schema";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { xssOptions } from "~/util/xssOptions";
 
+type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
+
 const profileBioSchema = z.object({
   bio: z.object({
     id: z.string().uuid(),
     richText: z.string().max(6000, { message: "Bio max 6000 characters" }),
   }),
-  id: z.string().uuid(),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
 });
 
@@ -84,7 +86,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(
         and(
           eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.id)
+          eq(profileBiosTable.profileId, data.profileId)
         )
       );
     return redirect("..");
@@ -108,14 +110,14 @@ export default function EditProfileBioTab() {
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
-  const form = useForm({
+  const form = useForm<IProfileBioForm>({
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       bio: {
         id: profile.bio?.id ?? "",
         richText: profile.bio?.richText ?? "",
       },
-      id: profile.id,
+      profileId: profile.id,
       userId: profile.userId!,
     },
     validate: zodResolver(profileBioSchema),
@@ -171,7 +173,7 @@ export default function EditProfileBioTab() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <input name="bio.id" type="hidden" value={form.values.bio?.id ?? ""} />
       <input

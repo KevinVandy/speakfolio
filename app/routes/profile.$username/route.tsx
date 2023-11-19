@@ -20,8 +20,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
   const { username } = params;
   const response = new Response();
 
+  //validate auth
   const supabase = getSupabaseServerClient({ request, response });
-
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -36,6 +36,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
               richText: true,
             },
           },
+          careerHistories: true,
           links: true,
           presentations: true,
         },
@@ -44,7 +45,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
   const isOwnProfile = profile?.userId === session?.user?.id;
 
-  if (!profile || (!isOwnProfile && profile.visibility === "private")) {
+  if (
+    !profile ||
+    (!isOwnProfile && profile.visibility === "private") ||
+    (!session && profile.visibility === "signed_in_users")
+  ) {
     return redirect("/unknown-profile");
   }
 
@@ -53,7 +58,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
     isOwnProfile,
   } as IProfileFull;
 
-  return json(returnData);
+  return json(returnData, { headers: response.headers });
 }
 
 const tabs = [
