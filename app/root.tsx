@@ -81,6 +81,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
       )?.[0] ?? null
     : null;
 
+  if (session?.user?.id && !loggedInUserProfile) {
+    supabase.auth.signOut();
+  }
+
   return json(
     {
       env,
@@ -89,7 +93,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
     {
       headers: response.headers,
-    },
+    }
   );
 }
 

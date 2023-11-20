@@ -21,6 +21,7 @@ import {
   IconBrandX,
   IconBrandYoutube,
   IconEdit,
+  IconLinkPlus,
   IconMapPin,
 } from "@tabler/icons-react";
 import { ProfileAlerts } from "./ProfileAlerts";
@@ -110,6 +111,17 @@ export function ProfileHead() {
           )}
         </Flex>
         <Flex gap="4px">
+          {!profile.links?.length && isOwnProfile && (
+            <Tooltip label="Add Social Media Links">
+              <ActionIcon
+                component={Link}
+                size="sm"
+                to={`/profile/${profile.username}/edit/links`}
+              >
+                <IconLinkPlus />
+              </ActionIcon>
+            </Tooltip>
+          )}
           {profile.links?.map((link) => (
             <Tooltip key={link.site} label={link.title || link.site}>
               <a href={link.url} rel="noreferrer" target="_blank">

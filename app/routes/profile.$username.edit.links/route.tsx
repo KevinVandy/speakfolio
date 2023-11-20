@@ -3,7 +3,9 @@ import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import { Form, useActionData, useOutletContext } from "@remix-run/react";
 import {
   Button,
+  Collapse,
   Fieldset,
+  Flex,
   Pill,
   PillsInput,
   Select,
@@ -36,7 +38,6 @@ const profileLinksSchema = z.object({
       z.string().length(0),
     ])
     .nullish(),
-  id: z.string().uuid(),
   links: z
     .array(
       z.object({
@@ -49,9 +50,10 @@ const profileLinksSchema = z.object({
           .string()
           .url({ message: "Link URL must be a valid URL" })
           .max(100, { message: "Link URL max 100 characters" }),
-      }),
+      })
     )
     .nullish(),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
 });
 
@@ -73,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -96,11 +98,13 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     await db
       .delete(profileLinksTable)
-      .where(eq(profileLinksTable.profileId, data.id));
+      .where(eq(profileLinksTable.profileId, data.profileId));
     if (data.links?.length) {
       await db
         .insert(profileLinksTable)
-        .values(data.links.map((link) => ({ ...link, profileId: data.id })));
+        .values(
+          data.links.map((link) => ({ ...link, profileId: data.profileId }))
+        );
     }
     return redirect("../..");
   } catch (error) {
@@ -124,12 +128,12 @@ export default function EditProfileLinksTab() {
 
   const form = useForm<IProfileLinks>({
     initialErrors: actionData?.errors,
-    initialValues:
-      actionData?.data ??
-      {
-        contactEmail: profile?.contactEmail ?? "",
-        links: profile?.links ?? [],
-      }!,
+    initialValues: actionData?.data ?? {
+      contactEmail: profile?.contactEmail ?? "",
+      links: profile?.links ?? [],
+      profileId: profile?.id ?? "",
+      userId: profile?.userId ?? "",
+    },
     validate: zodResolver(profileLinksSchema),
   });
 
@@ -143,6 +147,8 @@ export default function EditProfileLinksTab() {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
   }, [actionData]);
+
+  console.log(form.errors);
 
   const [searchValue, setSearchValue] = useState("");
   const [newSite, setNewSite] = useState<any>("");
@@ -163,7 +169,7 @@ export default function EditProfileLinksTab() {
   const removeLink = (site: string) => {
     form.setFieldValue(
       "links",
-      form.getTransformedValues()?.links?.filter((link) => link.site !== site),
+      form.getTransformedValues()?.links?.filter((link) => link.site !== site)
     );
   };
 
@@ -172,9 +178,8 @@ export default function EditProfileLinksTab() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
-
       <TextInput
         description="Public email address"
         label="Contact Email"
@@ -202,30 +207,32 @@ export default function EditProfileLinksTab() {
       ))}
       <Fieldset mt="xl">
         <Stack gap="md">
-          <PillsInput
-            description="Links to your social media profiles"
-            label="Social Links"
-            mt="md"
-          >
-            {form.getTransformedValues().links?.map((link, index) => {
-              return (
-                <Tooltip key={link.site} label={link.url}>
-                  <Pill
-                    onRemove={() => removeLink(link?.site as string)}
-                    withRemoveButton
-                  >
-                    {link.title || link.site}
-                  </Pill>
-                </Tooltip>
-              );
-            })}
-          </PillsInput>
+          <Collapse in={!!form.values.links?.length}>
+            <PillsInput
+              description="Links to your social media profiles"
+              label="Social Links"
+              mt="md"
+            >
+              {form.getTransformedValues().links?.map((link, index) => {
+                return (
+                  <Tooltip key={link.site} label={link.url}>
+                    <Pill
+                      onRemove={() => removeLink(link?.site as string)}
+                      withRemoveButton
+                    >
+                      {link.title || link.site}
+                    </Pill>
+                  </Tooltip>
+                );
+              })}
+            </PillsInput>
+          </Collapse>
           <Select
             data={linkSites.filter(
               (site) =>
                 !form
                   .getTransformedValues()
-                  .links?.some((link) => link.site === site),
+                  .links?.some((link) => link.site === site)
             )}
             label="Add a Site"
             onChange={setNewSite}
@@ -240,9 +247,11 @@ export default function EditProfileLinksTab() {
             placeholder="https://example.com/yourprofile"
             value={newUrl}
           />
-          <Button color="blue" onClick={addLink}>
-            Add
-          </Button>
+          <Flex justify="end">
+            <Button color="green" onClick={addLink}>
+              Add Link
+            </Button>
+          </Flex>
         </Stack>
       </Fieldset>
       {Object.values(form?.errors ?? []).map((error, i) => (

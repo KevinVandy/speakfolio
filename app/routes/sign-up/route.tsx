@@ -165,13 +165,13 @@ export default function SignUpPage() {
 
   const [debouncedUsername] = useDebouncedValue(
     form.getTransformedValues().username,
-    500,
+    500
   );
 
   useEffect(() => {
     if (debouncedUsername) {
       usernameAvailableFetcher.load(
-        `/api/username-available/${debouncedUsername}`,
+        `/api/username-available/${debouncedUsername}`
       );
     }
   }, [debouncedUsername]);
@@ -223,18 +223,13 @@ export default function SignUpPage() {
               withAsterisk
               {...form.getInputProps("username")}
             />
-            <Collapse
-              in={
-                usernameAvailableFetcher.state !== "idle" &&
-                debouncedUsername?.length > 2 &&
-                isUsernameAvailable
-              }
-            >
+            <Collapse in={debouncedUsername?.length > 2 && isUsernameAvailable}>
               <Text c="green">
                 Claim{" "}
-                <Anchor>
-                  {`speakfolio.com/profile/${debouncedUsername} !`}
-                </Anchor>
+                <Anchor c="green" underline="always">
+                  {`speakfolio.com/profile/${debouncedUsername}`}
+                </Anchor>{" "}
+                !
               </Text>
             </Collapse>
             <TextInput
