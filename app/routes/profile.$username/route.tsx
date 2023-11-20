@@ -36,7 +36,11 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
               richText: true,
             },
           },
-          careerHistories: true,
+          careerHistories: {
+            orderBy: (careerHistory, { desc }) => [
+              desc(careerHistory.startDate),
+            ],
+          },
           links: true,
           presentations: true,
         },

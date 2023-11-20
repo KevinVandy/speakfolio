@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
 import {
   Form,
@@ -10,10 +10,12 @@ import {
 import { Autocomplete, Button, Stack, Text, Textarea } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schema";
+import ProfileCareerHistoryTimeline from "../profile.$username.career/ProfileCareerHistoryTimeline";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
@@ -154,19 +156,14 @@ export default function EditProfileCareerTab() {
         {form
           .getTransformedValues()
           .careerHistories?.map((careerHistory, i) => (
-            <>
+            <Fragment key={i}>
               <input
-                key={i}
                 name={`careerHistories.${i}.id`}
                 type="hidden"
                 value={careerHistory.id}
               />
-              <input
-                key={i}
-                name={`careerHistories.${i}.userId`}
-                type="hidden"
-              />
-            </>
+              <input name={`careerHistories.${i}.userId`} type="hidden" />
+            </Fragment>
           ))}
         <Stack gap="md" m="auto" maw="600px" my="xl">
           <Autocomplete
@@ -178,8 +175,8 @@ export default function EditProfileCareerTab() {
             {...form.getInputProps("profession")}
           />
           <Textarea
+            autosize
             label="Areas of Expertise"
-            maxLength={100}
             minRows={2}
             name="areasOfExpertise"
             placeholder="List up to 10 areas of expertise"
@@ -190,13 +187,22 @@ export default function EditProfileCareerTab() {
               {error}
             </Text>
           ))}
-          <Button component={Link} to="history">
-            Add
-          </Button>
           <SaveContinueCancelButtons
             disabled={!form.isDirty()}
             onCancel={handleCancel}
           />
+        </Stack>
+        <Stack>
+          <ProfileCareerHistoryTimeline showEdit />
+          <Button
+            component={Link}
+            leftSection={<IconPlus />}
+            mx="auto"
+            to="history"
+            variant="light"
+          >
+            Add Career History
+          </Button>
         </Stack>
       </Form>
     </>

@@ -83,6 +83,7 @@ export async function action({ request }: ActionFunctionArgs) {
         headline: data.headline,
         location: data.location,
         name: data.name,
+        profileColor: data.profileColor,
       })
       .where(eq(profilesTable.id, data.id));
     return redirect("../..");
