@@ -11,7 +11,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const supabaseClient = createServerClient(
       process.env.SUPABASE_UR!,
       process.env.SUPABASE_ANON_KEY!,
-      { request, response }
+      { request, response },
     );
     await supabaseClient.auth.exchangeCodeForSession(code);
   }

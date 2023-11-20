@@ -45,7 +45,7 @@ export const profileLinksTableRelations = relations(
       fields: [profileLinksTable.profileId],
       references: [profilesTable.id],
     }),
-  })
+  }),
 );
 
 export type IProfileLink = typeof profileLinksTable.$inferSelect;

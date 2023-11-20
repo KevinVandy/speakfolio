@@ -60,9 +60,7 @@
         "profiles_contact_email_unique": {
           "name": "profiles_contact_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "contact_email"
-          ]
+          "columns": ["contact_email"]
         }
       }
     }

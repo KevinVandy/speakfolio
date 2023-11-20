@@ -103,12 +103,8 @@
           "name": "presentations_profile_id_profiles_id_fk",
           "tableFrom": "presentations",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -161,12 +157,8 @@
           "name": "profile_bios_profile_id_profiles_id_fk",
           "tableFrom": "profile_bios",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -225,12 +217,8 @@
           "name": "profile_links_profile_id_profiles_id_fk",
           "tableFrom": "profile_links",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -274,12 +262,8 @@
           "name": "profile_views_profile_id_profiles_id_fk",
           "tableFrom": "profile_views",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -287,12 +271,8 @@
           "name": "profile_views_viewer_profile_id_profiles_id_fk",
           "tableFrom": "profile_views",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "viewer_profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["viewer_profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -431,16 +411,12 @@
         "profile_user_id_unique": {
           "name": "profile_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
+          "columns": ["user_id"]
         },
         "profile_username_unique": {
           "name": "profile_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         }
       }
     },
@@ -522,12 +498,8 @@
           "name": "profile_career_histories_profile_id_profiles_id_fk",
           "tableFrom": "profile_career_histories",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }

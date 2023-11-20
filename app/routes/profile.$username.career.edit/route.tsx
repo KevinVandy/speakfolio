@@ -32,12 +32,10 @@ const profileCareerSchema = z.object({
   areasOfExpertise: z
     .string()
     .max(100, { message: "Max 100 characters" })
-    .optional()
     .nullish(),
   profession: z
     .string()
     .max(100, { message: "Profession max 100 characters" })
-    .optional()
     .nullish(),
   profileId: z.string().uuid(),
   userId: z.string().uuid(),
@@ -61,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data

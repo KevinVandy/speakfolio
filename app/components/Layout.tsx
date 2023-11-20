@@ -75,7 +75,7 @@ export const Layout = ({ children }: Props) => {
               aria-label="Toggle color scheme"
               onClick={() =>
                 setColorScheme(
-                  computedColorScheme === "light" ? "dark" : "light"
+                  computedColorScheme === "light" ? "dark" : "light",
                 )
               }
               size="lg"
@@ -101,7 +101,7 @@ export const Layout = ({ children }: Props) => {
                   <Menu.Item
                     onClick={() =>
                       navigate(
-                        `/profile/${loggedInUserProfile?.username}/edit/settings`
+                        `/profile/${loggedInUserProfile?.username}/edit/settings`,
                       )
                     }
                   >

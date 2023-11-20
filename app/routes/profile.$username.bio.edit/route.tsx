@@ -58,7 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -86,8 +86,8 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(
         and(
           eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.profileId)
-        )
+          eq(profileBiosTable.profileId, data.profileId),
+        ),
       );
     return redirect("..");
   } catch (error) {

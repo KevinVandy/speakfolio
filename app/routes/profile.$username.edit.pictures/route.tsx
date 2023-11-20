@@ -26,7 +26,6 @@ const profileCustomizationSchema = z.object({
       z.string().url({ message: "Cover Photo must be a valid URL" }),
       z.string().length(0),
     ])
-    .optional()
     .nullish()
     .transform((s) => s || null),
 
@@ -36,7 +35,6 @@ const profileCustomizationSchema = z.object({
       z.string().url({ message: "Profile Image must be a valid URL" }),
       z.string().length(0),
     ])
-    .optional()
     .nullish()
     .transform((s) => s || null),
   userId: z.string().uuid(),
@@ -60,7 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data

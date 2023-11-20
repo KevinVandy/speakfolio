@@ -103,12 +103,8 @@
           "name": "presentations_profile_id_profiles_id_fk",
           "tableFrom": "presentations",
           "tableTo": "profiles",
-          "columnsFrom": [
-            "profile_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profile_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -242,9 +238,7 @@
         "profile_username_unique": {
           "name": "profile_username_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "username"
-          ]
+          "columns": ["username"]
         }
       }
     }

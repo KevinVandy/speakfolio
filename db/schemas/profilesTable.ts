@@ -22,7 +22,7 @@ export const profileVisibilities = [
 
 export const profileVisibilityEnum = pgEnum(
   "profile_visibility",
-  profileVisibilities
+  profileVisibilities,
 );
 
 export const profileColors = [
@@ -72,10 +72,10 @@ export const profilesTable = pgTable(
     return {
       profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
       profileUsernameUnique: unique("profile_username_unique").on(
-        table.username
+        table.username,
       ),
     };
-  }
+  },
 );
 
 export const profilesTableRelations = relations(
@@ -85,7 +85,7 @@ export const profilesTableRelations = relations(
     careerHistories: many(profileCareerHistoriesTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
-  })
+  }),
 );
 
 export type IProfile = typeof profilesTable.$inferSelect;

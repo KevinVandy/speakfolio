@@ -165,13 +165,13 @@ export default function SignUpPage() {
 
   const [debouncedUsername] = useDebouncedValue(
     form.getTransformedValues().username,
-    500
+    500,
   );
 
   useEffect(() => {
     if (debouncedUsername) {
       usernameAvailableFetcher.load(
-        `/api/username-available/${debouncedUsername}`
+        `/api/username-available/${debouncedUsername}`,
       );
     }
   }, [debouncedUsername]);

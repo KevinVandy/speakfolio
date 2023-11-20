@@ -35,7 +35,6 @@ const profileLinksSchema = z.object({
       z.string().email({ message: "Contact email is not a valid email" }),
       z.string().length(0),
     ])
-    .optional()
     .nullish(),
   id: z.string().uuid(),
   links: z
@@ -45,15 +44,13 @@ const profileLinksSchema = z.object({
         title: z
           .string()
           .max(100, { message: "Link label max 100 characters" })
-          .optional()
           .nullish(),
         url: z
           .string()
           .url({ message: "Link URL must be a valid URL" })
           .max(100, { message: "Link URL max 100 characters" }),
-      })
+      }),
     )
-    .optional()
     .nullish(),
   userId: z.string().uuid(),
 });
@@ -76,7 +73,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -166,7 +163,7 @@ export default function EditProfileLinksTab() {
   const removeLink = (site: string) => {
     form.setFieldValue(
       "links",
-      form.getTransformedValues()?.links?.filter((link) => link.site !== site)
+      form.getTransformedValues()?.links?.filter((link) => link.site !== site),
     );
   };
 
@@ -228,7 +225,7 @@ export default function EditProfileLinksTab() {
               (site) =>
                 !form
                   .getTransformedValues()
-                  .links?.some((link) => link.site === site)
+                  .links?.some((link) => link.site === site),
             )}
             label="Add a Site"
             onChange={setNewSite}

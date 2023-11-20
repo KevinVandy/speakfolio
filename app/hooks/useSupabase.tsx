@@ -23,7 +23,7 @@ export function SupabaseProvider({ children, env, session }: Props) {
   const { revalidate } = useRevalidator();
 
   const [supabase] = useState(() =>
-    createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
+    createBrowserClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY),
   );
 
   const serverAccessToken = session?.access_token;

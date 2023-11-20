@@ -26,5 +26,5 @@ export const profileViewsTableRelations = relations(
       fields: [profileViewsTable.viewerProfileId],
       references: [profilesTable.id],
     }),
-  })
+  }),
 );

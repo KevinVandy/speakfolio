@@ -8,7 +8,7 @@ export const profileBiosTable = pgTable("profile_bios", {
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   profileId: uuid("profile_id")
-    .references(() => profilesTable.id,{
+    .references(() => profilesTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
@@ -26,5 +26,5 @@ export const profileBiosTableRelations = relations(
       fields: [profileBiosTable.profileId],
       references: [profilesTable.id],
     }),
-  })
+  }),
 );

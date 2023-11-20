@@ -25,13 +25,11 @@ const profileCustomizationSchema = z.object({
   headline: z
     .string()
     .max(100, { message: "Headline max 100 characters" })
-    .optional()
     .nullish(),
   id: z.string().uuid(),
   location: z
     .string()
     .max(100, { message: "Location max 100 characters" })
-    .optional()
     .nullish(),
   name: z.string().min(1, { message: "Display Name is required" }),
   profileColor: z.enum(profileColors),
@@ -56,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data

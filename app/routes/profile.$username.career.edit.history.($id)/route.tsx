@@ -44,15 +44,13 @@ export const careerHistorySchema = z.object({
   company: z
     .string()
     .max(100, { message: "Company name max 100 characters" })
-    .optional()
     .nullish(),
-  description: z.string().optional().nullish(),
-  endDate: z.coerce.date().optional().nullish(),
+  description: z.string().nullish(),
+  endDate: z.union([z.null(), z.string().length(0), z.coerce.date()]),
   id: z.union([z.string().uuid(), z.string().length(0)]),
   jobTitle: z
     .string()
     .max(100, { message: "Job Title max 100 characters" })
-    .optional()
     .nullish(),
   profileId: z.string().uuid(),
   startDate: z.coerce.date(),
@@ -96,8 +94,6 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect("/sign-in");
   }
 
-  console.log(data);
-
   //update or add career history
   try {
     const cleanDescription = xss(data.description ?? "", xssOptions);
@@ -107,7 +103,7 @@ export async function action({ request }: ActionFunctionArgs) {
         .set({
           company: data.company,
           description: cleanDescription,
-          endDate: data.endDate?.toDateString(),
+          endDate: data.endDate ? new Date(data.endDate).toDateString() : null,
           jobTitle: data.jobTitle,
           startDate: data.startDate?.toDateString(),
         })
@@ -116,7 +112,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await db.insert(profileCareerHistoriesTable).values({
         company: data.company,
         description: cleanDescription,
-        endDate: data.endDate?.toDateString(),
+        endDate: data.endDate ? new Date(data.endDate)?.toDateString() : null,
         jobTitle: data.jobTitle,
         profileId: data.profileId,
         startDate: data.startDate.toDateString(),
@@ -150,11 +146,15 @@ export default function CareerAddHistoryModal() {
 
   const initialCareerHistory = useMemo(() => {
     const history: any = careerHistoryId
-      ? profile.careerHistories?.find((ch) => ch.id === careerHistoryId)
+      ? { ...profile.careerHistories?.find((ch) => ch.id === careerHistoryId) }
       : null;
     if (history) {
       history.startDate = new Date(history.startDate);
-      history.endDate = new Date(history.endDate);
+      history.startDate.setDate(15);
+      if (history.endDate) {
+        history.endDate = new Date(history.endDate);
+        history.endDate.setDate(15);
+      }
     }
     return history;
   }, []);
@@ -271,20 +271,36 @@ export default function CareerAddHistoryModal() {
           <SimpleGrid cols={isMobile ? 1 : 2}>
             <MonthPickerInput
               description="When did you start working here?"
+              dropdownType={isMobile ? "modal" : "popover"}
               label="Start Date"
               maxDate={form.getTransformedValues().endDate ?? new Date()}
               name="startDate"
               placeholder="Start Date"
               withAsterisk
               {...form.getInputProps("startDate")}
+              onChange={(newDate) => {
+                if (newDate) {
+                  newDate.setDate(15);
+                }
+                form.getInputProps("startDate").onChange(newDate);
+              }}
             />
             <MonthPickerInput
-              description="When did you stop working here?"
+              clearable
+              description="(Optional) When did you stop working here?"
+              dropdownType={isMobile ? "modal" : "popover"}
               label="End Date"
-              minDate={form.getTransformedValues().startDate ?? new Date()}
+              maxDate={new Date(new Date().setMonth(new Date().getMonth() + 1))}
+              minDate={form.getTransformedValues().startDate ?? undefined}
               name="endDate"
-              placeholder="(Optional if current) End Date"
+              placeholder="End Date (If not current)"
               {...form.getInputProps("endDate")}
+              onChange={(newDate) => {
+                if (newDate) {
+                  newDate.setDate(15);
+                }
+                form.getInputProps("endDate").onChange(newDate);
+              }}
             />
           </SimpleGrid>
           <Stack gap="0">

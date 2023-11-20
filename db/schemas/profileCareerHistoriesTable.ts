@@ -28,5 +28,5 @@ export const profileCareerHistoriesTableRelations = relations(
       fields: [profileCareerHistoriesTable.profileId],
       references: [profilesTable.id],
     }),
-  })
+  }),
 );

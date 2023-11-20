@@ -15,7 +15,7 @@ export function ProfileAlerts() {
 
   useEffect(() => {
     const storedAlertVisibility = sessionStorage.getItem(
-      "profileVisibilityAlert"
+      "profileVisibilityAlert",
     );
     if (
       isOwnProfile &&

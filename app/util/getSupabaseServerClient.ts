@@ -10,6 +10,6 @@ export function getSupabaseServerClient({
   return createServerClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_ANON_KEY!,
-    { request, response }
+    { request, response },
   );
 }
