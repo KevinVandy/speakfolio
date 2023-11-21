@@ -119,7 +119,7 @@ export default function ProfileIdPage() {
         onChange={setTab}
         value={tab || "_index"}
       >
-        <Tabs.List justify="center">
+        <Tabs.List justify="center" mb="md">
           {tabs.map((t) => (
             <Tabs.Tab key={t.id} leftSection={<t.Icon />} value={t.id}>
               {t.title}

@@ -1,5 +1,12 @@
 import { relations } from "drizzle-orm";
-import { pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 
 export const presentationStatusEnum = pgEnum("presentation_status", [
@@ -24,7 +31,7 @@ export const presentationsTable = pgTable("presentations", {
   }),
   slidesUrl: text("slides_url").default(""),
   status: presentationStatusEnum("status").default("draft"),
-  timesPresented: text("times_presented").default(""),
+  timesPresented: integer("times_presented").default(0),
   title: text("title").notNull(),
   updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
     .defaultNow()
@@ -39,7 +46,7 @@ export const presentationsTableRelations = relations(
       fields: [presentationsTable.profileId],
       references: [profilesTable.id],
     }),
-  }),
+  })
 );
 
 export type IPresentation = typeof presentationsTable.$inferSelect;

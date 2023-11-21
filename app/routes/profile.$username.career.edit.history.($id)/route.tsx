@@ -320,7 +320,6 @@ export default function CareerAddHistoryModal() {
                 <RichTextEditor.Italic />
                 <RichTextEditor.Underline />
                 <RichTextEditor.Strikethrough />
-                <RichTextEditor.ClearFormatting />
                 <RichTextEditor.Highlight />
                 <RichTextEditor.Code />
               </RichTextEditor.ControlsGroup>
@@ -337,6 +336,9 @@ export default function CareerAddHistoryModal() {
                 <RichTextEditor.Link />
                 <RichTextEditor.Unlink />
               </RichTextEditor.ControlsGroup>
+              <RichTextEditor.ControlsGroup>
+              <RichTextEditor.ClearFormatting />
+            </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
             <RichTextEditor.Content />
             <BubbleMenu editor={editor!}>

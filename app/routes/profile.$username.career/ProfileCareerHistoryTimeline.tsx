@@ -27,6 +27,10 @@ export default function ProfileCareerHistoryTimeline({ showEdit }: Props) {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
+  if (!profile.careerHistories?.length) {
+    return null;
+  }
+
   return (
     <Timeline
       active={
@@ -101,6 +105,7 @@ export default function ProfileCareerHistoryTimeline({ showEdit }: Props) {
             </Text>
           ) : null}
           <Box
+            className="rich-markup"
             dangerouslySetInnerHTML={{
               __html: xss(careerHistory.description ?? "", xssOptions),
             }}

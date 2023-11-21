@@ -1,6 +1,7 @@
 import { relations } from "drizzle-orm";
 import {
   integer,
+  json,
   pgEnum,
   pgTable,
   real,
@@ -22,7 +23,7 @@ export const profileVisibilities = [
 
 export const profileVisibilityEnum = pgEnum(
   "profile_visibility",
-  profileVisibilities,
+  profileVisibilities
 );
 
 export const profileColors = [
@@ -45,7 +46,7 @@ export const profileColorEnum = pgEnum("profile_color", profileColors);
 export const profilesTable = pgTable(
   "profiles",
   {
-    areasOfExpertise: text("areas_of_expertise").default(""),
+    areasOfExpertise: json("areas_of_expertise").$type<string[]>().default([]),
     contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
@@ -72,10 +73,10 @@ export const profilesTable = pgTable(
     return {
       profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
       profileUsernameUnique: unique("profile_username_unique").on(
-        table.username,
+        table.username
       ),
     };
-  },
+  }
 );
 
 export const profilesTableRelations = relations(
@@ -85,7 +86,7 @@ export const profilesTableRelations = relations(
     careerHistories: many(profileCareerHistoriesTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
-  }),
+  })
 );
 
 export type IProfile = typeof profilesTable.$inferSelect;

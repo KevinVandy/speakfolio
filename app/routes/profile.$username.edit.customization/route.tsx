@@ -54,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -132,19 +132,18 @@ export default function EditProfileCustomizationTab() {
       <Stack gap="md">
         <Select
           data={[
-            "red",
             "blue",
-            "green",
-            "grape",
-            "yellow",
-            "orange",
-            "violet",
-            "pink",
-            "indigo",
             "cyan",
+            "grape",
+            "green",
+            "indigo",
             "lime",
+            "orange",
+            "pink",
+            "red",
             "teal",
-            "gray",
+            "violet",
+            "yellow",
           ]}
           label="Profile Theme Color"
           leftSection={

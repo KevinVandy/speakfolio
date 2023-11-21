@@ -21,9 +21,12 @@ export default function ProfileBioTab() {
   return (
     <>
       {profile.bio?.richText ? (
-        <Box dangerouslySetInnerHTML={{ __html: cleanBio }} />
+        <Box
+          className="rich-markup"
+          dangerouslySetInnerHTML={{ __html: cleanBio }}
+        />
       ) : (
-        "No bio yet."
+        <p>No bio yet.</p>
       )}{" "}
       {isOwnProfile && (
         <Center>

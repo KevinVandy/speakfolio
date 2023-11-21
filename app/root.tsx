@@ -34,6 +34,7 @@ import { profilesTable } from "db/schemas/profilesTable";
 import { Layout } from "./components/Layout";
 import { useRootLoader } from "./hooks/loaders/useRootLoader";
 import { SupabaseProvider } from "./hooks/useSupabase";
+import globalStyles from "./styles/global.css";
 import theme from "./styles/theme";
 import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
 
@@ -43,6 +44,7 @@ export const links: LinksFunction = () => [
   { href: mantineNProgressStyles, rel: "stylesheet" },
   { href: mantineCarouselStyles, rel: "stylesheet" },
   { href: mantineTipTapStyles, rel: "stylesheet" },
+  { href: globalStyles, rel: "stylesheet" },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({

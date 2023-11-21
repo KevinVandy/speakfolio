@@ -7,7 +7,14 @@ import {
   useActionData,
   useNavigate,
 } from "@remix-run/react";
-import { Autocomplete, Button, Stack, Text, Textarea } from "@mantine/core";
+import {
+  Autocomplete,
+  Button,
+  Pill,
+  PillsInput,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
 import { IconPlus } from "@tabler/icons-react";
@@ -30,8 +37,8 @@ type IProfileCareerForm = Partial<
 
 const profileCareerSchema = z.object({
   areasOfExpertise: z
-    .string()
-    .max(100, { message: "Max 100 characters" })
+    .array(z.string().max(100, { message: "Max 100 characters" }))
+    .max(20, { message: "Max 20 areas of expertise" })
     .nullish(),
   profession: z
     .string()
@@ -59,8 +66,10 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
+
+  rawData.areasOfExpertise = JSON.parse(rawData.areasOfExpertise);
 
   //validate data
   const validationResult = profileCareerSchema.safeParse(rawData);
@@ -172,14 +181,51 @@ export default function EditProfileCareerTab() {
             placeholder="Profession"
             {...form.getInputProps("profession")}
           />
-          <Textarea
-            autosize
-            label="Areas of Expertise"
-            minRows={2}
+          <input
             name="areasOfExpertise"
-            placeholder="List up to 10 areas of expertise"
-            {...form.getInputProps("areasOfExpertise")}
+            type="hidden"
+            value={JSON.stringify(form.getTransformedValues().areasOfExpertise)}
           />
+          <PillsInput
+            description="What subjects are you an expert in? (Max 20)"
+            label="Areas of Expertise"
+          >
+            <Pill.Group>
+              {form.getTransformedValues().areasOfExpertise?.map((aoe) => (
+                <Pill
+                  key={aoe}
+                  onRemove={() => {
+                    form.setFieldValue(
+                      "areasOfExpertise",
+                      form
+                        .getTransformedValues()
+                        .areasOfExpertise?.filter((a) => a !== aoe)
+                    );
+                  }}
+                  withRemoveButton
+                >
+                  {aoe}
+                </Pill>
+              ))}
+              <PillsInput.Field
+                onKeyDown={(event: any) => {
+                  if (
+                    event.key === "Enter" &&
+                    (form.getTransformedValues().areasOfExpertise?.length ??
+                      0) <= 20
+                  ) {
+                    event.preventDefault();
+                    form.setFieldValue("areasOfExpertise", [
+                      ...(form.getTransformedValues().areasOfExpertise ?? []),
+                      event.target.value,
+                    ]);
+                    event.target.value = "";
+                  }
+                }}
+                placeholder="Add up to 20 tags"
+              />
+            </Pill.Group>
+          </PillsInput>
           {Object.values(form?.errors ?? []).map((error, i) => (
             <Text c="red" key={i}>
               {error}

@@ -58,7 +58,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -86,8 +86,8 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(
         and(
           eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.profileId),
-        ),
+          eq(profileBiosTable.profileId, data.profileId)
+        )
       );
     return redirect("..");
   } catch (error) {
@@ -181,8 +181,14 @@ export default function EditProfileBioTab() {
         type="hidden"
         value={form.values.bio?.richText ?? ""}
       />
-      <Stack gap="md" pos="relative" py="xl">
+      <Stack gap="md" pos="relative">
         <LoadingOverlay visible={navigation.state === "submitting"} />
+        <Stack gap="0">
+          <Text mt="xs">Bio</Text>
+          <Text c="dimmed" size="xs">
+            Tell your story
+          </Text>
+        </Stack>
         <RichTextEditor editor={editor}>
           <RichTextEditor.Toolbar
             sticky
@@ -194,7 +200,6 @@ export default function EditProfileBioTab() {
               <RichTextEditor.Italic />
               <RichTextEditor.Underline />
               <RichTextEditor.Strikethrough />
-              <RichTextEditor.ClearFormatting />
               <RichTextEditor.Highlight />
               <RichTextEditor.Code />
             </RichTextEditor.ControlsGroup>
@@ -221,6 +226,9 @@ export default function EditProfileBioTab() {
               <RichTextEditor.AlignCenter />
               <RichTextEditor.AlignJustify />
               <RichTextEditor.AlignRight />
+            </RichTextEditor.ControlsGroup>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.ClearFormatting />
             </RichTextEditor.ControlsGroup>
           </RichTextEditor.Toolbar>
           <RichTextEditor.Content />
