@@ -13,6 +13,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { validateAuth } from "~/util/validateAuth";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -21,7 +22,7 @@ interface ProfileUpdateResponse {
 }
 
 const profileSchema = z.object({
-  id: z.string().uuid(),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
   visibility: z.enum(profileVisibilities),
 });
@@ -50,8 +51,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
     return redirect("/sign-in");
   }
 
@@ -62,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
       .set({
         visibility: data.visibility,
       })
-      .where(eq(profilesTable.id, data.id));
+      .where(eq(profilesTable.id, data.profileId));
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -107,7 +113,7 @@ export default function EditProfileSettingsModal() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md">
         <Flex gap="xs">

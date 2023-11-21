@@ -12,6 +12,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 
 const profileCareerSchema = z.object({
   areasOfExpertise: z
@@ -22,7 +23,6 @@ const profileCareerSchema = z.object({
     .string()
     .max(100, { message: "Company name max 100 characters" })
     .nullish(),
-  id: z.string().uuid(),
   jobTitle: z
     .string()
     .max(100, { message: "Job Title max 100 characters" })
@@ -31,6 +31,7 @@ const profileCareerSchema = z.object({
     .string()
     .max(100, { message: "Profession max 100 characters" })
     .nullish(),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
 });
 
@@ -52,7 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -65,23 +66,25 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-  //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
-    return redirect("/sign-in");
-  }
+    //validate auth
+    if (
+      !(await validateAuth({
+        profileId: data.profileId,
+        supabase,
+        userId: data.userId,
+      }))
+    ) {
+      return redirect("/sign-in");
+    }
 
   //update profile bio
   try {
     await db
       .update(profilesTable)
       .set({
-        areasOfExpertise: data.areasOfExpertise,
-        company: data.company,
-        jobTitle: data.jobTitle,
-        profession: data.profession,
+        
       })
-      .where(eq(profilesTable.id, data.id));
+      .where(eq(profilesTable.id, data.profileId));
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -136,7 +139,7 @@ export default function EditProfilePastTalksTab() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md"></Stack>
       {Object.values(form?.errors ?? []).map((error, i) => (

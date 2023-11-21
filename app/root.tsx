@@ -30,7 +30,7 @@ import mantineTipTapStyles from "@mantine/tiptap/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesTable } from "db/schemas/profilesTable";
+import { type IProfile, profilesTable } from "db/schemas/profilesTable";
 import { Layout } from "./components/Layout";
 import { useRootLoader } from "./hooks/loaders/useRootLoader";
 import { SupabaseProvider } from "./hooks/useSupabase";
@@ -60,31 +60,31 @@ const queryClient = new QueryClient({
 });
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const response = new Response();
   const env = {
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
     SUPABASE_URL: process.env.SUPABASE_URL!,
   };
-
-  const response = new Response();
+  let loggedInUserProfile: IProfile | undefined = undefined;
+  let session: Session | null = null;
 
   const supabase = getSupabaseServerClient({ request, response });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  try {
+    session = (await supabase.auth.getSession()).data.session;
 
-  const loggedInUserProfile = session?.user?.id
-    ? (
-        await db
-          .select()
-          .from(profilesTable)
-          .where(eq(profilesTable.userId, session?.user?.id))
-          .limit(1)
-      )?.[0] ?? null
-    : null;
+    if (session?.user?.id) {
+      loggedInUserProfile = await db.query.profilesTable.findFirst({
+        where: eq(profilesTable.userId, session.user.id),
+      });
+    }
 
-  if (session?.user?.id && !loggedInUserProfile) {
-    supabase.auth.signOut();
+    if (session?.user?.id && !loggedInUserProfile) {
+      supabase.auth.signOut();
+      throw new Error("User not found for session");
+    }
+  } catch (e) {
+    console.error(e);
   }
 
   return json(

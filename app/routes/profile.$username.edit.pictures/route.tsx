@@ -19,6 +19,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 
 const profileCustomizationSchema = z.object({
   coverImageUrl: z
@@ -29,7 +30,7 @@ const profileCustomizationSchema = z.object({
     .nullish()
     .transform((s) => s || null),
 
-  id: z.string().uuid(),
+  profileId: z.string().uuid(),
   profileImageUrl: z
     .union([
       z.string().url({ message: "Profile Image must be a valid URL" }),
@@ -71,11 +72,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-  //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
-    return redirect("/sign-in");
-  }
+    //validate auth
+    if (
+      !(await validateAuth({
+        profileId: data.profileId,
+        supabase,
+        userId: data.userId,
+      }))
+    ) {
+      return redirect("/sign-in");
+    }
 
   //update profile bio
   try {
@@ -85,7 +91,7 @@ export async function action({ request }: ActionFunctionArgs) {
         coverImageUrl: data.coverImageUrl,
         profileImageUrl: data.profileImageUrl,
       })
-      .where(eq(profilesTable.id, data.id));
+      .where(eq(profilesTable.id, data.profileId));
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -128,7 +134,7 @@ export default function EditProfilePicturesTab() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md">
         <BackgroundImage

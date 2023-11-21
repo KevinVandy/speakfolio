@@ -1,7 +1,14 @@
 import { useEffect, useMemo } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useNavigate, useParams } from "@remix-run/react";
-import { Modal, SimpleGrid, Stack, Text, TextInput } from "@mantine/core";
+import { Form, useActionData, useNavigate, useNavigation, useParams } from "@remix-run/react";
+import {
+  LoadingOverlay,
+  Modal,
+  SimpleGrid,
+  Stack,
+  Text,
+  TextInput,
+} from "@mantine/core";
 import { MonthPickerInput } from "@mantine/dates";
 import { useForm, zodResolver } from "@mantine/form";
 import {
@@ -27,6 +34,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 
 type IProfileCareerFormCareerHistory = {
@@ -89,8 +97,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
     return redirect("/sign-in");
   }
 
@@ -138,6 +151,7 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function CareerAddHistoryModal() {
   const { id: careerHistoryId } = useParams();
   const navigate = useNavigate();
+  const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -253,7 +267,8 @@ export default function CareerAddHistoryModal() {
           type="hidden"
           value={form.values.description ?? ""}
         />
-        <Stack gap="md" p={isMobile ? "0" : "md"}>
+        <Stack gap="md" p={isMobile ? "0" : "md"} pos="relative">
+          <LoadingOverlay visible={navigation.state === "submitting"} />
           <TextInput
             description="Company or Organization"
             label="Company"
@@ -337,8 +352,8 @@ export default function CareerAddHistoryModal() {
                 <RichTextEditor.Unlink />
               </RichTextEditor.ControlsGroup>
               <RichTextEditor.ControlsGroup>
-              <RichTextEditor.ClearFormatting />
-            </RichTextEditor.ControlsGroup>
+                <RichTextEditor.ClearFormatting />
+              </RichTextEditor.ControlsGroup>
             </RichTextEditor.Toolbar>
             <RichTextEditor.Content />
             <BubbleMenu editor={editor!}>

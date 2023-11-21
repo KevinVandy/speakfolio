@@ -20,19 +20,20 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 
 const profileCustomizationSchema = z.object({
   headline: z
     .string()
     .max(100, { message: "Headline max 100 characters" })
     .nullish(),
-  id: z.string().uuid(),
   location: z
     .string()
     .max(100, { message: "Location max 100 characters" })
     .nullish(),
   name: z.string().min(1, { message: "Display Name is required" }),
   profileColor: z.enum(profileColors),
+  profileId: z.string().uuid(),
   userId: z.string().uuid(),
 });
 
@@ -68,8 +69,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
     return redirect("/sign-in");
   }
 
@@ -83,7 +89,7 @@ export async function action({ request }: ActionFunctionArgs) {
         name: data.name,
         profileColor: data.profileColor,
       })
-      .where(eq(profilesTable.id, data.id));
+      .where(eq(profilesTable.id, data.profileId));
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -127,7 +133,7 @@ export default function EditProfileCustomizationTab() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
-      <input name="id" type="hidden" value={profile.id} />
+      <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md">
         <Select

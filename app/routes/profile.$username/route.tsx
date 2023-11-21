@@ -17,52 +17,56 @@ import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-  const { username } = params;
   const response = new Response();
+  const { username } = params;
 
-  //validate auth
-  const supabase = getSupabaseServerClient({ request, response });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  try {
+    const supabase = getSupabaseServerClient({ request, response });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-  let profile = username
-    ? await db.query.profilesTable.findFirst({
-        where: eq(profilesTable.username, username),
-        with: {
-          bio: {
-            columns: {
-              id: true,
-              richText: true,
+    let profile = username
+      ? await db.query.profilesTable.findFirst({
+          where: eq(profilesTable.username, username),
+          with: {
+            bio: {
+              columns: {
+                id: true,
+                richText: true,
+              },
             },
+            careerHistories: {
+              orderBy: (careerHistory, { desc }) => [
+                desc(careerHistory.startDate),
+              ],
+            },
+            links: true,
+            presentations: true,
           },
-          careerHistories: {
-            orderBy: (careerHistory, { desc }) => [
-              desc(careerHistory.startDate),
-            ],
-          },
-          links: true,
-          presentations: true,
-        },
-      })
-    : null;
+        })
+      : null;
 
-  const isOwnProfile = profile?.userId === session?.user?.id;
+    const isOwnProfile = profile?.userId === session?.user?.id;
 
-  if (
-    !profile ||
-    (!isOwnProfile && profile.visibility === "private") ||
-    (!session && profile.visibility === "signed_in_users")
-  ) {
+    if (
+      !profile ||
+      (!isOwnProfile && profile.visibility === "private") ||
+      (!session && profile.visibility === "signed_in_users")
+    ) {
+      return redirect("/unknown-profile");
+    }
+
+    const returnData = {
+      ...profile,
+      isOwnProfile,
+    } as IProfileFull;
+
+    return json(returnData, { headers: response.headers });
+  } catch (error) {
+    console.error(error);
     return redirect("/unknown-profile");
   }
-
-  const returnData = {
-    ...profile,
-    isOwnProfile,
-  } as IProfileFull;
-
-  return json(returnData, { headers: response.headers });
 }
 
 const tabs = [
@@ -101,7 +105,7 @@ export default function ProfileIdPage() {
   const profile = useProfileLoader();
 
   const [tab, _setTab] = useState<null | string>(
-    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index",
+    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index"
   );
 
   const setTab = (newTab: null | string) => {

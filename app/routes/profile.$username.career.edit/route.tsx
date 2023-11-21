@@ -6,10 +6,12 @@ import {
   Outlet,
   useActionData,
   useNavigate,
+  useNavigation,
 } from "@remix-run/react";
 import {
   Autocomplete,
   Button,
+  LoadingOverlay,
   Pill,
   PillsInput,
   Stack,
@@ -27,6 +29,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 
 type IProfileCareerForm = Partial<
   Pick<
@@ -82,8 +85,13 @@ export async function action({ request }: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
     return redirect("/sign-in");
   }
 
@@ -113,6 +121,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 export default function EditProfileCareerTab() {
   const navigate = useNavigate();
+  const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -172,7 +181,8 @@ export default function EditProfileCareerTab() {
               <input name={`careerHistories.${i}.userId`} type="hidden" />
             </Fragment>
           ))}
-        <Stack gap="md" m="auto" maw="600px" my="xl">
+        <Stack gap="md" m="auto" maw="600px" my="xl" pos="relative">
+          <LoadingOverlay visible={navigation.state === "submitting"} />
           <Autocomplete
             data={commonProfessions}
             description="(Optional) Your profession or industry"

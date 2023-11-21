@@ -27,6 +27,7 @@ import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButton
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 
 type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
@@ -71,11 +72,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-  //validate auth
-  const authUser = await supabase.auth.getUser();
-  if (!authUser || authUser.data.user?.id !== data.userId) {
-    return redirect("/sign-in");
-  }
+    //validate auth
+    if (
+      !(await validateAuth({
+        profileId: data.profileId,
+        supabase,
+        userId: data.userId,
+      }))
+    ) {
+      return redirect("/sign-in");
+    }
 
   //update profile bio
   try {

@@ -15,7 +15,7 @@ interface Props {
     SUPABASE_ANON_KEY: string;
     SUPABASE_URL: string;
   };
-  loggedInUserProfile: IProfile | null;
+  loggedInUserProfile: IProfile | undefined;
   session: Session;
 }
 
