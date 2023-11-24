@@ -24,14 +24,19 @@ export async function validateAuth({ profileId, supabase, userId }: Params) {
     ),
   });
 
-  const [session, profile] = await Promise.all([
-    sessionPromise,
-    profilePromise,
-  ]);
+  try {
+    const [session, profile] = await Promise.all([
+      sessionPromise,
+      profilePromise,
+    ]);
 
-  return !!(
-    session?.data?.session?.user?.id &&
-    session.data.session.user.id === userId &&
-    profile
-  );
+    return !!(
+      session?.data?.session?.user?.id &&
+      session.data.session.user.id === userId &&
+      profile
+    );
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
 }

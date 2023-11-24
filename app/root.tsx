@@ -44,7 +44,7 @@ export const links: LinksFunction = () => [
   { href: mantineNProgressStyles, rel: "stylesheet" },
   { href: mantineCarouselStyles, rel: "stylesheet" },
   { href: mantineTipTapStyles, rel: "stylesheet" },
-  { href: globalStyles, rel: "stylesheet" },
+  // { href: globalStyles, rel: "stylesheet" },
 ];
 
 const colorSchemeManager = localStorageColorSchemeManager({

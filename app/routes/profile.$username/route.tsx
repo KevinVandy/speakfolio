@@ -5,7 +5,6 @@ import { Stack, Tabs } from "@mantine/core";
 import {
   IconBriefcase,
   IconMicrophone2,
-  IconPodium,
   IconPresentation,
   IconUser,
 } from "@tabler/icons-react";
@@ -86,14 +85,9 @@ const tabs = [
     title: "Career",
   },
   {
-    Icon: () => <IconPodium />,
-    id: "past-talks",
-    title: "Past Talks",
-  },
-  {
     Icon: () => <IconPresentation />,
-    id: "prepared-talks",
-    title: "Prepared Talks",
+    id: "presentations",
+    title: "Presentations",
   },
 ];
 

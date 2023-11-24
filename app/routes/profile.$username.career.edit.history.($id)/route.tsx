@@ -1,6 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useNavigate, useNavigation, useParams } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useNavigation,
+  useParams,
+} from "@remix-run/react";
 import {
   LoadingOverlay,
   Modal,
@@ -12,19 +18,10 @@ import {
 import { MonthPickerInput } from "@mantine/dates";
 import { useForm, zodResolver } from "@mantine/form";
 import {
-  useDebouncedValue,
   useDisclosure,
   useMediaQuery,
 } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { Link, RichTextEditor } from "@mantine/tiptap";
-import Highlight from "@tiptap/extension-highlight";
-import SubScript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import TextAlign from "@tiptap/extension-text-align";
-import Underline from "@tiptap/extension-underline";
-import { BubbleMenu, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import xss from "xss";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
@@ -36,6 +33,7 @@ import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
+import { RichTextInput } from "~/components/RichTextInput";
 
 type IProfileCareerFormCareerHistory = {
   company: string;
@@ -225,28 +223,6 @@ export default function CareerAddHistoryModal() {
     open();
   }, []);
 
-  const editor = useEditor({
-    content: form.values.description || "",
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      Superscript,
-      SubScript,
-      Highlight,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-    ],
-  });
-
-  const [debouncedBio] = useDebouncedValue(editor?.getHTML() || "", 500);
-
-  useEffect(() => {
-    if (!debouncedBio) return;
-    if (debouncedBio !== form.values.description) {
-      form.setFieldValue("description", debouncedBio);
-    }
-  }, [debouncedBio]);
-
   return (
     <Modal
       closeOnClickOutside={!form.isDirty()}
@@ -324,49 +300,15 @@ export default function CareerAddHistoryModal() {
               Description of your role
             </Text>
           </Stack>
-          <RichTextEditor editor={editor}>
-            <RichTextEditor.Toolbar
-              sticky
-              stickyOffset={0}
-              style={{ justifyContent: "center" }}
-            >
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Bold />
-                <RichTextEditor.Italic />
-                <RichTextEditor.Underline />
-                <RichTextEditor.Strikethrough />
-                <RichTextEditor.Highlight />
-                <RichTextEditor.Code />
-              </RichTextEditor.ControlsGroup>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.H5 />
-                <RichTextEditor.H6 />
-              </RichTextEditor.ControlsGroup>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Hr />
-                <RichTextEditor.BulletList />
-                <RichTextEditor.OrderedList />
-              </RichTextEditor.ControlsGroup>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Link />
-                <RichTextEditor.Unlink />
-              </RichTextEditor.ControlsGroup>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.ClearFormatting />
-              </RichTextEditor.ControlsGroup>
-            </RichTextEditor.Toolbar>
-            <RichTextEditor.Content />
-            <BubbleMenu editor={editor!}>
-              <RichTextEditor.ControlsGroup>
-                <RichTextEditor.Bold />
-                <RichTextEditor.Italic />
-                <RichTextEditor.Link />
-                <RichTextEditor.OrderedList />
-                <RichTextEditor.BulletList />
-                <RichTextEditor.ClearFormatting />
-              </RichTextEditor.ControlsGroup>
-            </BubbleMenu>
-          </RichTextEditor>
+          <RichTextInput
+            label="Description"
+            description="Description of your role"
+            value={form.values.description ?? ""}
+            onChangeDebounced={(debouncedValue) =>
+              form.setFieldValue("description", debouncedValue)
+            }
+            showHeadings
+          />
           {Object.values(form?.errors ?? []).map((error, i) => (
             <Text c="red" key={i}>
               {error}

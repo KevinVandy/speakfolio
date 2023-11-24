@@ -22,7 +22,6 @@ export const presentationsTable = pgTable("presentations", {
   createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
     .defaultNow()
     .notNull(),
-  headline: text("headline").default(""),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   lastPresentedAt: text("last_presented_at").default(""),
   profileId: uuid("profile_id").references(() => profilesTable.id, {

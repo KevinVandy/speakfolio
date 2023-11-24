@@ -48,7 +48,12 @@ const signUpSchema = z
     passwordConfirmation: z.string().min(8, {
       message: "Password must be at least 8 characters",
     }),
-    username: z.string().min(2, { message: "Username is required" }),
+    username: z
+      .string()
+      .min(2, { message: "Username is required and must be 2 characters long" })
+      .regex(/^[a-zA-Z0-9]*$/, {
+        message: "Username can only contain letters and numbers.",
+      }),
   })
   .refine((data) => data.password === data.passwordConfirmation, {
     message: "Passwords do not match",

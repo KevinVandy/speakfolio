@@ -3,7 +3,7 @@ import { Box, Button, Center } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
-export default function ProfilePreparedTalksTab() {
+export default function ProfilePresentationPage() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
@@ -15,7 +15,7 @@ export default function ProfilePreparedTalksTab() {
 
   return (
     <div>
-      <h1>Past Talks</h1>
+      <h1>Presentation</h1>
       <p>Coming soon...</p>
     </div>
   );

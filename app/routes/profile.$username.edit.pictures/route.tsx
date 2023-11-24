@@ -29,7 +29,6 @@ const profileCustomizationSchema = z.object({
     ])
     .nullish()
     .transform((s) => s || null),
-
   profileId: z.string().uuid(),
   profileImageUrl: z
     .union([

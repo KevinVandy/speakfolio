@@ -1,37 +1,37 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useNavigate } from "@remix-run/react";
-import { Stack, Text } from "@mantine/core";
+import { Form, useActionData, useNavigate, useParams } from "@remix-run/react";
+import { Stack, Text, TextInput } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import xss from "xss";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profilesTable } from "db/schema";
+import { presentationsTable } from "db/schema";
 import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
+import { xssOptions } from "~/util/xssOptions";
+import { RichTextInput } from "~/components/RichTextInput";
 
-const profileCareerSchema = z.object({
-  areasOfExpertise: z
+const presentationSchema = z.object({
+  abstract: z
     .string()
-    .max(100, { message: "Max 100 characters" })
+    .max(1000, {
+      message: "Abstract max 1000 characters",
+    })
     .nullish(),
-  company: z
-    .string()
-    .max(100, { message: "Company name max 100 characters" })
-    .nullish(),
-  jobTitle: z
-    .string()
-    .max(100, { message: "Job Title max 100 characters" })
-    .nullish(),
-  profession: z
-    .string()
-    .max(100, { message: "Profession max 100 characters" })
-    .nullish(),
+  coverImageUrl: z
+    .union([
+      z.string().url({ message: "Cover Photo must be a valid URL" }),
+      z.string().length(0),
+    ])
+    .nullish()
+    .transform((s) => s || null),
   profileId: z.string().uuid(),
+  title: z.string().max(100, { message: "Title max 100 characters" }),
   userId: z.string().uuid(),
 });
 
@@ -57,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
   );
 
   //validate data
-  const validationResult = profileCareerSchema.safeParse(rawData);
+  const validationResult = presentationSchema.safeParse(rawData);
   const { success } = validationResult;
   if (!success) {
     const errors = validationResult.error.formErrors.fieldErrors;
@@ -79,10 +79,11 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
-    await db
-      .update(profilesTable)
-      .set({})
-      .where(eq(profilesTable.id, data.profileId));
+    await db.insert(presentationsTable).values({
+      abstract: xss(data.abstract ?? "", xssOptions),
+      profileId: data.profileId,
+      title: data.title,
+    });
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -98,15 +99,31 @@ export async function action({ request }: ActionFunctionArgs) {
   }
 }
 
-export default function EditProfilePreparedTalksTab() {
+export default function ProfileNewPresentationPage() {
+  const { id: presentationId } = useParams();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
+  const initialPresentation = useMemo(() => {
+    if (!presentationId || presentationId === "new") return null;
+    return profile.presentations?.find((p) => p.id === presentationId);
+  }, []);
+
   const form = useForm({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
-    validate: zodResolver(profileCareerSchema),
+    initialValues: {
+      ...(actionData?.data ??
+        initialPresentation ?? {
+          title: "",
+          abstract: "<p></p>",
+          coverImageUrl: null,
+        }),
+      id: presentationId ?? "",
+      profileId: profile.id,
+      userId: profile.userId!,
+    },
+    validate: zodResolver(presentationSchema),
   });
 
   //sync back-end errors with form
@@ -128,7 +145,7 @@ export default function EditProfilePreparedTalksTab() {
     if (form.isDirty()) {
       openConfirmCancelModal();
     } else {
-      navigate("..");
+      navigate("../..");
     }
   };
 
@@ -139,16 +156,40 @@ export default function EditProfilePreparedTalksTab() {
     >
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
-      <Stack gap="md"></Stack>
-      {Object.values(form?.errors ?? []).map((error, i) => (
-        <Text c="red" key={i}>
-          {error}
-        </Text>
-      ))}
-      <SaveContinueCancelButtons
-        disabled={!form.isDirty()}
-        onCancel={handleCancel}
-      />
+      <input name="abstract" type="hidden" value={form.values.abstract} />
+      <Stack gap="md">
+        <TextInput
+          label="Title"
+          name="title"
+          required
+          withAsterisk
+          {...form.getInputProps("title")}
+        />
+        <RichTextInput
+          label="Abstract"
+          description="Give a short 1-3 paragraph summary of your talk"
+          value={form.values.abstract ?? ""}
+          onChangeDebounced={(debouncedValue) =>
+            form.setFieldValue("abstract", debouncedValue)
+          }
+        />
+        <TextInput
+          description="A link to your cover photo"
+          label="Cover Photo URL"
+          name="coverImageUrl"
+          placeholder="Enter a link to your cover photo"
+          {...form.getInputProps("coverImageUrl")}
+        />
+        {Object.values(form?.errors ?? []).map((error, i) => (
+          <Text c="red" key={i}>
+            {error}
+          </Text>
+        ))}
+        <SaveContinueCancelButtons
+          disabled={!form.isDirty()}
+          onCancel={handleCancel}
+        />
+      </Stack>
     </Form>
   );
 }

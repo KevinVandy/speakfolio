@@ -8,16 +8,7 @@ import {
 } from "@remix-run/react";
 import { Flex, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { useDebouncedValue } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { Link, RichTextEditor } from "@mantine/tiptap";
-import Highlight from "@tiptap/extension-highlight";
-import SubScript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
-import TextAlign from "@tiptap/extension-text-align";
-import Underline from "@tiptap/extension-underline";
-import { BubbleMenu, useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
 import xss from "xss";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
@@ -29,6 +20,7 @@ import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
+import { RichTextInput } from "~/components/RichTextInput";
 
 type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
 
@@ -72,16 +64,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-    //validate auth
-    if (
-      !(await validateAuth({
-        profileId: data.profileId,
-        supabase,
-        userId: data.userId,
-      }))
-    ) {
-      return redirect("/sign-in");
-    }
+  //validate auth
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
+    return redirect("/sign-in");
+  }
 
   //update profile bio
   try {
@@ -136,28 +128,6 @@ export default function EditProfileBioTab() {
     }
   }, [actionData]);
 
-  const editor = useEditor({
-    content: form.values.bio?.richText || "",
-    extensions: [
-      StarterKit,
-      Underline,
-      Link,
-      Superscript,
-      SubScript,
-      Highlight,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-    ],
-  });
-
-  const [debouncedBio] = useDebouncedValue(editor?.getHTML() || "", 500);
-
-  useEffect(() => {
-    if (!debouncedBio) return;
-    if (debouncedBio !== form.values.bio?.richText) {
-      form.setFieldValue("bio.richText", debouncedBio);
-    }
-  }, [debouncedBio]);
-
   const openConfirmCancelModal = (onConfirm?: () => void) =>
     modals.openConfirmModal({
       children: <Text size="sm">None of your changes will be saved</Text>,
@@ -189,66 +159,16 @@ export default function EditProfileBioTab() {
       />
       <Stack gap="md" pos="relative">
         <LoadingOverlay visible={navigation.state === "submitting"} />
-        <Stack gap="0">
-          <Text mt="xs">Bio</Text>
-          <Text c="dimmed" size="xs">
-            Tell your story
-          </Text>
-        </Stack>
-        <RichTextEditor editor={editor}>
-          <RichTextEditor.Toolbar
-            sticky
-            stickyOffset={0}
-            style={{ justifyContent: "center" }}
-          >
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.Bold />
-              <RichTextEditor.Italic />
-              <RichTextEditor.Underline />
-              <RichTextEditor.Strikethrough />
-              <RichTextEditor.Highlight />
-              <RichTextEditor.Code />
-            </RichTextEditor.ControlsGroup>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.H3 />
-              <RichTextEditor.H4 />
-              <RichTextEditor.H5 />
-              <RichTextEditor.H6 />
-            </RichTextEditor.ControlsGroup>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.Blockquote />
-              <RichTextEditor.Hr />
-              <RichTextEditor.BulletList />
-              <RichTextEditor.OrderedList />
-              <RichTextEditor.Subscript />
-              <RichTextEditor.Superscript />
-            </RichTextEditor.ControlsGroup>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.Link />
-              <RichTextEditor.Unlink />
-            </RichTextEditor.ControlsGroup>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.AlignLeft />
-              <RichTextEditor.AlignCenter />
-              <RichTextEditor.AlignJustify />
-              <RichTextEditor.AlignRight />
-            </RichTextEditor.ControlsGroup>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.ClearFormatting />
-            </RichTextEditor.ControlsGroup>
-          </RichTextEditor.Toolbar>
-          <RichTextEditor.Content />
-          <BubbleMenu editor={editor!}>
-            <RichTextEditor.ControlsGroup>
-              <RichTextEditor.Bold />
-              <RichTextEditor.Italic />
-              <RichTextEditor.Link />
-              <RichTextEditor.OrderedList />
-              <RichTextEditor.BulletList />
-              <RichTextEditor.ClearFormatting />
-            </RichTextEditor.ControlsGroup>
-          </BubbleMenu>
-        </RichTextEditor>
+        <RichTextInput
+          label="Bio"
+          description="Tell your story"
+          value={form.values.bio?.richText ?? ""}
+          onChangeDebounced={(debouncedValue) =>
+            form.setFieldValue("bio.richText", debouncedValue)
+          }
+          showHeadings
+          showTextAlign
+        />
       </Stack>
       {Object.values(form?.errors ?? []).map((error, i) => (
         <Text c="red" key={i}>
