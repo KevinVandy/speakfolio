@@ -47,7 +47,7 @@ export const links: LinksFunction = () => [
   // { href: globalStyles, rel: "stylesheet" },
 ];
 
-const colorSchemeManager = localStorageColorSchemeManager({
+export const colorSchemeManager = localStorageColorSchemeManager({
   key: "colorScheme",
 });
 

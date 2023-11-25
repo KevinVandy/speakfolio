@@ -22,7 +22,6 @@ import {
   IconSettings,
   IconSocial,
 } from "@tabler/icons-react";
-import ProfileOverviewTab from "../profile.$username._index/route";
 import { type IProfileOutletContext } from "../profile.$username/route";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
@@ -118,7 +117,6 @@ export default function EditProfileModal() {
 
   return (
     <>
-      <ProfileOverviewTab />
       <Modal
         closeOnClickOutside={!isDirty}
         onClose={handleCancel}
@@ -127,7 +125,6 @@ export default function EditProfileModal() {
         title={"Customize Your Speakfolio"}
       >
         <Tabs
-          color={profile.profileColor!}
           mih="400px"
           my="md"
           onChange={setEditTab}

@@ -74,7 +74,6 @@ export function ProfileHead() {
         )}
         <Flex align="flex-end" mih="200px" ml="lg">
           <Avatar
-            color={profile.profileColor ?? "blue"}
             radius="100%"
             size="160px"
             src={profile.profileImageUrl ?? ""}

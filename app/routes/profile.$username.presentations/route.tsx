@@ -4,10 +4,12 @@ import {
   BackgroundImage,
   Box,
   Button,
+  Flex,
   Spoiler,
   Stack,
-  Title,
+  Text,
   Tooltip,
+  TypographyStylesProvider,
 } from "@mantine/core";
 import { IconEdit, IconPlus } from "@tabler/icons-react";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
@@ -29,6 +31,16 @@ export default function ProfilePresentationsTab() {
 
   return (
     <Stack>
+      <Flex justify="end">
+        <Button
+          color="green"
+          component={Link}
+          leftSection={<IconPlus />}
+          to="new/edit"
+        >
+          Create New Presentation
+        </Button>
+      </Flex>
       {!!presentations?.length ? (
         <Carousel
           align="start"
@@ -47,11 +59,27 @@ export default function ProfilePresentationsTab() {
                 pos="relative"
                 p="md"
               >
-                <Title order={4} size="xl">
+                <Text
+                  truncate="end"
+                  component="h4"
+                  size="xl"
+                  c="white"
+                  maw="20ch"
+                  mb="md"
+                  style={{
+                    textShadow:
+                      "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;",
+                  }}
+                >
                   {presentation.title}
-                </Title>
-                <Spoiler maxHeight={80} showLabel="Read More" hideLabel="Hide">
-                  <Box
+                </Text>
+                <Spoiler maxHeight={120} showLabel="Read More" hideLabel="Hide">
+                  <TypographyStylesProvider
+                    style={{
+                      textShadow:
+                        "-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;",
+                    }}
+                    c="white"
                     dangerouslySetInnerHTML={{
                       __html: xss(presentation.abstract ?? "", xssOptions),
                     }}
@@ -75,10 +103,6 @@ export default function ProfilePresentationsTab() {
           ))}
         </Carousel>
       ) : null}
-
-      <Button component={Link} leftSection={<IconPlus />} to="new/edit">
-        Create New Presentation
-      </Button>
     </Stack>
   );
 }

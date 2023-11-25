@@ -31,7 +31,7 @@ const presentationSchema = z.object({
     ])
     .nullish()
     .transform((s) => s || null),
-  presentationId: z.union([z.string().uuid(), z.string().length(0)]),
+  presentationId: z.union([z.string().uuid(), z.string().length(0)]).nullish(),
   profileId: z.string().uuid(),
   title: z.string().max(100, { message: "Title max 100 characters" }),
   userId: z.string().uuid(),
@@ -144,7 +144,7 @@ export default function ProfileNewPresentationPage() {
           abstract: "<p></p>",
           coverImageUrl: null,
         }),
-      presentationId: presentationId ?? "",
+      presentationId: (presentationId !== "new" && presentationId) || null,
       profileId: profile.id,
       userId: profile.userId!,
     },
@@ -208,9 +208,9 @@ export default function ProfileNewPresentationPage() {
           placeholder="Enter a link to your cover photo"
           {...form.getInputProps("coverImageUrl")}
         />
-        {Object.values(form?.errors ?? []).map((error, i) => (
+        {Object.entries(form?.errors ?? []).map((errorEntry, i) => (
           <Text c="red" key={i}>
-            {error}
+            {errorEntry[0]}: {errorEntry[1]}
           </Text>
         ))}
         <SaveContinueCancelButtons

@@ -143,7 +143,6 @@ export default function EditProfilePicturesTab() {
         >
           <Center mih="100px" style={{ alignItems: "flex-end" }}>
             <Avatar
-              color={form.getTransformedValues().profileColor ?? "blue"}
               radius="100%"
               size="xl"
               src={form.getTransformedValues().profileImageUrl ?? ""}

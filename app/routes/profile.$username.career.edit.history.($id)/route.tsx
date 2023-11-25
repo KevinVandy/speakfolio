@@ -17,10 +17,7 @@ import {
 } from "@mantine/core";
 import { MonthPickerInput } from "@mantine/dates";
 import { useForm, zodResolver } from "@mantine/form";
-import {
-  useDisclosure,
-  useMediaQuery,
-} from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import xss from "xss";
 import { z } from "zod";
@@ -167,6 +164,8 @@ export default function CareerAddHistoryModal() {
         history.endDate = new Date(history.endDate);
         history.endDate.setDate(15);
       }
+      if (history.description)
+        history.description = xss(history.description, xssOptions);
     }
     return history;
   }, []);

@@ -113,7 +113,14 @@ export default function EditProfileCustomizationTab() {
 
   const form = useForm({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
+    initialValues: actionData?.data ?? {
+      headline: profile?.headline ?? "",
+      location: profile?.location ?? "",
+      name: profile?.name ?? "",
+      profileColor: profile?.profileColor ?? "pink",
+      profileId: profile?.id!,
+      userId: profile?.userId!,
+    },
     validate: zodResolver(profileCustomizationSchema),
   });
 
@@ -127,6 +134,8 @@ export default function EditProfileCustomizationTab() {
       form.setErrors({ ...form.errors, ...actionData.errors });
     }
   }, [actionData]);
+
+  console.log(form.errors);
 
   return (
     <Form

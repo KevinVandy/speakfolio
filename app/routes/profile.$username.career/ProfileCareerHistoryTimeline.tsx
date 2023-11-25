@@ -7,6 +7,7 @@ import {
   Timeline,
   Title,
   Tooltip,
+  TypographyStylesProvider,
 } from "@mantine/core";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration.js";
@@ -37,7 +38,6 @@ export default function ProfileCareerHistoryTimeline({ showEdit }: Props) {
         (profile.careerHistories?.findIndex((ch) => !ch.endDate) ?? 0) + 1
       }
       bulletSize={20}
-      color={profile.profileColor ?? "pink"}
       lineWidth={4}
       maw="800px"
       mx="auto"
@@ -104,8 +104,7 @@ export default function ProfileCareerHistoryTimeline({ showEdit }: Props) {
               {careerHistory.jobTitle ? `- ${careerHistory.jobTitle}` : null}
             </Text>
           ) : null}
-          <Box
-            className="rich-markup"
+          <TypographyStylesProvider
             dangerouslySetInnerHTML={{
               __html: xss(careerHistory.description ?? "", xssOptions),
             }}

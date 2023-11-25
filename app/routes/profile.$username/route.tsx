@@ -1,19 +1,15 @@
 import { useState } from "react";
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
 import { Outlet, useMatches, useNavigate, useParams } from "@remix-run/react";
-import { Stack, Tabs } from "@mantine/core";
-import {
-  IconBriefcase,
-  IconMicrophone2,
-  IconPresentation,
-  IconUser,
-} from "@tabler/icons-react";
+import { MantineProvider, Stack, Tabs, useMantineTheme } from "@mantine/core";
+import { IconBriefcase, IconPresentation, IconUser } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { ProfileHead } from "./ProfileHead";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { colorSchemeManager } from "~/root";
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
   const response = new Response();
@@ -70,13 +66,8 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 
 const tabs = [
   {
-    Icon: () => <IconMicrophone2 />,
-    id: "_index",
-    title: "Overview",
-  },
-  {
     Icon: () => <IconUser />,
-    id: "bio",
+    id: "_index",
     title: "Bio",
   },
   {
@@ -96,6 +87,8 @@ export default function ProfileIdPage() {
   const matches = useMatches();
   const navigate = useNavigate();
 
+  const theme = useMantineTheme();
+
   const profile = useProfileLoader();
 
   const [tab, _setTab] = useState<null | string>(
@@ -110,26 +103,31 @@ export default function ProfileIdPage() {
   };
 
   return (
-    <Stack gap="md">
-      <ProfileHead />
-      <Tabs
-        color={profile.profileColor ?? "pink"}
-        onChange={setTab}
-        value={tab || "_index"}
-      >
-        <Tabs.List justify="center" mb="md">
-          {tabs.map((t) => (
-            <Tabs.Tab key={t.id} leftSection={<t.Icon />} value={t.id}>
-              {t.title}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-        <Outlet context={{ setTab }} />
-      </Tabs>
-      <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
-        {JSON.stringify(profile, null, 2)}
-      </pre>
-    </Stack>
+    <MantineProvider
+      colorSchemeManager={colorSchemeManager}
+      defaultColorScheme="dark"
+      theme={{ ...theme, primaryColor: profile.profileColor! }}
+    >
+      <Stack gap="md">
+        <ProfileHead />
+        <Tabs
+          onChange={setTab}
+          value={tab || "_index"}
+        >
+          <Tabs.List justify="center" mb="md">
+            {tabs.map((t) => (
+              <Tabs.Tab key={t.id} leftSection={<t.Icon />} value={t.id}>
+                {t.title}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Outlet context={{ setTab }} />
+        </Tabs>
+        <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
+          {JSON.stringify(profile, null, 2)}
+        </pre>
+      </Stack>
+    </MantineProvider>
   );
 }
 

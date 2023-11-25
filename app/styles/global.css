@@ -1,7 +1,0 @@
-.rich-markup a {
-  color: var(--mantine-primary-color-filled);
-}
-
-.rich-markup a:hover {
-  color: var(--mantine-primary-color-filled-hover);
-}
