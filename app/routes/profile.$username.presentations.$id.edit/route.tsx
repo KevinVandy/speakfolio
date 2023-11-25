@@ -15,6 +15,7 @@ import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 import { RichTextInput } from "~/components/RichTextInput";
+import { and, eq } from "drizzle-orm";
 
 const presentationSchema = z.object({
   abstract: z
@@ -30,6 +31,7 @@ const presentationSchema = z.object({
     ])
     .nullish()
     .transform((s) => s || null),
+  presentationId: z.union([z.string().uuid(), z.string().length(0)]),
   profileId: z.string().uuid(),
   title: z.string().max(100, { message: "Title max 100 characters" }),
   userId: z.string().uuid(),
@@ -79,11 +81,28 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
-    await db.insert(presentationsTable).values({
-      abstract: xss(data.abstract ?? "", xssOptions),
-      profileId: data.profileId,
-      title: data.title,
-    });
+    if (data.presentationId) {
+      await db
+        .update(presentationsTable)
+        .set({
+          abstract: xss(data.abstract ?? "", xssOptions),
+          coverImageUrl: data.coverImageUrl,
+          title: data.title,
+        })
+        .where(
+          and(
+            eq(presentationsTable.id, data.presentationId),
+            eq(presentationsTable.profileId, data.profileId)
+          )
+        );
+    } else {
+      await db.insert(presentationsTable).values({
+        abstract: xss(data.abstract ?? "", xssOptions),
+        profileId: data.profileId,
+        title: data.title,
+        coverImageUrl: data.coverImageUrl,
+      });
+    }
     return redirect("../..");
   } catch (error) {
     console.error(error);
@@ -107,8 +126,14 @@ export default function ProfileNewPresentationPage() {
 
   const initialPresentation = useMemo(() => {
     if (!presentationId || presentationId === "new") return null;
-    return profile.presentations?.find((p) => p.id === presentationId);
-  }, []);
+    const presentation = profile.presentations?.find(
+      (p) => p.id === presentationId
+    );
+    if (presentation?.abstract) {
+      presentation.abstract = xss(presentation.abstract, xssOptions);
+    }
+    return presentation;
+  }, [profile.presentations]);
 
   const form = useForm({
     initialErrors: actionData?.errors,
@@ -119,7 +144,7 @@ export default function ProfileNewPresentationPage() {
           abstract: "<p></p>",
           coverImageUrl: null,
         }),
-      id: presentationId ?? "",
+      presentationId: presentationId ?? "",
       profileId: profile.id,
       userId: profile.userId!,
     },
@@ -154,10 +179,13 @@ export default function ProfileNewPresentationPage() {
       method="post"
       onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
     >
+      {presentationId && presentationId !== "new" ? (
+        <input name="presentationId" type="hidden" value={presentationId} />
+      ) : null}
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
       <input name="abstract" type="hidden" value={form.values.abstract} />
-      <Stack gap="md">
+      <Stack gap="md" maw="800px" mx="auto">
         <TextInput
           label="Title"
           name="title"
