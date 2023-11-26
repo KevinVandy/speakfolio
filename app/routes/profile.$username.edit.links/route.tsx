@@ -1,6 +1,11 @@
 import { Fragment, useEffect, useState } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useOutletContext,
+} from "@remix-run/react";
 import {
   Button,
   Collapse,
@@ -21,11 +26,17 @@ import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, linkSites, profileLinksTable } from "db/schema";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 type IProfileLinks = Pick<
   IProfileFull,
@@ -89,16 +100,16 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-    //validate auth
-    if (
-      !(await validateAuth({
-        profileId: data.profileId,
-        supabase,
-        userId: data.userId,
-      }))
-    ) {
-      return redirect("/sign-in");
-    }
+  //validate auth
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
+    return redirect("/sign-in");
+  }
 
   //update profile bio
   try {
@@ -112,7 +123,11 @@ export async function action({ request }: ActionFunctionArgs) {
           data.links.map((link) => ({ ...link, profileId: data.profileId }))
         );
     }
-    return redirect("../..");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -123,12 +138,13 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
 export default function EditProfileLinksTab() {
   const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
@@ -147,14 +163,20 @@ export default function EditProfileLinksTab() {
     setIsDirty(form.isDirty());
   }, [form]);
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(getProfileSuccessNotification("links-update"));
+      navigate("../..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("links-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
-
-  console.log(form.errors);
 
   const [searchValue, setSearchValue] = useState("");
   const [newSite, setNewSite] = useState<any>("");
@@ -265,9 +287,12 @@ export default function EditProfileLinksTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons
+      <SaveCancelButtons
         disabled={!form.isDirty()}
         onCancel={onCancel}
+        onSubmitClick={() => {
+          notifications.show(getProfileSavingNotification("links-update"));
+        }}
       />
     </Form>
   );

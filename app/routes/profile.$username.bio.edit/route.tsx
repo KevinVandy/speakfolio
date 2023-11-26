@@ -14,13 +14,19 @@ import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profileBiosTable } from "db/schema";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 import { RichTextInput } from "~/components/RichTextInput";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
 
@@ -78,7 +84,7 @@ export async function action({ request }: ActionFunctionArgs) {
   //update profile bio
   try {
     const cleanBio = xss(data.bio?.richText ?? "", xssOptions);
-    await db
+    const updateResult = await db
       .update(profileBiosTable)
       .set({ richText: cleanBio })
       .where(
@@ -87,7 +93,12 @@ export async function action({ request }: ActionFunctionArgs) {
           eq(profileBiosTable.profileId, data.profileId)
         )
       );
-    return redirect("..");
+    if (updateResult.count !== 1) throw new Error("Error updating profile bio");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -98,7 +109,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
@@ -121,10 +132,18 @@ export default function EditProfileBioTab() {
     validate: zodResolver(profileBioSchema),
   });
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(getProfileSuccessNotification("bio-update"));
+      navigate("..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("bio-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -176,11 +195,14 @@ export default function EditProfileBioTab() {
         </Text>
       ))}
       <Flex justify="flex-end" style={{ justifySelf: "flex-end" }}>
-        <SaveContinueCancelButtons
+        <SaveCancelButtons
           disabled={!form.isDirty()}
           loading={navigation.state === "submitting"}
           maw="300px"
           onCancel={handleCancel}
+          onSubmitClick={() => {
+            notifications.show(getProfileSavingNotification("bio-update"));
+          }}
         />
       </Flex>
     </Form>

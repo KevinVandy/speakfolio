@@ -4,12 +4,14 @@ interface Props extends SimpleGridProps {
   disabled?: boolean;
   loading?: boolean;
   onCancel: () => void;
+  onSubmitClick?: () => void;
 }
 
-export function SaveContinueCancelButtons({
+export function SaveCancelButtons({
   disabled,
   loading,
   onCancel,
+  onSubmitClick,
   ...rest
 }: Props) {
   return (
@@ -26,7 +28,13 @@ export function SaveContinueCancelButtons({
       <Button onClick={onCancel} type="button" variant="default">
         Cancel
       </Button>
-      <Button color="blue" disabled={disabled} loading={loading} type="submit">
+      <Button
+        onClick={onSubmitClick}
+        color="blue"
+        disabled={disabled}
+        loading={loading}
+        type="submit"
+      >
         Save
       </Button>
     </SimpleGrid>

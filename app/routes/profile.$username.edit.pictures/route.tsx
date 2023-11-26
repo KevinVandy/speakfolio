@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useOutletContext,
+} from "@remix-run/react";
 import {
   Avatar,
   BackgroundImage,
@@ -15,11 +20,17 @@ import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schema";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 const profileCustomizationSchema = z.object({
   coverImageUrl: z
@@ -58,7 +69,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -71,27 +82,32 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
-    //validate auth
-    if (
-      !(await validateAuth({
-        profileId: data.profileId,
-        supabase,
-        userId: data.userId,
-      }))
-    ) {
-      return redirect("/sign-in");
-    }
+  //validate auth
+  if (
+    !(await validateAuth({
+      profileId: data.profileId,
+      supabase,
+      userId: data.userId,
+    }))
+  ) {
+    return redirect("/sign-in");
+  }
 
   //update profile bio
   try {
-    await db
+    const updateResult = await db
       .update(profilesTable)
       .set({
         coverImageUrl: data.coverImageUrl,
         profileImageUrl: data.profileImageUrl,
       })
       .where(eq(profilesTable.id, data.profileId));
-    return redirect("../..");
+    if (updateResult.count !== 1) throw new Error("Error updating profile");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -102,18 +118,24 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
 export default function EditProfilePicturesTab() {
   const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
 
   const form = useForm({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
+    initialValues: actionData?.data ?? {
+      coverImageUrl: profile?.coverImageUrl ?? "",
+      profileImageUrl: profile?.profileImageUrl ?? "",
+      profileId: profile?.id ?? "",
+      userId: profile?.userId ?? "",
+    },
     validate: zodResolver(profileCustomizationSchema),
   });
 
@@ -121,10 +143,18 @@ export default function EditProfilePicturesTab() {
     setIsDirty(form.isDirty());
   }, [form]);
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(getProfileSuccessNotification("pictures-update"));
+      navigate("../..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("pictures-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -171,9 +201,12 @@ export default function EditProfilePicturesTab() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons
+      <SaveCancelButtons
         disabled={!form.isDirty()}
         onCancel={onCancel}
+        onSubmitClick={() => {
+          notifications.show(getProfileSavingNotification("pictures-update"));
+        }}
       />
     </Form>
   );

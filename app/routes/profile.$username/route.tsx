@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { type LoaderFunctionArgs, json, redirect } from "@remix-run/node";
-import { Outlet, useMatches, useNavigate, useParams } from "@remix-run/react";
+import {
+  Link,
+  Outlet,
+  useMatches,
+  useNavigate,
+  useParams,
+} from "@remix-run/react";
 import { MantineProvider, Stack, Tabs, useMantineTheme } from "@mantine/core";
 import { IconBriefcase, IconPresentation, IconUser } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
@@ -110,13 +116,17 @@ export default function ProfileIdPage() {
     >
       <Stack gap="md">
         <ProfileHead />
-        <Tabs
-          onChange={setTab}
-          value={tab || "_index"}
-        >
+        <Tabs onChange={setTab} value={tab || "_index"}>
           <Tabs.List justify="center" mb="md">
             {tabs.map((t) => (
-              <Tabs.Tab key={t.id} leftSection={<t.Icon />} value={t.id}>
+              <Tabs.Tab
+                // @ts-ignore
+                component={Link}
+                to={`/profile/${username}/${t.id}`.replace(/\/_index$/, "")}
+                key={t.id}
+                leftSection={<t.Icon />}
+                value={t.id}
+              >
                 {t.title}
               </Tabs.Tab>
             ))}

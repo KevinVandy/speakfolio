@@ -52,6 +52,8 @@ export default function ProfilePresentationsTab() {
           {presentations.map((presentation) => (
             <Carousel.Slide>
               <BackgroundImage
+                component={Link}
+                to={`${presentation.id}`}
                 src={presentation.coverImageUrl ?? ""}
                 key={presentation.id}
                 h={220}
@@ -73,7 +75,7 @@ export default function ProfilePresentationsTab() {
                 >
                   {presentation.title}
                 </Text>
-                <Spoiler maxHeight={120} showLabel="Read More" hideLabel="Hide">
+                <Text span mah={120} lineClamp={4}>
                   <TypographyStylesProvider
                     style={{
                       textShadow:
@@ -84,7 +86,7 @@ export default function ProfilePresentationsTab() {
                       __html: xss(presentation.abstract ?? "", xssOptions),
                     }}
                   />
-                </Spoiler>
+                </Text>
                 {isOwnProfile ? (
                   <Tooltip label="Edit this presentation">
                     <ActionIcon

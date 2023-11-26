@@ -3,6 +3,7 @@ import {
   ActionIcon,
   AppShell,
   Avatar,
+  Box,
   Burger,
   Button,
   Flex,
@@ -75,7 +76,7 @@ export const Layout = ({ children }: Props) => {
               aria-label="Toggle color scheme"
               onClick={() =>
                 setColorScheme(
-                  computedColorScheme === "light" ? "dark" : "light",
+                  computedColorScheme === "light" ? "dark" : "light"
                 )
               }
               size="lg"
@@ -101,7 +102,7 @@ export const Layout = ({ children }: Props) => {
                   <Menu.Item
                     onClick={() =>
                       navigate(
-                        `/profile/${loggedInUserProfile?.username}/edit/settings`,
+                        `/profile/${loggedInUserProfile?.username}/edit/settings`
                       )
                     }
                   >
@@ -132,9 +133,9 @@ export const Layout = ({ children }: Props) => {
       >
         {children}
       </AppShell.Main>
-      <AppShell.Footer p="md">
+      <Box component="footer" mt="200px" p="md">
         © {new Date().getFullYear()} Kevin Van Cott{" "}
-      </AppShell.Footer>
+      </Box>
     </AppShell>
   );
 };

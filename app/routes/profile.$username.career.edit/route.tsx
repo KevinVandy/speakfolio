@@ -25,11 +25,17 @@ import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schema";
 import ProfileCareerHistoryTimeline from "../profile.$username.career/ProfileCareerHistoryTimeline";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 type IProfileCareerForm = Partial<
   Pick<
@@ -97,14 +103,19 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
-    await db
+    const updateResult = await db
       .update(profilesTable)
       .set({
         areasOfExpertise: data.areasOfExpertise,
         profession: data.profession,
       })
       .where(eq(profilesTable.id, data.profileId));
-    return redirect("..");
+    if (updateResult.count !== 1) throw new Error("Error updating profile");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -115,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
@@ -137,10 +148,18 @@ export default function EditProfileCareerTab() {
     validate: zodResolver(profileCareerSchema),
   });
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(getProfileSuccessNotification("career-update"));
+      navigate("..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("career-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -241,9 +260,12 @@ export default function EditProfileCareerTab() {
               {error}
             </Text>
           ))}
-          <SaveContinueCancelButtons
+          <SaveCancelButtons
             disabled={!form.isDirty()}
             onCancel={handleCancel}
+            onSubmitClick={() => {
+              notifications.show(getProfileSavingNotification("career-update"));
+            }}
           />
         </Stack>
         <Stack>

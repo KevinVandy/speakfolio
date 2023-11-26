@@ -10,6 +10,11 @@ const theme: MantineThemeOverride = {
     Button: {
       defaultProps: {},
     },
+    Notification: {
+      defaultProps: {
+        withBorder: true,
+      },
+    },
     Tooltip: {
       defaultProps: {
         withArrow: true,
@@ -18,8 +23,8 @@ const theme: MantineThemeOverride = {
     TypographyStylesProvider: {
       defaultProps: {
         p: 0,
-      }
-    }
+      },
+    },
   },
   cursorType: "pointer",
   headings: {

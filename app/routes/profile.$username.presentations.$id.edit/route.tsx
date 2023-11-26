@@ -8,7 +8,7 @@ import xss from "xss";
 import { z } from "zod";
 import { db } from "db/connection";
 import { presentationsTable } from "db/schema";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
@@ -16,6 +16,12 @@ import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 import { RichTextInput } from "~/components/RichTextInput";
 import { and, eq } from "drizzle-orm";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 const presentationSchema = z.object({
   abstract: z
@@ -82,7 +88,7 @@ export async function action({ request }: ActionFunctionArgs) {
   //update profile bio
   try {
     if (data.presentationId) {
-      await db
+      const updateResult = await db
         .update(presentationsTable)
         .set({
           abstract: xss(data.abstract ?? "", xssOptions),
@@ -95,15 +101,21 @@ export async function action({ request }: ActionFunctionArgs) {
             eq(presentationsTable.profileId, data.profileId)
           )
         );
+      if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
-      await db.insert(presentationsTable).values({
+      const insertResult = await db.insert(presentationsTable).values({
         abstract: xss(data.abstract ?? "", xssOptions),
         profileId: data.profileId,
         title: data.title,
         coverImageUrl: data.coverImageUrl,
       });
+      if (insertResult.count !== 1) throw new Error("Error updating profile");
     }
-    return redirect("../..");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -114,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
@@ -151,10 +163,20 @@ export default function ProfileNewPresentationPage() {
     validate: zodResolver(presentationSchema),
   });
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(
+        getProfileSuccessNotification("presentation-update")
+      );
+      navigate("../..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("presentation-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -213,9 +235,14 @@ export default function ProfileNewPresentationPage() {
             {errorEntry[0]}: {errorEntry[1]}
           </Text>
         ))}
-        <SaveContinueCancelButtons
+        <SaveCancelButtons
           disabled={!form.isDirty()}
           onCancel={handleCancel}
+          onSubmitClick={() => {
+            notifications.show(
+              getProfileSavingNotification("presentation-update")
+            );
+          }}
         />
       </Stack>
     </Form>

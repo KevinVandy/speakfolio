@@ -26,6 +26,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import mantineNProgressStyles from "@mantine/nprogress/styles.css";
+import mantineNotificationStyles from "@mantine/notifications/styles.css";
 import mantineTipTapStyles from "@mantine/tiptap/styles.css";
 import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
@@ -44,7 +45,8 @@ export const links: LinksFunction = () => [
   { href: mantineNProgressStyles, rel: "stylesheet" },
   { href: mantineCarouselStyles, rel: "stylesheet" },
   { href: mantineTipTapStyles, rel: "stylesheet" },
-  // { href: globalStyles, rel: "stylesheet" },
+  { href: mantineNotificationStyles, rel: "stylesheet" },
+  { href: globalStyles, rel: "stylesheet" },
 ];
 
 export const colorSchemeManager = localStorageColorSchemeManager({
@@ -138,7 +140,11 @@ export default function App() {
             >
               <ModalsProvider>
                 <NavigationProgress />
-                <Notifications />
+                <Notifications
+                  position="top-right"
+                  autoClose={10_000}
+                  top="70px"
+                />
                 <Layout>
                   <Outlet />
                 </Layout>

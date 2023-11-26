@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import { Form, useActionData, useOutletContext } from "@remix-run/react";
+import {
+  Form,
+  useActionData,
+  useNavigate,
+  useOutletContext,
+} from "@remix-run/react";
 import { Flex, Group, Radio, Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { IconLock } from "@tabler/icons-react";
@@ -9,11 +14,17 @@ import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileVisibilities, profilesTable } from "db/schemas/profilesTable";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { validateAuth } from "~/util/validateAuth";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 interface ProfileUpdateResponse {
   data: any;
@@ -63,13 +74,18 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile
   try {
-    await db
+    const updateResult = await db
       .update(profilesTable)
       .set({
         visibility: data.visibility,
       })
       .where(eq(profilesTable.id, data.profileId));
-    return redirect("../..");
+    if (updateResult.count !== 1) throw new Error("Error updating profile");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -80,12 +96,13 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
 export default function EditProfileSettingsModal() {
   const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const { session } = useRootLoader();
 
@@ -101,10 +118,18 @@ export default function EditProfileSettingsModal() {
     setIsDirty(form.isDirty());
   }, [form]);
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(getProfileSuccessNotification("settings-update"));
+      navigate("../..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(getProfileErrorNotification("settings-update"));
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -152,9 +177,12 @@ export default function EditProfileSettingsModal() {
           {error}
         </Text>
       ))}
-      <SaveContinueCancelButtons
+      <SaveCancelButtons
         disabled={!form.isDirty()}
         onCancel={onCancel}
+        onSubmitClick={() => {
+          notifications.show(getProfileSavingNotification("settings-update"));
+        }}
       />
     </Form>
   );

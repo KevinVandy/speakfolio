@@ -21,16 +21,22 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import xss from "xss";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileCareerHistoriesTable } from "db/schema";
-import { SaveContinueCancelButtons } from "~/components/SaveContinueCancelButtons";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth";
 import { xssOptions } from "~/util/xssOptions";
 import { RichTextInput } from "~/components/RichTextInput";
+import { notifications } from "@mantine/notifications";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
 
 type IProfileCareerFormCareerHistory = {
   company: string;
@@ -106,7 +112,7 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const cleanDescription = xss(data.description ?? "", xssOptions);
     if (data.id) {
-      await db
+      const updateResult = await db
         .update(profileCareerHistoriesTable)
         .set({
           company: data.company,
@@ -115,9 +121,15 @@ export async function action({ request }: ActionFunctionArgs) {
           jobTitle: data.jobTitle,
           startDate: data.startDate?.toDateString(),
         })
-        .where(eq(profileCareerHistoriesTable.id, data.id));
+        .where(
+          and(
+            eq(profileCareerHistoriesTable.id, data.id),
+            eq(profileCareerHistoriesTable.profileId, data.profileId)
+          )
+        );
+      if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
-      await db.insert(profileCareerHistoriesTable).values({
+      const insertResult = await db.insert(profileCareerHistoriesTable).values({
         company: data.company,
         description: cleanDescription,
         endDate: data.endDate ? new Date(data.endDate)?.toDateString() : null,
@@ -125,8 +137,14 @@ export async function action({ request }: ActionFunctionArgs) {
         profileId: data.profileId,
         startDate: data.startDate.toDateString(),
       });
+      if (insertResult.count !== 1)
+        throw new Error("Error adding career history");
     }
-    return redirect("..");
+    return json({
+      ...returnData,
+      data,
+      success: true,
+    });
   } catch (error) {
     console.error(error);
     returnData = {
@@ -139,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
       },
       success: false,
     };
-    return json(returnData, { status: 422 });
+    return json(returnData, { status: 400 });
   }
 }
 
@@ -188,10 +206,22 @@ export default function CareerAddHistoryModal() {
     validate: zodResolver(careerHistorySchema),
   });
 
-  //sync back-end errors with form
   useEffect(() => {
-    if (actionData && Object.keys(actionData?.errors ?? {}).length) {
-      form.setErrors({ ...form.errors, ...actionData.errors });
+    if (actionData?.success) {
+      //show success notification
+      notifications.update(
+        getProfileSuccessNotification("career-history-update")
+      );
+      navigate("..");
+    } else if (actionData?.errors) {
+      //show error notification
+      notifications.update(
+        getProfileErrorNotification("career-history-update")
+      );
+      //sync back-end errors with form
+      if (Object.keys(actionData?.errors ?? {}).length) {
+        form.setErrors({ ...form.errors, ...actionData.errors });
+      }
     }
   }, [actionData]);
 
@@ -313,9 +343,14 @@ export default function CareerAddHistoryModal() {
               {error}
             </Text>
           ))}
-          <SaveContinueCancelButtons
+          <SaveCancelButtons
             disabled={!form.isDirty()}
             onCancel={handleCancel}
+            onSubmitClick={() => {
+              notifications.show(
+                getProfileSavingNotification("career-history-update")
+              );
+            }}
           />
         </Stack>
       </Form>
