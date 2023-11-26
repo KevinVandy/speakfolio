@@ -110,7 +110,11 @@ export default function EditProfileSettingsModal() {
 
   const form = useForm({
     initialErrors: actionData?.errors,
-    initialValues: actionData?.data ?? profile!,
+    initialValues: actionData?.data ?? {
+      profileId: profile?.id,
+      userId: profile?.userId,
+      visibility: profile?.visibility,
+    },
     validate: zodResolver(profileSchema),
   });
 
@@ -136,7 +140,11 @@ export default function EditProfileSettingsModal() {
   return (
     <Form
       method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      onSubmit={(event) =>
+        form.validate().hasErrors
+          ? event.preventDefault()
+          : notifications.show(getProfileSavingNotification("settings-update"))
+      }
     >
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
@@ -177,13 +185,7 @@ export default function EditProfileSettingsModal() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons
-        disabled={!form.isDirty()}
-        onCancel={onCancel}
-        onSubmitClick={() => {
-          notifications.show(getProfileSavingNotification("settings-update"));
-        }}
-      />
+      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
     </Form>
   );
 }

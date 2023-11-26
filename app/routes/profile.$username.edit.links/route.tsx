@@ -62,7 +62,7 @@ const profileLinksSchema = z.object({
           .string()
           .url({ message: "Link URL must be a valid URL" })
           .max(100, { message: "Link URL max 100 characters" }),
-      })
+      }),
     )
     .nullish(),
   profileId: z.string().uuid(),
@@ -87,7 +87,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -120,7 +120,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await db
         .insert(profileLinksTable)
         .values(
-          data.links.map((link) => ({ ...link, profileId: data.profileId }))
+          data.links.map((link) => ({ ...link, profileId: data.profileId })),
         );
     }
     return json({
@@ -197,14 +197,18 @@ export default function EditProfileLinksTab() {
   const removeLink = (site: string) => {
     form.setFieldValue(
       "links",
-      form.getTransformedValues()?.links?.filter((link) => link.site !== site)
+      form.getTransformedValues()?.links?.filter((link) => link.site !== site),
     );
   };
 
   return (
     <Form
       method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      onSubmit={(event) =>
+        form.validate().hasErrors
+          ? event.preventDefault()
+          : notifications.show(getProfileSavingNotification("links-update"))
+      }
     >
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
@@ -260,7 +264,7 @@ export default function EditProfileLinksTab() {
               (site) =>
                 !form
                   .getTransformedValues()
-                  .links?.some((link) => link.site === site)
+                  .links?.some((link) => link.site === site),
             )}
             label="Add a Site"
             onChange={setNewSite}
@@ -287,13 +291,7 @@ export default function EditProfileLinksTab() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons
-        disabled={!form.isDirty()}
-        onCancel={onCancel}
-        onSubmitClick={() => {
-          notifications.show(getProfileSavingNotification("links-update"));
-        }}
-      />
+      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
     </Form>
   );
 }

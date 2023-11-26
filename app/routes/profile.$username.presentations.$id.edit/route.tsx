@@ -61,7 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -98,8 +98,8 @@ export async function action({ request }: ActionFunctionArgs) {
         .where(
           and(
             eq(presentationsTable.id, data.presentationId),
-            eq(presentationsTable.profileId, data.profileId)
-          )
+            eq(presentationsTable.profileId, data.profileId),
+          ),
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
@@ -139,7 +139,7 @@ export default function ProfileNewPresentationPage() {
   const initialPresentation = useMemo(() => {
     if (!presentationId || presentationId === "new") return null;
     const presentation = profile.presentations?.find(
-      (p) => p.id === presentationId
+      (p) => p.id === presentationId,
     );
     if (presentation?.abstract) {
       presentation.abstract = xss(presentation.abstract, xssOptions);
@@ -167,7 +167,7 @@ export default function ProfileNewPresentationPage() {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("presentation-update")
+        getProfileSuccessNotification("presentation-update"),
       );
       navigate("../..");
     } else if (actionData?.errors) {
@@ -199,7 +199,13 @@ export default function ProfileNewPresentationPage() {
   return (
     <Form
       method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      onSubmit={(event) =>
+        form.validate().hasErrors
+          ? event.preventDefault()
+          : notifications.show(
+              getProfileSavingNotification("presentation-update"),
+            )
+      }
     >
       {presentationId && presentationId !== "new" ? (
         <input name="presentationId" type="hidden" value={presentationId} />
@@ -235,15 +241,7 @@ export default function ProfileNewPresentationPage() {
             {errorEntry[0]}: {errorEntry[1]}
           </Text>
         ))}
-        <SaveCancelButtons
-          disabled={!form.isDirty()}
-          onCancel={handleCancel}
-          onSubmitClick={() => {
-            notifications.show(
-              getProfileSavingNotification("presentation-update")
-            );
-          }}
-        />
+        <SaveCancelButtons disabled={!form.isDirty()} onCancel={handleCancel} />
       </Stack>
     </Form>
   );

@@ -45,7 +45,7 @@ export const presentationsTableRelations = relations(
       fields: [presentationsTable.profileId],
       references: [profilesTable.id],
     }),
-  })
+  }),
 );
 
 export type IPresentation = typeof presentationsTable.$inferSelect;

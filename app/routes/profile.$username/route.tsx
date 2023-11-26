@@ -98,7 +98,7 @@ export default function ProfileIdPage() {
   const profile = useProfileLoader();
 
   const [tab, _setTab] = useState<null | string>(
-    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index"
+    () => matches[2]?.id?.split?.(".")?.pop() ?? "_index",
   );
 
   const setTab = (newTab: null | string) => {

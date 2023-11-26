@@ -20,7 +20,7 @@ export async function validateAuth({ profileId, supabase, userId }: Params) {
     //profileId and userId must belong to each other
     where: and(
       eq(profilesTable.id, profileId),
-      eq(profilesTable.userId, userId)
+      eq(profilesTable.userId, userId),
     ),
   });
 

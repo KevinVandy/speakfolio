@@ -75,7 +75,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   rawData.areasOfExpertise = JSON.parse(rawData.areasOfExpertise);
@@ -184,7 +184,11 @@ export default function EditProfileCareerTab() {
       <Outlet />
       <Form
         method="post"
-        onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+        onSubmit={(event) =>
+          form.validate().hasErrors
+            ? event.preventDefault()
+            : notifications.show(getProfileSavingNotification("career-update"))
+        }
       >
         <input name="profileId" type="hidden" value={profile.id} />
         <input name="userId" type="hidden" value={profile.userId!} />
@@ -228,7 +232,7 @@ export default function EditProfileCareerTab() {
                       "areasOfExpertise",
                       form
                         .getTransformedValues()
-                        .areasOfExpertise?.filter((a) => a !== aoe)
+                        .areasOfExpertise?.filter((a) => a !== aoe),
                     );
                   }}
                   withRemoveButton
@@ -263,9 +267,6 @@ export default function EditProfileCareerTab() {
           <SaveCancelButtons
             disabled={!form.isDirty()}
             onCancel={handleCancel}
-            onSubmitClick={() => {
-              notifications.show(getProfileSavingNotification("career-update"));
-            }}
           />
         </Stack>
         <Stack>

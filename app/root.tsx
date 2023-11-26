@@ -97,7 +97,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     },
     {
       headers: response.headers,
-    }
+    },
   );
 }
 

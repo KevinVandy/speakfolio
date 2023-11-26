@@ -62,11 +62,11 @@ export default function ProfileCareerHistoryTimeline({ showEdit }: Props) {
                     months:
                       dayjs(careerHistory.endDate ?? new Date()).diff(
                         dayjs(careerHistory.startDate),
-                        "months"
+                        "months",
                       ) % 12,
                     years: dayjs(careerHistory.endDate ?? new Date()).diff(
                       dayjs(careerHistory.startDate),
-                      "years"
+                      "years",
                     ),
                   });
 

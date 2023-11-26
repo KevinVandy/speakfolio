@@ -66,7 +66,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -150,7 +150,7 @@ export default function EditProfileCustomizationTab() {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("customization-update")
+        getProfileSuccessNotification("customization-update"),
       );
       navigate("../..");
     } else if (actionData?.errors) {
@@ -166,7 +166,13 @@ export default function EditProfileCustomizationTab() {
   return (
     <Form
       method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      onSubmit={(event) =>
+        form.validate().hasErrors
+          ? event.preventDefault()
+          : notifications.show(
+              getProfileSavingNotification("customization-update"),
+            )
+      }
     >
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
@@ -227,15 +233,7 @@ export default function EditProfileCustomizationTab() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons
-        disabled={!form.isDirty()}
-        onCancel={onCancel}
-        onSubmitClick={() => {
-          notifications.show(
-            getProfileSavingNotification("customization-update")
-          );
-        }}
-      />
+      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
     </Form>
   );
 }

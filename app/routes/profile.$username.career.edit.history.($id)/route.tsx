@@ -84,7 +84,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -124,8 +124,8 @@ export async function action({ request }: ActionFunctionArgs) {
         .where(
           and(
             eq(profileCareerHistoriesTable.id, data.id),
-            eq(profileCareerHistoriesTable.profileId, data.profileId)
-          )
+            eq(profileCareerHistoriesTable.profileId, data.profileId),
+          ),
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
@@ -210,13 +210,13 @@ export default function CareerAddHistoryModal() {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("career-history-update")
+        getProfileSuccessNotification("career-history-update"),
       );
       navigate("..");
     } else if (actionData?.errors) {
       //show error notification
       notifications.update(
-        getProfileErrorNotification("career-history-update")
+        getProfileErrorNotification("career-history-update"),
       );
       //sync back-end errors with form
       if (Object.keys(actionData?.errors ?? {}).length) {
@@ -262,7 +262,13 @@ export default function CareerAddHistoryModal() {
     >
       <Form
         method="post"
-        onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+        onSubmit={(event) =>
+          form.validate().hasErrors
+            ? event.preventDefault()
+            : notifications.show(
+                getProfileSavingNotification("career-history-update"),
+              )
+        }
       >
         <input name="profileId" type="hidden" value={profile.id} />
         <input name="userId" type="hidden" value={profile.userId!} />
@@ -346,11 +352,6 @@ export default function CareerAddHistoryModal() {
           <SaveCancelButtons
             disabled={!form.isDirty()}
             onCancel={handleCancel}
-            onSubmitClick={() => {
-              notifications.show(
-                getProfileSavingNotification("career-history-update")
-              );
-            }}
           />
         </Stack>
       </Form>

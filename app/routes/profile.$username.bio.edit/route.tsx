@@ -57,7 +57,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData())
+    Object.fromEntries(await request.formData()),
   );
 
   //validate data
@@ -90,8 +90,8 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(
         and(
           eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.profileId)
-        )
+          eq(profileBiosTable.profileId, data.profileId),
+        ),
       );
     if (updateResult.count !== 1) throw new Error("Error updating profile bio");
     return json({
@@ -166,7 +166,11 @@ export default function EditProfileBioTab() {
   return (
     <Form
       method="post"
-      onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
+      onSubmit={(event) =>
+        form.validate().hasErrors
+          ? event.preventDefault()
+          : notifications.show(getProfileSavingNotification("bio-update"))
+      }
     >
       <input name="profileId" type="hidden" value={profile.id} />
       <input name="userId" type="hidden" value={profile.userId!} />
@@ -200,9 +204,6 @@ export default function EditProfileBioTab() {
           loading={navigation.state === "submitting"}
           maw="300px"
           onCancel={handleCancel}
-          onSubmitClick={() => {
-            notifications.show(getProfileSavingNotification("bio-update"));
-          }}
         />
       </Flex>
     </Form>
