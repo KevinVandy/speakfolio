@@ -73,7 +73,6 @@ export function RichTextInput({
           </RichTextEditor.ControlsGroup>
           {showHeadings && (
             <RichTextEditor.ControlsGroup>
-              <RichTextEditor.H3 />
               <RichTextEditor.H4 />
               <RichTextEditor.H5 />
               <RichTextEditor.H6 />

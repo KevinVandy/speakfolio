@@ -47,6 +47,7 @@ export const profilesTable = pgTable(
   "profiles",
   {
     areasOfExpertise: json("areas_of_expertise").$type<string[]>().default([]),
+    blogRssFeedUrl: text("blog_rss_feed_url").default(""),
     contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })

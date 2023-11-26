@@ -46,7 +46,13 @@ export const Layout = ({ children }: Props) => {
       }}
       padding="md"
     >
-      <AppShell.Header style={{ alignItems: "center", display: "flex" }}>
+      <AppShell.Header
+        style={{
+          alignItems: "center",
+          display: "flex",
+          opacity: 0.9,
+        }}
+      >
         <Flex align="center" justify="space-between" p="sm" w="100%">
           <Flex>
             <Burger
@@ -76,7 +82,7 @@ export const Layout = ({ children }: Props) => {
               aria-label="Toggle color scheme"
               onClick={() =>
                 setColorScheme(
-                  computedColorScheme === "light" ? "dark" : "light",
+                  computedColorScheme === "light" ? "dark" : "light"
                 )
               }
               size="lg"
@@ -102,7 +108,7 @@ export const Layout = ({ children }: Props) => {
                   <Menu.Item
                     onClick={() =>
                       navigate(
-                        `/profile/${loggedInUserProfile?.username}/edit/settings`,
+                        `/profile/${loggedInUserProfile?.username}/edit/settings`
                       )
                     }
                   >

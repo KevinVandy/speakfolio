@@ -17,8 +17,8 @@ import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
-import { validateAuth } from "~/util/validateAuth";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
+import { validateAuth } from "~/util/validateAuth.server";
 import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,

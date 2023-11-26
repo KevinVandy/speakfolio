@@ -17,7 +17,7 @@ import {
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { z } from "zod";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
 
 interface SignInPostResponse {
   data: any;

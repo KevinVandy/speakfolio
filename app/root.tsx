@@ -37,7 +37,7 @@ import { useRootLoader } from "./hooks/loaders/useRootLoader";
 import { SupabaseProvider } from "./hooks/useSupabase";
 import globalStyles from "./styles/global.css";
 import theme from "./styles/theme";
-import { getSupabaseServerClient } from "./util/getSupabaseServerClient";
+import { getSupabaseServerClient } from "./util/getSupabaseServerClient.server";
 
 export const links: LinksFunction = () => [
   { href: mantineCoreStyles, rel: "stylesheet" },

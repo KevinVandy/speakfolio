@@ -30,7 +30,7 @@ import { z } from "zod";
 import { db } from "db/connection";
 import { profileBiosTable } from "db/schemas/profileBiosTable";
 import { profilesTable } from "db/schemas/profilesTable";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
 
 interface SignUpPostResponse {
   data: any;
