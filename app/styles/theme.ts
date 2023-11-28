@@ -31,9 +31,9 @@ const theme: MantineThemeOverride = {
     sizes: {
       h2: { fontSize: "30pt", lineHeight: "3rem" },
       h3: { fontSize: "20pt", lineHeight: "2rem" },
-      h4: { fontSize: "15pt", lineHeight: "1.5rem" },
-      h5: { fontSize: "12pt", lineHeight: "1.2rem" },
-      h6: { fontSize: "10pt", lineHeight: "1rem" },
+      h4: { fontSize: "18pt", lineHeight: "1.5rem" },
+      h5: { fontSize: "16pt", lineHeight: "1.2rem" },
+      h6: { fontSize: "14pt", lineHeight: "1rem" },
     },
   },
   primaryColor: "pink",

@@ -14,6 +14,7 @@ import { presentationsTable } from "./presentationsTable";
 import { profileBiosTable } from "./profileBiosTable";
 import { profileCareerHistoriesTable } from "./profileCareerHistoriesTable";
 import { profileLinksTable } from "./profileLinksTable";
+import { profileContentFeedsTable } from "./profileContentFeedsTable";
 
 export const profileVisibilities = [
   "public",
@@ -23,7 +24,7 @@ export const profileVisibilities = [
 
 export const profileVisibilityEnum = pgEnum(
   "profile_visibility",
-  profileVisibilities,
+  profileVisibilities
 );
 
 export const profileColors = [
@@ -74,10 +75,10 @@ export const profilesTable = pgTable(
     return {
       profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
       profileUsernameUnique: unique("profile_username_unique").on(
-        table.username,
+        table.username
       ),
     };
-  },
+  }
 );
 
 export const profilesTableRelations = relations(
@@ -85,9 +86,10 @@ export const profilesTableRelations = relations(
   ({ many, one }) => ({
     bio: one(profileBiosTable),
     careerHistories: many(profileCareerHistoriesTable),
+    contentFeeds: many(profileContentFeedsTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
-  }),
+  })
 );
 
 export type IProfile = typeof profilesTable.$inferSelect;

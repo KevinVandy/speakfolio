@@ -91,7 +91,7 @@ export default function ProfileIdPage() {
         {
           Icon: () => <IconUser />,
           id: "_index",
-          title: "Bio",
+          title: "Overview",
         },
         {
           Icon: () => <IconBriefcase />,
@@ -105,8 +105,8 @@ export default function ProfileIdPage() {
         },
         (isOwnProfile || !!profile.blogRssFeedUrl?.length) && {
           Icon: () => <IconArticle />,
-          id: "blog",
-          title: "Blog Posts",
+          id: "content",
+          title: "Content",
         },
       ].filter(Boolean) as Array<{
         Icon: () => JSX.Element;
