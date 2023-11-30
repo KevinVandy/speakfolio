@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Form,
   Outlet,
   useMatches,
   useNavigate,
@@ -105,19 +106,21 @@ export default function EditProfileContentModal() {
       size={"lg"}
       title={"Add External Content Feeds to Your Profile"}
     >
-      <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
-      <Stack gap="md">
-        <Select
-          data={contentFeedTypeOptions}
-          label="Content Feed Type"
-          name="type"
-          placeholder="Select a content feed type"
-          required
-          withAsterisk
-          {...form.getInputProps("type")}
-        />
-      </Stack>
+      <Form method="post">
+        <input name="profileId" type="hidden" value={profile.id} />
+        <input name="userId" type="hidden" value={profile.userId!} />
+        <Stack gap="md">
+          <Select
+            data={contentFeedTypeOptions}
+            label="Content Feed Type"
+            name="type"
+            placeholder="Select a content feed type"
+            required
+            withAsterisk
+            {...form.getInputProps("type")}
+          />
+        </Stack>
+      </Form>
     </Modal>
   );
 }

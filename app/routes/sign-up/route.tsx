@@ -15,8 +15,11 @@ import {
 import {
   Anchor,
   Button,
+  Checkbox,
+  CheckboxGroup,
   Collapse,
   Fieldset,
+  Group,
   Loader,
   LoadingOverlay,
   Stack,
@@ -41,6 +44,8 @@ interface SignUpPostResponse {
 const signUpSchema = z
   .object({
     email: z.string().email({ message: "Please enter a valid email" }),
+    isOrganizer: z.coerce.boolean(),
+    isSpeaker: z.coerce.boolean(),
     name: z.string().min(1, { message: "Name is required" }),
     password: z
       .string()
@@ -92,6 +97,9 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   const { data } = validationResult;
 
+  console.log(data);
+  return;
+
   try {
     const authResult = await supabase.auth.signUp({
       email: data.email,
@@ -103,6 +111,8 @@ export async function action({ request }: ActionFunctionArgs) {
     const profileInsertResult = await db
       .insert(profilesTable)
       .values({
+        isOrganizer: data.isOrganizer,
+        isSpeaker: data.isSpeaker,
         name: data.name,
         userId: authResult.data.user.id,
         username: data.username,
@@ -157,6 +167,8 @@ export default function SignUpPage() {
       password: "",
       passwordConfirmation: "",
       username: "",
+      isSpeaker: false,
+      isOrganizer: false,
     },
     validate: zodResolver(signUpSchema),
   });
@@ -170,13 +182,13 @@ export default function SignUpPage() {
 
   const [debouncedUsername] = useDebouncedValue(
     form.getTransformedValues().username,
-    500,
+    500
   );
 
   useEffect(() => {
     if (debouncedUsername) {
       usernameAvailableFetcher.load(
-        `/api/username-available/${debouncedUsername}`,
+        `/api/username-available/${debouncedUsername}`
       );
     }
   }, [debouncedUsername]);
@@ -193,20 +205,35 @@ export default function SignUpPage() {
     }
   }, [usernameAvailableFetcher.data?.isAvailable]);
 
+  console.log(form.values);
+
   return (
-    <Stack m="auto" maw="400px">
-      <Title order={2}>Sign Up</Title>
+    <Stack m="auto" maw="420px">
+      <Title order={2}>Sign Up to Speakfolio</Title>
       <Form
         method="post"
         onSubmit={(e) => form.validate().hasErrors && e.preventDefault()}
       >
-        <Fieldset
-          disabled={navigation.state === "submitting"}
-          legend="Sign Up"
-          pos="relative"
-        >
+        <Fieldset disabled={navigation.state === "submitting"} pos="relative">
           <LoadingOverlay visible={navigation.state === "submitting"} />
           <Stack gap="md">
+            {/* <CheckboxGroup label="Sign up as a"> */}
+            <Group>
+              <Checkbox label="Attendee" value="true" checked disabled />
+              <Checkbox
+                label="Speaker"
+                name="isSpeaker"
+                {...form.getInputProps("isSpeaker")}
+                value="true"
+              />
+              <Checkbox
+                label="Organizer"
+                name="isOrganizer"
+                {...form.getInputProps("isOrganizer")}
+                value="true"
+              />
+            </Group>
+            {/* </CheckboxGroup> */}
             <TextInput
               description="The name you want to be displayed on your profile"
               label="Name"

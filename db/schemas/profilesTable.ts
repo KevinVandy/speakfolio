@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   integer,
   json,
   pgEnum,
@@ -56,6 +57,8 @@ export const profilesTable = pgTable(
       .notNull(),
     headline: text("headline").default(""),
     id: uuid("id").defaultRandom().primaryKey().notNull(),
+    isOrganizer: boolean("is_organizer").default(false),
+    isSpeaker: boolean("is_speaker").default(false),
     latitude: real("latitude"),
     location: text("location").default(""),
     longitude: real("longitude"),
