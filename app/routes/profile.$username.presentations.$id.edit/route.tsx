@@ -18,7 +18,6 @@ import {
 import { RichTextInput } from "~/components/RichTextInput";
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
 import { xssOptions } from "~/util/xssOptions";
