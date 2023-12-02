@@ -7,30 +7,30 @@ import {
   useNavigate,
   useParams,
 } from "@remix-run/react";
+import { getAuth } from "@clerk/remix/ssr.server";
 import { MantineProvider, Stack, Tabs, useMantineTheme } from "@mantine/core";
 import {
   IconArticle,
   IconBriefcase,
   IconPresentation,
+  IconSettings,
   IconUser,
+  IconVideo,
 } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { ProfileHead } from "./ProfileHead";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
 import { colorSchemeManager } from "~/root";
 
-export async function loader({ params, request }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { params } = args;
   const response = new Response();
   const { username } = params;
 
   try {
-    const supabase = getSupabaseServerClient({ request, response });
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+    const { userId: authUserId } = await getAuth(args);
 
     let profile = username
       ? await db.query.profilesTable.findFirst({
@@ -53,12 +53,12 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
         })
       : null;
 
-    const isOwnProfile = profile?.userId === session?.user?.id;
+    const isOwnProfile = profile?.userId === authUserId;
 
     if (
       !profile ||
       (!isOwnProfile && profile.visibility === "private") ||
-      (!session && profile.visibility === "signed_in_users")
+      (!authUserId && profile.visibility === "signed_in_users")
     ) {
       return redirect("/unknown-profile");
     }
@@ -105,8 +105,18 @@ export default function ProfileIdPage() {
         },
         (isOwnProfile || !!profile.blogRssFeedUrl?.length) && {
           Icon: () => <IconArticle />,
-          id: "content",
-          title: "Content",
+          id: "blog",
+          title: "Blog Posts",
+        },
+        (isOwnProfile || !!profile.blogRssFeedUrl?.length) && {
+          Icon: () => <IconVideo />,
+          id: "media",
+          title: "Media",
+        },
+        isOwnProfile && {
+          Icon: () => <IconSettings />,
+          id: "settings",
+          title: "Settings",
         },
       ].filter(Boolean) as Array<{
         Icon: () => JSX.Element;
@@ -141,9 +151,9 @@ export default function ProfileIdPage() {
               <Tabs.Tab
                 // @ts-ignore
                 component={Link}
-                to={`/profile/${username}/${t.id}`.replace(/\/_index$/, "")}
                 key={t.id}
                 leftSection={<t.Icon />}
+                to={`/profile/${username}/${t.id}`.replace(/\/_index$/, "")}
                 value={t.id}
               >
                 {t.title}

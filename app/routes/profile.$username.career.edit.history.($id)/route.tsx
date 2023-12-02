@@ -19,24 +19,23 @@ import { MonthPickerInput } from "@mantine/dates";
 import { useForm, zodResolver } from "@mantine/form";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import xss from "xss";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profileCareerHistoriesTable } from "db/schema";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { xssOptions } from "~/util/xssOptions";
-import { RichTextInput } from "~/components/RichTextInput";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { RichTextInput } from "~/components/RichTextInput";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
+import { xssOptions } from "~/util/xssOptions";
 
 type IProfileCareerFormCareerHistory = {
   company: string;
@@ -50,20 +49,19 @@ type IProfileCareerFormCareerHistory = {
 };
 
 export const careerHistorySchema = z.object({
+  careerHistoryId: z.union([z.string().uuid(), z.string().length(0)]),
   company: z
     .string()
     .max(100, { message: "Company name max 100 characters" })
     .nullish(),
   description: z.string().nullish(),
   endDate: z.union([z.null(), z.string().length(0), z.coerce.date()]),
-  id: z.union([z.string().uuid(), z.string().length(0)]),
   jobTitle: z
     .string()
     .max(100, { message: "Job Title max 100 characters" })
     .nullish(),
   profileId: z.string().uuid(),
   startDate: z.coerce.date(),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -72,9 +70,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -84,7 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -100,9 +97,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -111,7 +107,7 @@ export async function action({ request }: ActionFunctionArgs) {
   //update or add career history
   try {
     const cleanDescription = xss(data.description ?? "", xssOptions);
-    if (data.id) {
+    if (data.careerHistoryId) {
       const updateResult = await db
         .update(profileCareerHistoriesTable)
         .set({
@@ -123,9 +119,9 @@ export async function action({ request }: ActionFunctionArgs) {
         })
         .where(
           and(
-            eq(profileCareerHistoriesTable.id, data.id),
-            eq(profileCareerHistoriesTable.profileId, data.profileId),
-          ),
+            eq(profileCareerHistoriesTable.id, data.careerHistoryId),
+            eq(profileCareerHistoriesTable.profileId, data.profileId)
+          )
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
@@ -151,7 +147,7 @@ export async function action({ request }: ActionFunctionArgs) {
       ...returnData,
       data,
       errors: {
-        form: data.id
+        form: data.careerHistoryId
           ? "Error updating career history"
           : "Error adding career history",
       },
@@ -210,13 +206,13 @@ export default function CareerAddHistoryModal() {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("career-history-update"),
+        getProfileSuccessNotification("career-history-update")
       );
       navigate("..");
     } else if (actionData?.errors) {
       //show error notification
       notifications.update(
-        getProfileErrorNotification("career-history-update"),
+        getProfileErrorNotification("career-history-update")
       );
       //sync back-end errors with form
       if (Object.keys(actionData?.errors ?? {}).length) {
@@ -266,13 +262,12 @@ export default function CareerAddHistoryModal() {
           form.validate().hasErrors
             ? event.preventDefault()
             : notifications.show(
-                getProfileSavingNotification("career-history-update"),
+                getProfileSavingNotification("career-history-update")
               )
         }
       >
         <input name="profileId" type="hidden" value={profile.id} />
-        <input name="userId" type="hidden" value={profile.userId!} />
-        <input name="id" type="hidden" value={careerHistoryId} />
+        <input name="careerHistoryId" type="hidden" value={careerHistoryId} />
         <input
           name="description"
           type="hidden"
@@ -336,13 +331,13 @@ export default function CareerAddHistoryModal() {
             </Text>
           </Stack>
           <RichTextInput
-            label="Description"
             description="Description of your role"
-            value={form.values.description ?? ""}
+            label="Description"
             onChangeDebounced={(debouncedValue) =>
               form.setFieldValue("description", debouncedValue)
             }
             showHeadings
+            value={form.values.description ?? ""}
           />
           {Object.values(form?.errors ?? []).map((error, i) => (
             <Text c="red" key={i}>

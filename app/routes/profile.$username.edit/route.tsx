@@ -121,7 +121,7 @@ export default function EditProfileModal() {
         closeOnClickOutside={!isDirty}
         onClose={handleCancel}
         opened={opened}
-        size={"xl"}
+        size={"1200px"}
         title={"Customize Your Speakfolio"}
       >
         <Tabs

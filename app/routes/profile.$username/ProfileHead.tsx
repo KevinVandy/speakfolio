@@ -65,7 +65,7 @@ export function ProfileHead() {
               component={Link}
               pos="absolute"
               right={10}
-              to={`/profile/${profile.username}/edit/pictures`}
+              to={`/profile/${profile.username}/settings/pictures`}
               top={10}
             >
               <IconEdit />
@@ -102,7 +102,7 @@ export function ProfileHead() {
                 ml="xs"
                 mt="sm"
                 size="sm"
-                to={`/profile/${profile.username}/edit/customization`}
+                to={`/profile/${profile.username}/settings/customization`}
               >
                 <IconEdit />
               </ActionIcon>
@@ -115,7 +115,7 @@ export function ProfileHead() {
               <ActionIcon
                 component={Link}
                 size="sm"
-                to={`/profile/${profile.username}/edit/links`}
+                to={`/profile/${profile.username}/settings/links`}
               >
                 <IconLinkPlus />
               </ActionIcon>

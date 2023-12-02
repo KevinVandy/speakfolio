@@ -14,8 +14,8 @@ import {
 import { presentationsTable } from "./presentationsTable";
 import { profileBiosTable } from "./profileBiosTable";
 import { profileCareerHistoriesTable } from "./profileCareerHistoriesTable";
-import { profileLinksTable } from "./profileLinksTable";
 import { profileContentFeedsTable } from "./profileContentFeedsTable";
+import { profileLinksTable } from "./profileLinksTable";
 
 export const profileVisibilities = [
   "public",
@@ -50,7 +50,6 @@ export const profilesTable = pgTable(
   {
     areasOfExpertise: json("areas_of_expertise").$type<string[]>().default([]),
     blogRssFeedUrl: text("blog_rss_feed_url").default(""),
-    contactEmail: text("contact_email").default(""),
     coverImageUrl: text("cover_image_url"),
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
@@ -69,7 +68,7 @@ export const profilesTable = pgTable(
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    userId: uuid("user_id"), //fk to auth.users.id
+    userId: text("user_id"), //clerk user id
     username: text("username").notNull(),
     views: integer("views").default(0),
     visibility: profileVisibilityEnum("visibility").default("public").notNull(),

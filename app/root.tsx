@@ -11,8 +11,11 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate,
   useNavigation,
 } from "@remix-run/react";
+import { ClerkApp, ClerkErrorBoundary } from "@clerk/remix";
+import { rootAuthLoader } from "@clerk/remix/ssr.server";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import mantineCarouselStyles from "@mantine/carousel/styles.css";
 import {
@@ -24,20 +27,18 @@ import mantineCoreStyles from "@mantine/core/styles.layer.css";
 import mantineDateStyles from "@mantine/dates/styles.css";
 import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
+import mantineNotificationStyles from "@mantine/notifications/styles.css";
 import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import mantineNProgressStyles from "@mantine/nprogress/styles.css";
-import mantineNotificationStyles from "@mantine/notifications/styles.css";
 import mantineTipTapStyles from "@mantine/tiptap/styles.css";
-import { type Session } from "@supabase/auth-helpers-remix";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfile, profilesTable } from "db/schemas/profilesTable";
 import { Layout } from "./components/Layout";
 import { useRootLoader } from "./hooks/loaders/useRootLoader";
-import { SupabaseProvider } from "./hooks/useSupabase";
 import globalStyles from "./styles/global.css";
 import theme from "./styles/theme";
-import { getSupabaseServerClient } from "./util/getSupabaseServerClient.server";
+import { type ClerkState } from "node_modules/@clerk/remix/dist/client/types";
 
 export const links: LinksFunction = () => [
   { href: mantineCoreStyles, rel: "stylesheet" },
@@ -61,49 +62,46 @@ const queryClient = new QueryClient({
   },
 });
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  const response = new Response();
-  const env = {
-    SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY!,
-    SUPABASE_URL: process.env.SUPABASE_URL!,
-  };
-  let loggedInUserProfile: IProfile | undefined = undefined;
-  let session: Session | null = null;
-
-  const supabase = getSupabaseServerClient({ request, response });
-
-  try {
-    session = (await supabase.auth.getSession()).data.session;
-
-    if (session?.user?.id) {
-      loggedInUserProfile = await db.query.profilesTable.findFirst({
-        where: eq(profilesTable.userId, session.user.id),
-      });
-    }
-
-    if (session?.user?.id && !loggedInUserProfile) {
-      supabase.auth.signOut();
-      throw new Error("User not found for session");
-    }
-  } catch (e) {
-    console.error(e);
-  }
-
-  return json(
-    {
-      env,
-      loggedInUserProfile,
-      session,
+export async function loader(args: LoaderFunctionArgs): Promise<{
+  clerkState: ClerkState;
+  loggedInUserProfile: IProfile | null;
+}> {
+  //@ts-ignore
+  return rootAuthLoader(
+    args,
+    async ({ request }) => {
+      const { userId } = request.auth;
+      if (!userId) {
+        return null;
+      }
+      try {
+        const loggedInUserProfile = await db.query.profilesTable.findFirst({
+          where: eq(profilesTable.userId, userId),
+        });
+        return json({
+          loggedInUserProfile,
+        });
+      } catch (error) {
+        console.error("Error fetching user profile", error);
+        return json({ loggedInUserProfile: null });
+      }
     },
-    {
-      headers: response.headers,
-    },
+    { loadUser: true }
   );
 }
 
-export default function App() {
+export const ErrorBoundary = ClerkErrorBoundary();
+
+function App() {
   const navigation = useNavigation();
-  const { env, loggedInUserProfile, session } = useRootLoader();
+  const navigate = useNavigate();
+  const { authProfile, authUserId } = useRootLoader();
+
+  useEffect(() => {
+    if (!authProfile && authUserId) {
+      navigate("/finish-sign-up");
+    }
+  }, [authProfile, authUserId]);
 
   useEffect(() => {
     if (navigation.state === "loading") {
@@ -127,31 +125,25 @@ export default function App() {
         <ColorSchemeScript />
       </head>
       <body>
-        <SupabaseProvider
-          env={env}
-          loggedInUserProfile={loggedInUserProfile}
-          session={session as Session}
-        >
-          <QueryClientProvider client={queryClient}>
-            <MantineProvider
-              colorSchemeManager={colorSchemeManager}
-              defaultColorScheme="dark"
-              theme={theme}
-            >
-              <ModalsProvider>
-                <NavigationProgress />
-                <Notifications
-                  position="top-right"
-                  autoClose={10_000}
-                  top="70px"
-                />
-                <Layout>
-                  <Outlet />
-                </Layout>
-              </ModalsProvider>
-            </MantineProvider>
-          </QueryClientProvider>
-        </SupabaseProvider>
+        <QueryClientProvider client={queryClient}>
+          <MantineProvider
+            colorSchemeManager={colorSchemeManager}
+            defaultColorScheme="dark"
+            theme={theme}
+          >
+            <ModalsProvider>
+              <NavigationProgress />
+              <Notifications
+                autoClose={10_000}
+                position="top-right"
+                top="70px"
+              />
+              <Layout>
+                <Outlet />
+              </Layout>
+            </ModalsProvider>
+          </MantineProvider>
+        </QueryClientProvider>
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
@@ -159,3 +151,5 @@ export default function App() {
     </html>
   );
 }
+
+export default ClerkApp(App);

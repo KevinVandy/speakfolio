@@ -1,11 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { type ActionFunctionArgs, json, redirect } from "@remix-run/node";
-import {
-  Form,
-  useActionData,
-  useNavigate,
-  useOutletContext,
-} from "@remix-run/react";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
 import {
   Button,
   Collapse,
@@ -20,36 +15,24 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { IconAt } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, linkSites, profileLinksTable } from "db/schema";
-import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
 
-type IProfileLinks = Pick<
-  IProfileFull,
-  "contactEmail" | "id" | "links" | "userId"
->;
+type IProfileLinks = Pick<IProfileFull, "id" | "links">;
 
 const profileLinksSchema = z.object({
-  contactEmail: z
-    .union([
-      z.string().email({ message: "Contact email is not a valid email" }),
-      z.string().length(0),
-    ])
-    .nullish(),
   links: z
     .array(
       z.object({
@@ -62,11 +45,10 @@ const profileLinksSchema = z.object({
           .string()
           .url({ message: "Link URL must be a valid URL" })
           .max(100, { message: "Link URL max 100 characters" }),
-      }),
+      })
     )
     .nullish(),
   profileId: z.string().uuid(),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -75,9 +57,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -87,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -103,9 +84,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -120,7 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
       await db
         .insert(profileLinksTable)
         .values(
-          data.links.map((link) => ({ ...link, profileId: data.profileId })),
+          data.links.map((link) => ({ ...link, profileId: data.profileId }))
         );
     }
     return json({
@@ -143,7 +123,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileLinksTab() {
-  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  // const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
@@ -151,7 +131,6 @@ export default function EditProfileLinksTab() {
   const form = useForm<IProfileLinks>({
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
-      contactEmail: profile?.contactEmail ?? "",
       links: profile?.links ?? [],
       profileId: profile?.id ?? "",
       userId: profile?.userId ?? "",
@@ -160,14 +139,14 @@ export default function EditProfileLinksTab() {
   });
 
   useEffect(() => {
-    setIsDirty(form.isDirty());
+    // setIsDirty(form.isDirty());
   }, [form]);
 
   useEffect(() => {
     if (actionData?.success) {
       //show success notification
       notifications.update(getProfileSuccessNotification("links-update"));
-      navigate("../..");
+      navigate(`/profile/${profile?.username}/settings`);
     } else if (actionData?.errors) {
       //show error notification
       notifications.update(getProfileErrorNotification("links-update"));
@@ -197,12 +176,13 @@ export default function EditProfileLinksTab() {
   const removeLink = (site: string) => {
     form.setFieldValue(
       "links",
-      form.getTransformedValues()?.links?.filter((link) => link.site !== site),
+      form.getTransformedValues()?.links?.filter((link) => link.site !== site)
     );
   };
 
   return (
     <Form
+      action={`/profile/${profile?.username}/settings/links`}
       method="post"
       onSubmit={(event) =>
         form.validate().hasErrors
@@ -211,15 +191,6 @@ export default function EditProfileLinksTab() {
       }
     >
       <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
-      <TextInput
-        description="Public email address"
-        label="Contact Email"
-        leftSection={<IconAt size="1rem" />}
-        name="contactEmail"
-        placeholder="Enter your public contact email"
-        {...form.getInputProps("contactEmail")}
-      />
       {form.getTransformedValues().links?.map((link, index) => (
         <Fragment key={`${index}-${link.site}`}>
           <input
@@ -264,7 +235,7 @@ export default function EditProfileLinksTab() {
               (site) =>
                 !form
                   .getTransformedValues()
-                  .links?.some((link) => link.site === site),
+                  .links?.some((link) => link.site === site)
             )}
             label="Add a Site"
             onChange={setNewSite}
@@ -291,7 +262,7 @@ export default function EditProfileLinksTab() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
+      <SaveCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

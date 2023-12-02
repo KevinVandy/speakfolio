@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "@remix-run/react";
+import { useAuth } from "@clerk/remix";
 import {
   ActionIcon,
   AppShell,
@@ -14,7 +15,6 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
-import { useSupabase } from "../hooks/useSupabase";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 
 interface Props {
@@ -24,9 +24,10 @@ interface Props {
 export const Layout = ({ children }: Props) => {
   const navigate = useNavigate();
 
-  const { loggedInUserProfile, session } = useRootLoader();
+  const { authProfile, authUser } = useRootLoader();
+  const { isSignedIn, signOut } = useAuth();
 
-  const supabase = useSupabase();
+  
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
@@ -67,7 +68,7 @@ export const Layout = ({ children }: Props) => {
                 fz="xl"
                 gradient={{
                   from: "pink",
-                  to: loggedInUserProfile?.profileColor ?? "blue",
+                  to: authProfile?.profileColor ?? "blue",
                 }}
                 lh="xs"
                 m="0"
@@ -90,32 +91,38 @@ export const Layout = ({ children }: Props) => {
             >
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
-            {session?.user ? (
+            {isSignedIn ? (
               <Menu trigger="hover">
                 <Menu.Target>
-                  <Avatar src={loggedInUserProfile?.profileImageUrl} />
+                  <Avatar src={authProfile?.profileImageUrl} />
                 </Menu.Target>
                 <Menu.Dropdown>
-                  <Menu.Item>{session.user.email}</Menu.Item>
+                  <Menu.Item>
+                    {authProfile?.name ??
+                      `${authUser?.firstName} ${authUser?.lastName}`}
+                  </Menu.Item>
                   <Menu.Divider />
                   <Menu.Item
                     onClick={() =>
-                      navigate(`/profile/${loggedInUserProfile?.username}`)
+                      navigate(`/profile/${authProfile?.username}`)
                     }
                   >
                     Profile
                   </Menu.Item>
                   <Menu.Item
                     onClick={() =>
-                      navigate(
-                        `/profile/${loggedInUserProfile?.username}/edit/settings`
-                      )
+                      navigate(`/profile/${authProfile?.username}/settings`)
                     }
                   >
                     Settings
                   </Menu.Item>
                   <Menu.Divider />
-                  <Menu.Item onClick={() => supabase.auth.signOut()}>
+                  <Menu.Item
+                    onClick={() => {
+                      signOut();
+                      navigate("/");
+                    }}
+                  >
                     Sign Out
                   </Menu.Item>
                 </Menu.Dropdown>

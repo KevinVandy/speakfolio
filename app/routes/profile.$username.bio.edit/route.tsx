@@ -9,24 +9,23 @@ import {
 import { Flex, LoadingOverlay, Stack, Text } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import xss from "xss";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profileBiosTable } from "db/schema";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { xssOptions } from "~/util/xssOptions";
-import { RichTextInput } from "~/components/RichTextInput";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { RichTextInput } from "~/components/RichTextInput";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
+import { xssOptions } from "~/util/xssOptions";
 
 type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
 
@@ -36,7 +35,6 @@ const profileBioSchema = z.object({
     richText: z.string().max(6000, { message: "Bio max 6000 characters" }),
   }),
   profileId: z.string().uuid(),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -45,9 +43,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -57,7 +54,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -73,9 +70,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -90,8 +86,8 @@ export async function action({ request }: ActionFunctionArgs) {
       .where(
         and(
           eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.profileId),
-        ),
+          eq(profileBiosTable.profileId, data.profileId)
+        )
       );
     if (updateResult.count !== 1) throw new Error("Error updating profile bio");
     return json({
@@ -173,7 +169,6 @@ export default function EditProfileBioTab() {
       }
     >
       <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
       <input name="bio.id" type="hidden" value={form.values.bio?.id ?? ""} />
       <input
         name="bio.richText"
@@ -183,14 +178,14 @@ export default function EditProfileBioTab() {
       <Stack gap="md" pos="relative">
         <LoadingOverlay visible={navigation.state === "submitting"} />
         <RichTextInput
-          label="Bio"
           description="Tell your story"
-          value={form.values.bio?.richText ?? ""}
+          label="Bio"
           onChangeDebounced={(debouncedValue) =>
             form.setFieldValue("bio.richText", debouncedValue)
           }
           showHeadings
           showTextAlign
+          value={form.values.bio?.richText ?? ""}
         />
       </Stack>
       {Object.values(form?.errors ?? []).map((error, i) => (

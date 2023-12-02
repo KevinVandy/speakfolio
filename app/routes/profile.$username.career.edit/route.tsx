@@ -19,23 +19,22 @@ import {
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import { IconPlus } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schema";
 import ProfileCareerHistoryTimeline from "../profile.$username.career/ProfileCareerHistoryTimeline";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
 
 type IProfileCareerForm = Partial<
   Pick<
@@ -54,7 +53,6 @@ const profileCareerSchema = z.object({
     .max(100, { message: "Profession max 100 characters" })
     .nullish(),
   profileId: z.string().uuid(),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -63,9 +61,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -75,7 +72,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   rawData.areasOfExpertise = JSON.parse(rawData.areasOfExpertise);
@@ -93,9 +90,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -140,10 +136,8 @@ export default function EditProfileCareerTab() {
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       areasOfExpertise: profile.areasOfExpertise,
-      careerHistories: profile.careerHistories,
       profession: profile.profession,
       profileId: profile.id,
-      userId: profile.userId,
     },
     validate: zodResolver(profileCareerSchema),
   });
@@ -191,7 +185,6 @@ export default function EditProfileCareerTab() {
         }
       >
         <input name="profileId" type="hidden" value={profile.id} />
-        <input name="userId" type="hidden" value={profile.userId!} />
         {form
           .getTransformedValues()
           .careerHistories?.map((careerHistory, i) => (
@@ -232,7 +225,7 @@ export default function EditProfileCareerTab() {
                       "areasOfExpertise",
                       form
                         .getTransformedValues()
-                        .areasOfExpertise?.filter((a) => a !== aoe),
+                        .areasOfExpertise?.filter((a) => a !== aoe)
                     );
                   }}
                   withRemoveButton

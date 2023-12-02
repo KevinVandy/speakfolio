@@ -1,9 +1,9 @@
-import { Button, SimpleGrid, type SimpleGridProps } from "@mantine/core";
+import { Button, SimpleGrid, type SimpleGridProps, Space } from "@mantine/core";
 
 interface Props extends SimpleGridProps {
   disabled?: boolean;
   loading?: boolean;
-  onCancel: () => void;
+  onCancel?: () => void;
   onSubmitClick?: () => void;
 }
 
@@ -25,14 +25,18 @@ export function SaveCancelButtons({
       w="100%"
       {...rest}
     >
-      <Button onClick={onCancel} type="button" variant="default">
-        Cancel
-      </Button>
+      {onCancel ? (
+        <Button onClick={onCancel} type="button" variant="default">
+          Cancel
+        </Button>
+      ) : (
+        <Space />
+      )}
       <Button
-        onClick={onSubmitClick}
         color="blue"
         disabled={disabled}
         loading={loading}
+        onClick={onSubmitClick}
         type="submit"
       >
         Save

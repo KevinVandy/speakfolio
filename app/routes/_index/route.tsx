@@ -19,7 +19,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function IndexPage() {
-  const { loggedInUserProfile, session } = useRootLoader();
+  const { authProfile, authUserId } = useRootLoader();
 
   return (
     <Stack gap="xl" justify="center">
@@ -36,7 +36,7 @@ export default function IndexPage() {
           conferences. Whether you're a speaker looking for events, or an event
           looking for speakers, we've got you covered.
         </Text>
-        {!session ? (
+        {!authUserId ? (
           <Stack justify="center">
             <SimpleGrid cols={2} my="md" p="md" spacing="xl">
               <Button
@@ -66,12 +66,12 @@ export default function IndexPage() {
               .
             </Text>
           </Stack>
-        ) : loggedInUserProfile ? (
+        ) : authProfile ? (
           <Button
             color="pink"
             component={Link}
             size="xl"
-            to={`/profile/${loggedInUserProfile.username}`}
+            to={`/profile/${authProfile.username}`}
           >
             Go to my Profile
           </Button>

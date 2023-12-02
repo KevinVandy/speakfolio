@@ -6,6 +6,7 @@ import {
   useNavigate,
   useOutletContext,
 } from "@remix-run/react";
+import { getAuth } from "@clerk/remix/ssr.server";
 import {
   Avatar,
   BackgroundImage,
@@ -15,22 +16,22 @@ import {
   TextInput,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
+import { notifications } from "@mantine/notifications";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schema";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { getClerkServerClient } from "~/util/getClerkServerClient.server";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
 
 const profileCustomizationSchema = z.object({
   coverImageUrl: z
@@ -48,7 +49,6 @@ const profileCustomizationSchema = z.object({
     ])
     .nullish()
     .transform((s) => s || null),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -57,9 +57,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -69,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -83,11 +82,12 @@ export async function action({ request }: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
+  const { userId } = await getAuth(args);
   if (
+    !userId ||
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -95,11 +95,14 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //update profile bio
   try {
+    // (await getClerkServerClient()).users.updateUserProfileImage(
+    //   userId,
+    //   data.profileImageUrl
+    // );
     const updateResult = await db
       .update(profilesTable)
       .set({
         coverImageUrl: data.coverImageUrl,
-        profileImageUrl: data.profileImageUrl,
       })
       .where(eq(profilesTable.id, data.profileId));
     if (updateResult.count !== 1) throw new Error("Error updating profile");
@@ -123,7 +126,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfilePicturesTab() {
-  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  // const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
@@ -132,22 +135,21 @@ export default function EditProfilePicturesTab() {
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       coverImageUrl: profile?.coverImageUrl ?? "",
-      profileImageUrl: profile?.profileImageUrl ?? "",
       profileId: profile?.id ?? "",
-      userId: profile?.userId ?? "",
+      profileImageUrl: profile?.profileImageUrl ?? "",
     },
     validate: zodResolver(profileCustomizationSchema),
   });
 
   useEffect(() => {
-    setIsDirty(form.isDirty());
+    // setIsDirty(form.isDirty());
   }, [form]);
 
   useEffect(() => {
     if (actionData?.success) {
       //show success notification
       notifications.update(getProfileSuccessNotification("pictures-update"));
-      navigate("../..");
+      navigate(`/profile/${profile?.username}/settings`);
     } else if (actionData?.errors) {
       //show error notification
       notifications.update(getProfileErrorNotification("pictures-update"));
@@ -160,6 +162,7 @@ export default function EditProfilePicturesTab() {
 
   return (
     <Form
+      action={`/profile/${profile.username}/settings/pictures`}
       method="post"
       onSubmit={(event) =>
         form.validate().hasErrors
@@ -168,7 +171,6 @@ export default function EditProfilePicturesTab() {
       }
     >
       <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md">
         <BackgroundImage
           mb="xl"
@@ -205,7 +207,7 @@ export default function EditProfilePicturesTab() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
+      <SaveCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }

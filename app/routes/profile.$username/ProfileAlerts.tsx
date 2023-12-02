@@ -15,7 +15,7 @@ export function ProfileAlerts() {
 
   useEffect(() => {
     const storedAlertVisibility = sessionStorage.getItem(
-      "profileVisibilityAlert",
+      "profileVisibilityAlert"
     );
     if (
       isOwnProfile &&
@@ -37,7 +37,10 @@ export function ProfileAlerts() {
             withCloseButton
           >
             Only you can see your profile. You can change your{" "}
-            <Anchor component={Link} to="edit/settings">
+            <Anchor
+              component={Link}
+              to={`/profile/${profile.username}/settings`}
+            >
               visibility settings here
             </Anchor>
           </Alert>
@@ -50,7 +53,10 @@ export function ProfileAlerts() {
           >
             Only you and other logged in Speakfolio users can see your profile.
             You can change your{" "}
-            <Anchor component={Link} to="edit/settings">
+            <Anchor
+              component={Link}
+              to={`/profile/${profile.username}/settings`}
+            >
               visibility settings here
             </Anchor>
           </Alert>

@@ -141,6 +141,20 @@
       "when": 1701300936306,
       "tag": "0019_secret_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1701465579517,
+      "tag": "0020_rare_luminals",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1701465601805,
+      "tag": "0021_complex_captain_marvel",
+      "breakpoints": true
     }
   ]
 }

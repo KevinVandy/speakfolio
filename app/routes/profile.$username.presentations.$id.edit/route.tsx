@@ -4,24 +4,24 @@ import { Form, useActionData, useNavigate, useParams } from "@remix-run/react";
 import { Stack, Text, TextInput } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import xss from "xss";
 import { z } from "zod";
+import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { presentationsTable } from "db/schema";
+import {
+  getProfileErrorNotification,
+  getProfileSavingNotification,
+  getProfileSuccessNotification,
+} from "~/components/Notifications";
+import { RichTextInput } from "~/components/RichTextInput";
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
 import { xssOptions } from "~/util/xssOptions";
-import { RichTextInput } from "~/components/RichTextInput";
-import { and, eq } from "drizzle-orm";
-import { notifications } from "@mantine/notifications";
-import {
-  getProfileErrorNotification,
-  getProfileSavingNotification,
-  getProfileSuccessNotification,
-} from "~/components/Notifications";
 
 const presentationSchema = z.object({
   abstract: z
@@ -40,7 +40,6 @@ const presentationSchema = z.object({
   presentationId: z.union([z.string().uuid(), z.string().length(0)]).nullish(),
   profileId: z.string().uuid(),
   title: z.string().max(100, { message: "Title max 100 characters" }),
-  userId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -49,9 +48,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -61,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -77,9 +75,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -98,16 +95,16 @@ export async function action({ request }: ActionFunctionArgs) {
         .where(
           and(
             eq(presentationsTable.id, data.presentationId),
-            eq(presentationsTable.profileId, data.profileId),
-          ),
+            eq(presentationsTable.profileId, data.profileId)
+          )
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
     } else {
       const insertResult = await db.insert(presentationsTable).values({
         abstract: xss(data.abstract ?? "", xssOptions),
+        coverImageUrl: data.coverImageUrl,
         profileId: data.profileId,
         title: data.title,
-        coverImageUrl: data.coverImageUrl,
       });
       if (insertResult.count !== 1) throw new Error("Error updating profile");
     }
@@ -139,7 +136,7 @@ export default function ProfileNewPresentationPage() {
   const initialPresentation = useMemo(() => {
     if (!presentationId || presentationId === "new") return null;
     const presentation = profile.presentations?.find(
-      (p) => p.id === presentationId,
+      (p) => p.id === presentationId
     );
     if (presentation?.abstract) {
       presentation.abstract = xss(presentation.abstract, xssOptions);
@@ -152,9 +149,9 @@ export default function ProfileNewPresentationPage() {
     initialValues: {
       ...(actionData?.data ??
         initialPresentation ?? {
-          title: "",
           abstract: "<p></p>",
           coverImageUrl: null,
+          title: "",
         }),
       presentationId: (presentationId !== "new" && presentationId) || null,
       profileId: profile.id,
@@ -167,7 +164,7 @@ export default function ProfileNewPresentationPage() {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("presentation-update"),
+        getProfileSuccessNotification("presentation-update")
       );
       navigate("../..");
     } else if (actionData?.errors) {
@@ -203,7 +200,7 @@ export default function ProfileNewPresentationPage() {
         form.validate().hasErrors
           ? event.preventDefault()
           : notifications.show(
-              getProfileSavingNotification("presentation-update"),
+              getProfileSavingNotification("presentation-update")
             )
       }
     >
@@ -211,7 +208,6 @@ export default function ProfileNewPresentationPage() {
         <input name="presentationId" type="hidden" value={presentationId} />
       ) : null}
       <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
       <input name="abstract" type="hidden" value={form.values.abstract} />
       <Stack gap="md" maw="800px" mx="auto">
         <TextInput
@@ -222,12 +218,12 @@ export default function ProfileNewPresentationPage() {
           {...form.getInputProps("title")}
         />
         <RichTextInput
-          label="Abstract"
           description="Give a short 1-3 paragraph summary of your talk"
-          value={form.values.abstract ?? ""}
+          label="Abstract"
           onChangeDebounced={(debouncedValue) =>
             form.setFieldValue("abstract", debouncedValue)
           }
+          value={form.values.abstract ?? ""}
         />
         <TextInput
           description="A link to your cover photo"

@@ -35,7 +35,6 @@ const profileContentFeedSchema = z.object({
   schema: z.string(),
   type: z.enum(contentFeedTypes),
   url: z.string().url(),
-  userId: z.string().uuid(),
 });
 
 const contentFeedTypeOptions = contentFeedTypes.map((type) => ({
@@ -108,7 +107,6 @@ export default function EditProfileContentModal() {
     >
       <Form method="post">
         <input name="profileId" type="hidden" value={profile.id} />
-        <input name="userId" type="hidden" value={profile.userId!} />
         <Stack gap="md">
           <Select
             data={contentFeedTypeOptions}

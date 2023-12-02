@@ -7,6 +7,9 @@ import {
   useOutletContext,
 } from "@remix-run/react";
 import {
+  Flex,
+  Group,
+  Radio,
   Select,
   Stack,
   Text,
@@ -15,23 +18,23 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { IconCircle } from "@tabler/icons-react";
+import { notifications } from "@mantine/notifications";
+import { IconCircle, IconLock } from "@tabler/icons-react";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { profileColors, profilesTable } from "db/schema";
+import { profileColors, profileVisibilities, profilesTable } from "db/schema";
 import { type EditProfileOutletContext } from "../profile.$username.edit/route";
-import { SaveCancelButtons } from "~/components/SaveCancelButtons";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
-import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
-import { notifications } from "@mantine/notifications";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
   getProfileSuccessNotification,
 } from "~/components/Notifications";
+import { SaveCancelButtons } from "~/components/SaveCancelButtons";
+import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
+import { getSupabaseServerClient } from "~/util/getSupabaseServerClient.server";
+import { transformDotNotation } from "~/util/transformDotNotation";
+import { validateAuth } from "~/util/validateAuth.server";
 
 const profileCustomizationSchema = z.object({
   headline: z
@@ -45,7 +48,7 @@ const profileCustomizationSchema = z.object({
   name: z.string().min(1, { message: "Display Name is required" }),
   profileColor: z.enum(profileColors),
   profileId: z.string().uuid(),
-  userId: z.string().uuid(),
+  visibility: z.enum(profileVisibilities),
 });
 
 interface ProfileUpdateResponse {
@@ -54,9 +57,8 @@ interface ProfileUpdateResponse {
   success: boolean;
 }
 
-export async function action({ request }: ActionFunctionArgs) {
-  const response = new Response();
-  const supabase = getSupabaseServerClient({ request, response });
+export async function action(args: ActionFunctionArgs) {
+  const { request } = args;
 
   let returnData: ProfileUpdateResponse = {
     data: {},
@@ -66,7 +68,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   //get data from form
   const rawData = transformDotNotation(
-    Object.fromEntries(await request.formData()),
+    Object.fromEntries(await request.formData())
   );
 
   //validate data
@@ -82,9 +84,8 @@ export async function action({ request }: ActionFunctionArgs) {
   //validate auth
   if (
     !(await validateAuth({
+      args,
       profileId: data.profileId,
-      supabase,
-      userId: data.userId,
     }))
   ) {
     return redirect("/sign-in");
@@ -99,6 +100,7 @@ export async function action({ request }: ActionFunctionArgs) {
         location: data.location,
         name: data.name,
         profileColor: data.profileColor,
+        visibility: data.visibility,
       })
       .where(eq(profilesTable.id, data.profileId));
     if (updateResult.count !== 1) throw new Error("Error updating profile");
@@ -122,7 +124,7 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function EditProfileCustomizationTab() {
-  const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
+  // const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
@@ -136,23 +138,22 @@ export default function EditProfileCustomizationTab() {
       location: profile?.location ?? "",
       name: profile?.name ?? "",
       profileColor: profile?.profileColor ?? "pink",
-      profileId: profile?.id!,
-      userId: profile?.userId!,
+      profileId: profile.id,
     },
     validate: zodResolver(profileCustomizationSchema),
   });
 
   useEffect(() => {
-    setIsDirty(form.isDirty());
+    // setIsDirty(form.isDirty());
   }, [form]);
 
   useEffect(() => {
     if (actionData?.success) {
       //show success notification
       notifications.update(
-        getProfileSuccessNotification("customization-update"),
+        getProfileSuccessNotification("customization-update")
       );
-      navigate("../..");
+      navigate(`/profile/${profile?.username}/settings`);
     } else if (actionData?.errors) {
       //show error notification
       notifications.update(getProfileErrorNotification("customization-update"));
@@ -165,18 +166,41 @@ export default function EditProfileCustomizationTab() {
 
   return (
     <Form
+      action={`/profile/${profile?.username}/settings/customization`}
       method="post"
       onSubmit={(event) =>
         form.validate().hasErrors
           ? event.preventDefault()
           : notifications.show(
-              getProfileSavingNotification("customization-update"),
+              getProfileSavingNotification("customization-update")
             )
       }
     >
       <input name="profileId" type="hidden" value={profile.id} />
-      <input name="userId" type="hidden" value={profile.userId!} />
       <Stack gap="md">
+        <Radio.Group
+          description="Who can view your profile"
+          label="Profile Visibility"
+          name="visibility"
+          {...form.getInputProps("visibility")}
+        >
+          <Group mt="md">
+            <Radio label="Public" value="public" />
+            <Radio label="Private" value="private" />
+            <Radio label="Signed in users" value="signed_in_users" />
+          </Group>
+        </Radio.Group>
+        <Text c="dimmed" fs="italic" size="sm">
+          {form.getTransformedValues().visibility === "public" ? (
+            "Everyone can search for and view your profile"
+          ) : form.getTransformedValues().visibility === "private" ? (
+            <Flex align="center" component="span" gap="xs">
+              <IconLock size="1rem" /> Only you can view your profile
+            </Flex>
+          ) : (
+            "Only other Speakfolio users can view your profile"
+          )}
+        </Text>
         <Select
           data={[
             "blue",
@@ -233,7 +257,7 @@ export default function EditProfileCustomizationTab() {
           {error}
         </Text>
       ))}
-      <SaveCancelButtons disabled={!form.isDirty()} onCancel={onCancel} />
+      <SaveCancelButtons disabled={!form.isDirty()} />
     </Form>
   );
 }
