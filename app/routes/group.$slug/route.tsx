@@ -9,63 +9,48 @@ import {
 } from "@remix-run/react";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { MantineProvider, Stack, Tabs, useMantineTheme } from "@mantine/core";
-import {
-  IconArticle,
-  IconBriefcase,
-  IconPresentation,
-  IconSettings,
-  IconUser,
-  IconUsersGroup,
-  IconVideo,
-} from "@tabler/icons-react";
+import { IconUser } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { colorSchemeManager } from "~/root";
+import { groupsTable } from "db/schema";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params } = args;
   const response = new Response();
-  const { username } = params;
+  const { slug } = params;
 
   try {
     const { userId: authUserId } = await getAuth(args);
 
-    let profile = username
-      ? await db.query.profilesTable.findFirst({
-          where: eq(profilesTable.username, username),
-          with: {
-            bio: {
-              columns: {
-                id: true,
-                richText: true,
-              },
-            },
-            careerHistories: {
-              orderBy: (careerHistory, { desc }) => [
-                desc(careerHistory.startDate),
-              ],
-            },
-            links: true,
-            presentations: true,
-          },
+    let group = slug
+      ? await db.query.groupsTable.findFirst({
+          where: eq(groupsTable.slug, slug),
+          with: { profilesToGroups: true },
         })
       : null;
 
-    const isOwnProfile = profile?.userId === authUserId;
+    const userMembership = group?.profilesToGroups.find(
+      (ptg) => ptg.userId === authUserId
+    );
+    const isUserMember = !!userMembership;
+    const isUserAdmin = !!(isUserMember && userMembership.isAdmin);
 
     if (
-      !profile ||
-      (!isOwnProfile && profile.visibility === "private") ||
-      (!authUserId && profile.visibility === "signed_in_users")
+      !group ||
+      (group.visibility === "signed_in_users" && !authUserId) ||
+      (group.visibility === "admins_only" && !isUserAdmin) ||
+      (group.visibility === "members_only" && !isUserMember)
     ) {
-      return redirect("/unknown-profile");
+      return redirect("/unknown-group");
     }
 
     const returnData = {
-      ...profile,
-      isOwnProfile,
-    } as IProfileFull;
+      ...group,
+      isUserMember,
+      isUserAdmin,
+    };
 
     return json(returnData, { headers: response.headers });
   } catch (error) {
@@ -81,9 +66,6 @@ export default function ProfileIdPage() {
 
   const theme = useMantineTheme();
 
-  const profile = useProfileLoader();
-  const { isOwnProfile } = profile;
-
   const tabs = useMemo(
     () =>
       [
@@ -92,7 +74,6 @@ export default function ProfileIdPage() {
           id: "_index",
           title: "Overview",
         },
-
       ].filter(Boolean) as Array<{
         Icon: () => JSX.Element;
         id: string;

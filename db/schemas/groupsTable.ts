@@ -11,7 +11,7 @@ import { profilesToGroupsTable } from "./profileGroupsTable";
 
 export const groupVisibilities = [
   "public",
-  "private",
+  "admins_only",
   "signed_in_users",
   "members_only",
 ] as const;
@@ -53,6 +53,7 @@ export const groupsTable = pgTable(
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
+    visibility: groupVisibilityEnum("visibility").default("public"),
   },
   (table) => ({
     groupOrganizationIdUnique: unique("group_organization_id_unique").on(
