@@ -16,6 +16,7 @@ import { profileBiosTable } from "./profileBiosTable";
 import { profileCareerHistoriesTable } from "./profileCareerHistoriesTable";
 import { profileContentFeedsTable } from "./profileContentFeedsTable";
 import { profileLinksTable } from "./profileLinksTable";
+import { profilesToGroupsTable } from "./profileGroupsTable";
 
 export const profileVisibilities = [
   "public",
@@ -73,14 +74,10 @@ export const profilesTable = pgTable(
     views: integer("views").default(0),
     visibility: profileVisibilityEnum("visibility").default("public").notNull(),
   },
-  (table) => {
-    return {
-      profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
-      profileUsernameUnique: unique("profile_username_unique").on(
-        table.username
-      ),
-    };
-  }
+  (table) => ({
+    profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
+    profileUsernameUnique: unique("profile_username_unique").on(table.username),
+  })
 );
 
 export const profilesTableRelations = relations(
@@ -91,6 +88,7 @@ export const profilesTableRelations = relations(
     contentFeeds: many(profileContentFeedsTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
+    profilesToGroups: many(profilesToGroupsTable),
   })
 );
 

@@ -21,8 +21,6 @@ import {
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
-import { ProfileHead } from "./ProfileHead";
-import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { colorSchemeManager } from "~/root";
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -94,31 +92,7 @@ export default function ProfileIdPage() {
           id: "_index",
           title: "Overview",
         },
-        isOwnProfile && {
-          Icon: () => <IconUsersGroup />,
-          id: "groups",
-          title: "Groups",
-        },
-        {
-          Icon: () => <IconBriefcase />,
-          id: "career",
-          title: "Career",
-        },
-        (isOwnProfile || !!profile.presentations?.length) && {
-          Icon: () => <IconPresentation />,
-          id: "presentations",
-          title: "Presentations",
-        },
-        (isOwnProfile || !!profile.blogRssFeedUrl?.length) && {
-          Icon: () => <IconArticle />,
-          id: "blog",
-          title: "Blog Posts",
-        },
-        isOwnProfile && {
-          Icon: () => <IconSettings />,
-          id: "settings",
-          title: "Settings",
-        },
+
       ].filter(Boolean) as Array<{
         Icon: () => JSX.Element;
         id: string;
@@ -145,7 +119,6 @@ export default function ProfileIdPage() {
       theme={{ ...theme, primaryColor: profile.profileColor! }}
     >
       <Stack gap="md">
-        <ProfileHead setTab={setTab} />
         <Tabs onChange={setTab} value={tab || "_index"}>
           <Tabs.List justify="center" mb="md">
             {tabs.map((t) => (

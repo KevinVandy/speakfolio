@@ -1,6 +1,6 @@
 import { type LoaderFunctionArgs, redirect } from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
-import { UserProfile } from "@clerk/remix";
+import { OrganizationList, UserProfile } from "@clerk/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { dark } from "@clerk/themes";
 import { Flex } from "@mantine/core";
@@ -25,14 +25,15 @@ export default function ProfileSettingsTab() {
 
   return (
     <Flex justify="center">
-      <UserProfile
+      <OrganizationList
+        hidePersonal
         appearance={{
           baseTheme: colorScheme === "dark" ? dark : undefined,
         }}
-        path={`/profile/${authUser?.username}/settings`}
+        path={`/profile/${authUser?.username}/organizations`}
         // routing="virtual"
       >
-        <UserProfile.Page
+        {/* <UserProfile.Page
           label="Profile Pictures"
           labelIcon={<IconPhoto />}
           url="pictures"
@@ -52,8 +53,8 @@ export default function ProfileSettingsTab() {
           url="links"
         >
           <EditProfileLinksTab />
-        </UserProfile.Page>
-      </UserProfile>
+        </UserProfile.Page> */}
+      </OrganizationList>
     </Flex>
   );
 }

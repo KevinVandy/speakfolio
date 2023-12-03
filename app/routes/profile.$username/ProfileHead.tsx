@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useOutletContext } from "@remix-run/react";
 import {
   ActionIcon,
   Avatar,
@@ -27,7 +27,11 @@ import {
 import { ProfileAlerts } from "./ProfileAlerts";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 
-export function ProfileHead() {
+interface Props {
+  setTab: (tab: string) => void;
+}
+
+export function ProfileHead({ setTab }: Props) {
   const { colorScheme } = useMantineColorScheme();
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
@@ -65,8 +69,9 @@ export function ProfileHead() {
               component={Link}
               pos="absolute"
               right={10}
-              to={`/profile/${profile.username}/settings/pictures`}
+              to={`/profile/${profile.username}/settings#/pictures`}
               top={10}
+              onClick={() => setTab("settings")}
             >
               <IconEdit />
             </ActionIcon>
@@ -102,7 +107,8 @@ export function ProfileHead() {
                 ml="xs"
                 mt="sm"
                 size="sm"
-                to={`/profile/${profile.username}/settings/customization`}
+                to={`/profile/${profile.username}/settings#/customization`}
+                onClick={() => setTab("settings")}
               >
                 <IconEdit />
               </ActionIcon>
@@ -115,7 +121,8 @@ export function ProfileHead() {
               <ActionIcon
                 component={Link}
                 size="sm"
-                to={`/profile/${profile.username}/settings/links`}
+                to={`/profile/${profile.username}/settings#/links`}
+                onClick={() => setTab("settings")}
               >
                 <IconLinkPlus />
               </ActionIcon>

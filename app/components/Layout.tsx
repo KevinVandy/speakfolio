@@ -1,14 +1,12 @@
-import { Link, useNavigate } from "@remix-run/react";
-import { useAuth } from "@clerk/remix";
+import { Link } from "@remix-run/react";
+import { OrganizationSwitcher, UserButton, useAuth } from "@clerk/remix";
 import {
   ActionIcon,
   AppShell,
-  Avatar,
   Box,
   Burger,
   Button,
   Flex,
-  Menu,
   Text,
   useComputedColorScheme,
   useMantineColorScheme,
@@ -16,18 +14,15 @@ import {
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
+import { dark } from "@clerk/themes";
 
 interface Props {
   children: React.ReactNode;
 }
 
 export const Layout = ({ children }: Props) => {
-  const navigate = useNavigate();
-
-  const { authProfile, authUser } = useRootLoader();
-  const { isSignedIn, signOut } = useAuth();
-
-  
+  const { authProfile } = useRootLoader();
+  const { isSignedIn } = useAuth();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("dark", {
@@ -92,41 +87,24 @@ export const Layout = ({ children }: Props) => {
               {colorScheme === "dark" ? <IconSun /> : <IconMoon />}
             </ActionIcon>
             {isSignedIn ? (
-              <Menu trigger="hover">
-                <Menu.Target>
-                  <Avatar src={authProfile?.profileImageUrl} />
-                </Menu.Target>
-                <Menu.Dropdown>
-                  <Menu.Item>
-                    {authProfile?.name ??
-                      `${authUser?.firstName} ${authUser?.lastName}`}
-                  </Menu.Item>
-                  <Menu.Divider />
-                  <Menu.Item
-                    onClick={() =>
-                      navigate(`/profile/${authProfile?.username}`)
-                    }
-                  >
-                    Profile
-                  </Menu.Item>
-                  <Menu.Item
-                    onClick={() =>
-                      navigate(`/profile/${authProfile?.username}/settings`)
-                    }
-                  >
-                    Settings
-                  </Menu.Item>
-                  <Menu.Divider />
-                  <Menu.Item
-                    onClick={() => {
-                      signOut();
-                      navigate("/");
+              <Flex align="center" gap="xs" p="xs">
+                <Box pt="xs">
+                  <OrganizationSwitcher
+                    appearance={{
+                      baseTheme: colorScheme === "dark" ? dark : undefined,
                     }}
-                  >
-                    Sign Out
-                  </Menu.Item>
-                </Menu.Dropdown>
-              </Menu>
+                    hidePersonal
+                  />
+                </Box>
+                <UserButton
+                  userProfileMode="navigation"
+                  userProfileUrl={`/profile/${authProfile?.username}/settings`}
+                  afterSignOutUrl="/"
+                  appearance={{
+                    baseTheme: colorScheme === "dark" ? dark : undefined,
+                  }}
+                />
+              </Flex>
             ) : (
               <Link to="/sign-in">
                 <Button>Sign In</Button>
