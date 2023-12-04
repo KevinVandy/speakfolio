@@ -1,5 +1,5 @@
 import { Link, useOutlet } from "@remix-run/react";
-import { Box, Button, Center, TypographyStylesProvider } from "@mantine/core";
+import { Button, Center, TypographyStylesProvider } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import xss from "xss";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
@@ -10,7 +10,7 @@ export default function ProfileBioTab() {
   const profile = useProfileLoader();
   const { isOwnProfile } = profile;
 
-  const dirtyBio = profile.bio?.richText || "";
+  const dirtyBio = profile.bio?.bio || "";
   const cleanBio = xss(dirtyBio, xssOptions);
 
   if (isOwnProfile && outlet) {
@@ -19,7 +19,7 @@ export default function ProfileBioTab() {
 
   return (
     <>
-      {profile.bio?.richText ? (
+      {profile.bio?.bio ? (
         <TypographyStylesProvider
           dangerouslySetInnerHTML={{ __html: cleanBio }}
         />

@@ -1,13 +1,6 @@
 import { relations } from "drizzle-orm";
-import {
-  pgEnum,
-  pgTable,
-  text,
-  timestamp,
-  unique,
-  uuid,
-} from "drizzle-orm/pg-core";
-import { profilesToGroupsTable } from "./profileGroupsTable";
+import { pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { groupMembershipsTable } from "./groupMembershipsTable";
 
 export const groupVisibilities = [
   "public",
@@ -45,10 +38,9 @@ export const groupsTable = pgTable(
       .defaultNow()
       .notNull(),
     description: text("description").default(""),
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: text("id").primaryKey().notNull(), //clerk org id
     name: text("name").notNull(),
     groupColor: groupColorEnum("group_color").default("blue"),
-    organizationId: text("user_id"), //clerk org id
     slug: text("slug").notNull(),
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
@@ -56,13 +48,10 @@ export const groupsTable = pgTable(
     visibility: groupVisibilityEnum("visibility").default("public"),
   },
   (table) => ({
-    groupOrganizationIdUnique: unique("group_organization_id_unique").on(
-      table.organizationId
-    ),
     groupSlugUnique: unique("group_slug_unique").on(table.slug),
   })
 );
 
 export const groupsRelations = relations(groupsTable, ({ many }) => ({
-  profilesToGroups: many(profilesToGroupsTable),
+  members: many(groupMembershipsTable),
 }));

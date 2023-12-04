@@ -14,7 +14,7 @@ import xss from "xss";
 import { z } from "zod";
 import { and, eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { type IProfileFull, profileBiosTable } from "db/schema";
+import { type IProfileFull, profileBiosTable, IProfileBio } from "db/schema";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
@@ -24,17 +24,17 @@ import { RichTextInput } from "~/components/RichTextInput";
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
 import { xssOptions } from "~/util/xssOptions";
+import { getAuth } from "@clerk/remix/ssr.server";
 
-type IProfileBioForm = Partial<Pick<IProfileFull, "bio" | "id" | "userId">>;
+type IProfileBioForm = {
+  bioId: string;
+  bio: string;
+}
 
 const profileBioSchema = z.object({
-  bio: z.object({
-    id: z.string().uuid(),
-    richText: z.string().max(6000, { message: "Bio max 6000 characters" }),
-  }),
-  profileId: z.string().uuid(),
+  bioId: z.string().uuid(),
+  bio: z.string().max(6000, { message: "Bio max 6000 characters" }),
 });
 
 interface ProfileUpdateResponse {
@@ -68,28 +68,36 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
   //update profile bio
   try {
-    const cleanBio = xss(data.bio?.richText ?? "", xssOptions);
-    const updateResult = await db
-      .update(profileBiosTable)
-      .set({ richText: cleanBio })
-      .where(
-        and(
-          eq(profileBiosTable.id, data.bio.id),
-          eq(profileBiosTable.profileId, data.profileId)
-        )
-      );
-    if (updateResult.count !== 1) throw new Error("Error updating profile bio");
+    const cleanBio = xss(data.bio ?? "", xssOptions);
+    if (data.bioId) {
+      const updateResult = await db
+        .update(profileBiosTable)
+        .set({ bio: cleanBio })
+        .where(
+          and(
+            eq(profileBiosTable.id, data.bioId),
+            eq(profileBiosTable.profileId, userId)
+          )
+        );
+      if (updateResult.count !== 1) {
+        throw new Error("Error updating profile bio");
+      }
+    } else {
+      const insertResult = await db.insert(profileBiosTable).values({
+        bio: cleanBio,
+        profileId: userId,
+      });
+      if (insertResult.count !== 1) {
+        throw new Error("Error updating profile bio");
+      }
+    }
     return json({
       ...returnData,
       data,
@@ -118,12 +126,8 @@ export default function EditProfileBioTab() {
   const form = useForm<IProfileBioForm>({
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
-      bio: {
-        id: profile.bio?.id ?? "",
-        richText: profile.bio?.richText ?? "",
-      },
-      profileId: profile.id,
-      userId: profile.userId!,
+      bio: profile.bio?.bio,
+      bioId: profile.bio?.id,
     },
     validate: zodResolver(profileBioSchema),
   });
@@ -168,13 +172,8 @@ export default function EditProfileBioTab() {
           : notifications.show(getProfileSavingNotification("bio-update"))
       }
     >
-      <input name="profileId" type="hidden" value={profile.id} />
-      <input name="bio.id" type="hidden" value={form.values.bio?.id ?? ""} />
-      <input
-        name="bio.richText"
-        type="hidden"
-        value={form.values.bio?.richText ?? ""}
-      />
+      <input name="bioId" type="hidden" value={form.values.bioId ?? ""} />
+      <input name="bio" type="hidden" value={form.values.bio ?? ""} />
       <Stack gap="md" pos="relative">
         <LoadingOverlay visible={navigation.state === "submitting"} />
         <RichTextInput
@@ -185,7 +184,7 @@ export default function EditProfileBioTab() {
           }
           showHeadings
           showTextAlign
-          value={form.values.bio?.richText ?? ""}
+          value={form.values.bio ?? ""}
         />
       </Stack>
       {Object.values(form?.errors ?? []).map((error, i) => (

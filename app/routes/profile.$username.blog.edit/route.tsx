@@ -59,8 +59,6 @@ export default function EditProfileContentModal() {
       type: "blog-rss",
       schema: "",
       name: "",
-      profileId: profile.id,
-      userId: profile.userId!,
     },
     //@ts-ignore
     validationSchema: profileContentFeedSchema,
@@ -106,7 +104,6 @@ export default function EditProfileContentModal() {
       title={"Add External Content Feeds to Your Profile"}
     >
       <Form method="post">
-        <input name="profileId" type="hidden" value={profile.id} />
         <Stack gap="md">
           <Select
             data={contentFeedTypeOptions}

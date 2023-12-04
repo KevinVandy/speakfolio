@@ -36,12 +36,13 @@ import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
 import { xssOptions } from "~/util/xssOptions";
+import { getAuth } from "@clerk/remix/ssr.server";
 
 type IProfileCareerFormCareerHistory = {
   company: string;
   description: string;
   endDate: Date | null;
-  id: string;
+  careerHistoryId: string;
   jobTitle: string;
   profileId: string;
   startDate: Date | null;
@@ -60,7 +61,6 @@ export const careerHistorySchema = z.object({
     .string()
     .max(100, { message: "Job Title max 100 characters" })
     .nullish(),
-  profileId: z.string().uuid(),
   startDate: z.coerce.date(),
 });
 
@@ -95,12 +95,8 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -120,7 +116,7 @@ export async function action(args: ActionFunctionArgs) {
         .where(
           and(
             eq(profileCareerHistoriesTable.id, data.careerHistoryId),
-            eq(profileCareerHistoriesTable.profileId, data.profileId)
+            eq(profileCareerHistoriesTable.profileId, userId)
           )
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
@@ -130,7 +126,7 @@ export async function action(args: ActionFunctionArgs) {
         description: cleanDescription,
         endDate: data.endDate ? new Date(data.endDate)?.toDateString() : null,
         jobTitle: data.jobTitle,
-        profileId: data.profileId,
+        profileId: userId,
         startDate: data.startDate.toDateString(),
       });
       if (insertResult.count !== 1)
@@ -158,7 +154,7 @@ export async function action(args: ActionFunctionArgs) {
 }
 
 export default function CareerAddHistoryModal() {
-  const { id: careerHistoryId } = useParams();
+  const { id: careerHistoryId = "" } = useParams();
   const navigate = useNavigate();
   const navigation = useNavigation();
   const actionData = useActionData<typeof action>();
@@ -195,9 +191,7 @@ export default function CareerAddHistoryModal() {
           jobTitle: "",
           startDate: null,
         }),
-      id: careerHistoryId ?? "",
-      profileId: profile.id,
-      userId: profile.userId!,
+      careerHistoryId,
     },
     validate: zodResolver(careerHistorySchema),
   });
@@ -266,7 +260,6 @@ export default function CareerAddHistoryModal() {
               )
         }
       >
-        <input name="profileId" type="hidden" value={profile.id} />
         <input name="careerHistoryId" type="hidden" value={careerHistoryId} />
         <input
           name="description"

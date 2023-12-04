@@ -27,7 +27,7 @@ export const profileContentFeedsTable = pgTable("profile_content_feeds", {
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  profileId: uuid("profile_id").references(() => profilesTable.id, {
+  profileId: text("profile_id").references(() => profilesTable.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),

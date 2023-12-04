@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { pgTable, serial, timestamp, uuid } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, timestamp } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 
 export const profileViewsTable = pgTable("profile_views", {
@@ -7,12 +7,10 @@ export const profileViewsTable = pgTable("profile_views", {
     .defaultNow()
     .notNull(),
   id: serial("id").primaryKey().notNull(),
-  profileId: uuid("profile_id")
+  profileId: text("profile_id")
     .notNull()
     .references(() => profilesTable.id),
-  viewerProfileId: uuid("viewer_profile_id")
-    .notNull()
-    .references(() => profilesTable.id),
+  viewerProfileId: text("viewer_profile_id").references(() => profilesTable.id),
 });
 
 export const profileViewsTableRelations = relations(
@@ -26,5 +24,5 @@ export const profileViewsTableRelations = relations(
       fields: [profileViewsTable.viewerProfileId],
       references: [profilesTable.id],
     }),
-  }),
+  })
 );

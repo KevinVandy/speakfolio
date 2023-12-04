@@ -48,13 +48,15 @@ export async function loader(args: LoaderFunctionArgs) {
                 desc(careerHistory.startDate),
               ],
             },
+            contentFeeds: true,
+            groupMemberships: true,
             links: true,
             presentations: true,
           },
         })
       : null;
 
-    const isOwnProfile = profile?.userId === authUserId;
+    const isOwnProfile = profile?.id === authUserId;
 
     if (
       !profile ||

@@ -29,7 +29,7 @@ export const profileLinksTable = pgTable("profile_links", {
     .defaultNow()
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  profileId: uuid("profile_id").references(() => profilesTable.id, {
+  profileId: text("profile_id").references(() => profilesTable.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
@@ -45,7 +45,7 @@ export const profileLinksTableRelations = relations(
       fields: [profileLinksTable.profileId],
       references: [profilesTable.id],
     }),
-  }),
+  })
 );
 
 export type IProfileLink = typeof profileLinksTable.$inferSelect;

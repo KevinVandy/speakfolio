@@ -11,7 +11,7 @@ export const profileCareerHistoriesTable = pgTable("profile_career_histories", {
   endDate: date("end_date", { mode: "string" }),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   jobTitle: text("job_title").default(""),
-  profileId: uuid("profile_id").references(() => profilesTable.id, {
+  profileId: text("profile_id").references(() => profilesTable.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
@@ -28,5 +28,5 @@ export const profileCareerHistoriesTableRelations = relations(
       fields: [profileCareerHistoriesTable.profileId],
       references: [profilesTable.id],
     }),
-  }),
+  })
 );

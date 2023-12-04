@@ -12,9 +12,9 @@ import { MantineProvider, Stack, Tabs, useMantineTheme } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
-import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { colorSchemeManager } from "~/root";
 import { groupsTable } from "db/schema";
+import { useGroupLoader } from "~/hooks/loaders/useGroupLoader";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params } = args;
@@ -27,12 +27,12 @@ export async function loader(args: LoaderFunctionArgs) {
     let group = slug
       ? await db.query.groupsTable.findFirst({
           where: eq(groupsTable.slug, slug),
-          with: { profilesToGroups: true },
+          with: { members: true },
         })
       : null;
 
-    const userMembership = group?.profilesToGroups.find(
-      (ptg) => ptg.userId === authUserId
+    const userMembership = group?.members.find(
+      (member) => member.profileId === authUserId
     );
     const isUserMember = !!userMembership;
     const isUserAdmin = !!(isUserMember && userMembership.isAdmin);
@@ -63,6 +63,8 @@ export default function ProfileIdPage() {
   const { username } = useParams();
   const matches = useMatches();
   const navigate = useNavigate();
+
+  const group = useGroupLoader();
 
   const theme = useMantineTheme();
 
@@ -97,7 +99,7 @@ export default function ProfileIdPage() {
     <MantineProvider
       colorSchemeManager={colorSchemeManager}
       defaultColorScheme="dark"
-      theme={{ ...theme, primaryColor: profile.profileColor! }}
+      theme={{ ...theme, primaryColor: group.groupColor! }}
     >
       <Stack gap="md">
         <Tabs onChange={setTab} value={tab || "_index"}>
@@ -118,7 +120,7 @@ export default function ProfileIdPage() {
           <Outlet context={{ setTab }} />
         </Tabs>
         <pre style={{ marginTop: "500px", whiteSpace: "pre-wrap" }}>
-          {JSON.stringify(profile, null, 2)}
+          {JSON.stringify(group, null, 2)}
         </pre>
       </Stack>
     </MantineProvider>

@@ -41,7 +41,6 @@ const profileCustomizationSchema = z.object({
     ])
     .nullish()
     .transform((s) => s || null),
-  profileId: z.string().uuid(),
   profileImageUrl: z
     .union([
       z.string().url({ message: "Profile Image must be a valid URL" }),
@@ -83,13 +82,7 @@ export async function action(args: ActionFunctionArgs) {
 
   //validate auth
   const { userId } = await getAuth(args);
-  if (
-    !userId ||
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -104,7 +97,7 @@ export async function action(args: ActionFunctionArgs) {
       .set({
         coverImageUrl: data.coverImageUrl,
       })
-      .where(eq(profilesTable.id, data.profileId));
+      .where(eq(profilesTable.id, userId));
     if (updateResult.count !== 1) throw new Error("Error updating profile");
     return json({
       ...returnData,
@@ -135,7 +128,6 @@ export default function EditProfilePicturesTab() {
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       coverImageUrl: profile?.coverImageUrl ?? "",
-      profileId: profile?.id ?? "",
       profileImageUrl: profile?.profileImageUrl ?? "",
     },
     validate: zodResolver(profileCustomizationSchema),
@@ -170,7 +162,6 @@ export default function EditProfilePicturesTab() {
           : notifications.show(getProfileSavingNotification("pictures-update"))
       }
     >
-      <input name="profileId" type="hidden" value={profile.id} />
       <Stack gap="md">
         <BackgroundImage
           mb="xl"

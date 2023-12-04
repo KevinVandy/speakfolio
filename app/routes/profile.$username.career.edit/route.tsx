@@ -34,13 +34,10 @@ import {
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
+import { getAuth } from "@clerk/remix/ssr.server";
 
 type IProfileCareerForm = Partial<
-  Pick<
-    IProfileFull,
-    "areasOfExpertise" | "careerHistories" | "id" | "profession" | "userId"
-  >
+  Pick<IProfileFull, "areasOfExpertise" | "profession">
 >;
 
 const profileCareerSchema = z.object({
@@ -52,7 +49,6 @@ const profileCareerSchema = z.object({
     .string()
     .max(100, { message: "Profession max 100 characters" })
     .nullish(),
-  profileId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -88,12 +84,8 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -105,7 +97,7 @@ export async function action(args: ActionFunctionArgs) {
         areasOfExpertise: data.areasOfExpertise,
         profession: data.profession,
       })
-      .where(eq(profilesTable.id, data.profileId));
+      .where(eq(profilesTable.id, userId));
     if (updateResult.count !== 1) throw new Error("Error updating profile");
     return json({
       ...returnData,
@@ -137,7 +129,6 @@ export default function EditProfileCareerTab() {
     initialValues: actionData?.data ?? {
       areasOfExpertise: profile.areasOfExpertise,
       profession: profile.profession,
-      profileId: profile.id,
     },
     validate: zodResolver(profileCareerSchema),
   });
@@ -184,19 +175,6 @@ export default function EditProfileCareerTab() {
             : notifications.show(getProfileSavingNotification("career-update"))
         }
       >
-        <input name="profileId" type="hidden" value={profile.id} />
-        {form
-          .getTransformedValues()
-          .careerHistories?.map((careerHistory, i) => (
-            <Fragment key={i}>
-              <input
-                name={`careerHistories.${i}.id`}
-                type="hidden"
-                value={careerHistory.id}
-              />
-              <input name={`careerHistories.${i}.userId`} type="hidden" />
-            </Fragment>
-          ))}
         <Stack gap="md" m="auto" maw="600px" my="xl" pos="relative">
           <LoadingOverlay visible={navigation.state === "submitting"} />
           <Autocomplete

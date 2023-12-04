@@ -4,10 +4,6 @@ import { OrganizationList, UserProfile } from "@clerk/remix";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { dark } from "@clerk/themes";
 import { Flex } from "@mantine/core";
-import { IconAdjustments, IconPhoto, IconSocial } from "@tabler/icons-react";
-import EditProfileCustomizationTab from "../profile.$username.settings.customization/route";
-import EditProfileLinksTab from "../profile.$username.settings.links/route";
-import EditProfilePicturesTab from "../profile.$username.settings.pictures/route";
 import { useRootLoader } from "~/hooks/loaders/useRootLoader";
 import { colorSchemeManager } from "~/root";
 

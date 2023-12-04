@@ -29,6 +29,7 @@ import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
+import { getAuth } from "@clerk/remix/ssr.server";
 
 type IProfileLinks = Pick<IProfileFull, "id" | "links">;
 
@@ -48,7 +49,6 @@ const profileLinksSchema = z.object({
       })
     )
     .nullish(),
-  profileId: z.string().uuid(),
 });
 
 interface ProfileUpdateResponse {
@@ -82,12 +82,8 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -95,12 +91,12 @@ export async function action(args: ActionFunctionArgs) {
   try {
     await db
       .delete(profileLinksTable)
-      .where(eq(profileLinksTable.profileId, data.profileId));
+      .where(eq(profileLinksTable.profileId, userId));
     if (data.links?.length) {
       await db
         .insert(profileLinksTable)
         .values(
-          data.links.map((link) => ({ ...link, profileId: data.profileId }))
+          data.links.map((link) => ({ ...link, profileId: userId }))
         );
     }
     return json({
@@ -132,8 +128,6 @@ export default function EditProfileLinksTab() {
     initialErrors: actionData?.errors,
     initialValues: actionData?.data ?? {
       links: profile?.links ?? [],
-      profileId: profile?.id ?? "",
-      userId: profile?.userId ?? "",
     },
     validate: zodResolver(profileLinksSchema),
   });
@@ -190,7 +184,6 @@ export default function EditProfileLinksTab() {
           : notifications.show(getProfileSavingNotification("links-update"))
       }
     >
-      <input name="profileId" type="hidden" value={profile.id} />
       {form.getTransformedValues().links?.map((link, index) => (
         <Fragment key={`${index}-${link.site}`}>
           <input

@@ -13,7 +13,6 @@ import {
   Fieldset,
   LoadingOverlay,
   Stack,
-  TextInput,
   Title,
 } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
@@ -32,7 +31,6 @@ interface SignUpPostResponse {
 const signUpSchema = z.object({
   isOrganizer: z.coerce.boolean(),
   isSpeaker: z.coerce.boolean(),
-  name: z.string().min(1, { message: "Name is required" }),
 });
 
 export async function loader(args: LoaderFunctionArgs) {
@@ -74,11 +72,11 @@ export async function action(args: ActionFunctionArgs) {
     const profileInsertResult = await db
       .insert(profilesTable)
       .values({
+        id: userId,
         isOrganizer: data.isOrganizer,
         isSpeaker: data.isSpeaker,
-        name: data.name,
+        profileColor: "pink",
         profileImageUrl: user.imageUrl ?? null,
-        userId,
         username: user?.username ?? "",
         visibility: "public",
       })
@@ -146,14 +144,6 @@ export default function SignedUpPage() {
               value="true"
             />
           </Stack>
-          <TextInput
-            description="The name you want to be displayed on your profile"
-            label="Name"
-            name="name"
-            placeholder="Enter your name"
-            withAsterisk
-            {...form.getInputProps("name")}
-          />
           <Button color="blue" mt="md" type="submit">
             Finish Sign Up
           </Button>

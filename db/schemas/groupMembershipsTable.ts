@@ -4,27 +4,24 @@ import {
   pgTable,
   primaryKey,
   timestamp,
-  uuid,
   text,
 } from "drizzle-orm/pg-core";
 import { profilesTable } from "./profilesTable";
 import { groupsTable } from "./groupsTable";
 
-export const profilesToGroupsTable = pgTable(
-  "profile_groups",
+export const groupMembershipsTable = pgTable(
+  "group_memberships",
   {
     createdAt: timestamp("created_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    groupId: uuid("group_id")
+    groupId: text("group_id")
       .notNull()
-      .references(() => groupsTable.id),
+      .references(() => groupsTable.id), //clerk org id
     isAdmin: boolean("is_admin").default(false),
-    profileId: uuid("profile_id")
+    profileId: text("profile_id") //also clerk user id
       .notNull()
       .references(() => profilesTable.id),
-    organizationId: text("organization_id"), //clerk org id
-    userId: text("user_id"), //clerk user id
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -35,14 +32,14 @@ export const profilesToGroupsTable = pgTable(
 );
 
 export const profilesToGroupsRelations = relations(
-  profilesToGroupsTable,
+  groupMembershipsTable,
   ({ one }) => ({
     group: one(groupsTable, {
-      fields: [profilesToGroupsTable.groupId],
+      fields: [groupMembershipsTable.groupId],
       references: [groupsTable.id],
     }),
     user: one(profilesTable, {
-      fields: [profilesToGroupsTable.profileId],
+      fields: [groupMembershipsTable.profileId],
       references: [profilesTable.id],
     }),
   })

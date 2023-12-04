@@ -21,6 +21,7 @@ import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
 import { xssOptions } from "~/util/xssOptions";
+import { getAuth } from "@clerk/remix/ssr.server";
 
 const presentationSchema = z.object({
   abstract: z
@@ -37,7 +38,6 @@ const presentationSchema = z.object({
     .nullish()
     .transform((s) => s || null),
   presentationId: z.union([z.string().uuid(), z.string().length(0)]).nullish(),
-  profileId: z.string().uuid(),
   title: z.string().max(100, { message: "Title max 100 characters" }),
 });
 
@@ -72,12 +72,8 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -94,7 +90,7 @@ export async function action(args: ActionFunctionArgs) {
         .where(
           and(
             eq(presentationsTable.id, data.presentationId),
-            eq(presentationsTable.profileId, data.profileId)
+            eq(presentationsTable.profileId, userId)
           )
         );
       if (updateResult.count !== 1) throw new Error("Error updating profile");
@@ -102,7 +98,7 @@ export async function action(args: ActionFunctionArgs) {
       const insertResult = await db.insert(presentationsTable).values({
         abstract: xss(data.abstract ?? "", xssOptions),
         coverImageUrl: data.coverImageUrl,
-        profileId: data.profileId,
+        profileId: userId,
         title: data.title,
       });
       if (insertResult.count !== 1) throw new Error("Error updating profile");
@@ -153,8 +149,6 @@ export default function ProfileNewPresentationPage() {
           title: "",
         }),
       presentationId: (presentationId !== "new" && presentationId) || null,
-      profileId: profile.id,
-      userId: profile.userId!,
     },
     validate: zodResolver(presentationSchema),
   });
@@ -206,7 +200,6 @@ export default function ProfileNewPresentationPage() {
       {presentationId && presentationId !== "new" ? (
         <input name="presentationId" type="hidden" value={presentationId} />
       ) : null}
-      <input name="profileId" type="hidden" value={profile.id} />
       <input name="abstract" type="hidden" value={form.values.abstract} />
       <Stack gap="md" maw="800px" mx="auto">
         <TextInput

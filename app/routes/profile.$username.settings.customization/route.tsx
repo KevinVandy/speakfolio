@@ -34,6 +34,7 @@ import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { transformDotNotation } from "~/util/transformDotNotation";
 import { validateAuth } from "~/util/validateAuth.server";
+import { getAuth } from "@clerk/remix/ssr.server";
 
 const profileCustomizationSchema = z.object({
   headline: z
@@ -46,7 +47,6 @@ const profileCustomizationSchema = z.object({
     .nullish(),
   name: z.string().min(1, { message: "Display Name is required" }),
   profileColor: z.enum(profileColors),
-  profileId: z.string().uuid(),
   visibility: z.enum(profileVisibilities),
 });
 
@@ -81,12 +81,8 @@ export async function action(args: ActionFunctionArgs) {
   const { data } = validationResult;
 
   //validate auth
-  if (
-    !(await validateAuth({
-      args,
-      profileId: data.profileId,
-    }))
-  ) {
+  const { userId } = await getAuth(args);
+  if (!userId) {
     return redirect("/sign-in");
   }
 
@@ -97,11 +93,10 @@ export async function action(args: ActionFunctionArgs) {
       .set({
         headline: data.headline,
         location: data.location,
-        name: data.name,
         profileColor: data.profileColor,
         visibility: data.visibility,
       })
-      .where(eq(profilesTable.id, data.profileId));
+      .where(eq(profilesTable.id, userId));
     if (updateResult.count !== 1) throw new Error("Error updating profile");
     return json({
       ...returnData,
@@ -135,7 +130,6 @@ export default function EditProfileCustomizationTab() {
     initialValues: actionData?.data ?? {
       headline: profile?.headline ?? "",
       location: profile?.location ?? "",
-      name: profile?.name ?? "",
       profileColor: profile?.profileColor ?? "pink",
       profileId: profile.id,
     },
@@ -175,7 +169,6 @@ export default function EditProfileCustomizationTab() {
             )
       }
     >
-      <input name="profileId" type="hidden" value={profile.id} />
       <Stack gap="md">
         <Radio.Group
           description="Who can view your profile"
@@ -226,14 +219,6 @@ export default function EditProfileCustomizationTab() {
           }
           name="profileColor"
           {...form.getInputProps("profileColor")}
-        />
-        <TextInput
-          description="The name you want to be displayed on your profile (Full Name)"
-          label="Display Name"
-          name="name"
-          placeholder="Enter your name"
-          withAsterisk
-          {...form.getInputProps("name")}
         />
         <TextInput
           description="(Optional) The region you are willing to travel to for speaking engagements"

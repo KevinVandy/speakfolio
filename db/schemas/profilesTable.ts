@@ -9,14 +9,13 @@ import {
   text,
   timestamp,
   unique,
-  uuid,
 } from "drizzle-orm/pg-core";
 import { presentationsTable } from "./presentationsTable";
 import { profileBiosTable } from "./profileBiosTable";
 import { profileCareerHistoriesTable } from "./profileCareerHistoriesTable";
 import { profileContentFeedsTable } from "./profileContentFeedsTable";
 import { profileLinksTable } from "./profileLinksTable";
-import { profilesToGroupsTable } from "./profileGroupsTable";
+import { groupMembershipsTable } from "./groupMembershipsTable";
 
 export const profileVisibilities = [
   "public",
@@ -56,26 +55,23 @@ export const profilesTable = pgTable(
       .defaultNow()
       .notNull(),
     headline: text("headline").default(""),
-    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    id: text("id").primaryKey().notNull(), //also clerk user id - must be inserted from clerk at creation
     isOrganizer: boolean("is_organizer").default(false),
     isSpeaker: boolean("is_speaker").default(false),
     latitude: real("latitude"),
     location: text("location").default(""),
     longitude: real("longitude"),
-    name: text("name").notNull(),
     profession: text("profession").default(""),
     profileColor: profileColorEnum("profile_color").default("blue"),
     profileImageUrl: text("profile_image_url"),
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
       .notNull(),
-    userId: text("user_id"), //clerk user id
     username: text("username").notNull(),
     views: integer("views").default(0),
     visibility: profileVisibilityEnum("visibility").default("public").notNull(),
   },
   (table) => ({
-    profileUserIdUnique: unique("profile_user_id_unique").on(table.userId),
     profileUsernameUnique: unique("profile_username_unique").on(table.username),
   })
 );
@@ -86,9 +82,9 @@ export const profilesTableRelations = relations(
     bio: one(profileBiosTable),
     careerHistories: many(profileCareerHistoriesTable),
     contentFeeds: many(profileContentFeedsTable),
+    groupMemberships: many(groupMembershipsTable),
     links: many(profileLinksTable),
     presentations: many(presentationsTable),
-    profilesToGroups: many(profilesToGroupsTable),
   })
 );
 
@@ -99,6 +95,8 @@ export type IProfileFull = IProfile & {
   careerHistories?: Array<
     Partial<typeof profileCareerHistoriesTable.$inferSelect>
   >;
+  contentFeeds?: Array<typeof profileContentFeedsTable.$inferSelect>;
+  groupMemberships?: Array<typeof groupMembershipsTable.$inferSelect>;
   isOwnProfile: boolean;
   links?: Array<Partial<typeof profileLinksTable.$inferSelect>>;
   presentations?: Array<typeof presentationsTable.$inferSelect>;

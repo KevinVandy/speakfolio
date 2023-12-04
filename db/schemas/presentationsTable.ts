@@ -24,7 +24,7 @@ export const presentationsTable = pgTable("presentations", {
     .notNull(),
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   lastPresentedAt: text("last_presented_at").default(""),
-  profileId: uuid("profile_id").references(() => profilesTable.id, {
+  profileId: text("profile_id").references(() => profilesTable.id, {
     onDelete: "cascade",
     onUpdate: "cascade",
   }),
