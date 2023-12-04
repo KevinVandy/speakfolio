@@ -24,6 +24,7 @@ import { type IProfileFull, profilesTable } from "db/schemas/profilesTable";
 import { ProfileHead } from "./ProfileHead";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
 import { colorSchemeManager } from "~/root";
+import { getClerkServerClient } from "~/util/getClerkServerClient.server";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params } = args;
@@ -40,7 +41,7 @@ export async function loader(args: LoaderFunctionArgs) {
             bio: {
               columns: {
                 id: true,
-                richText: true,
+                bio: true,
               },
             },
             careerHistories: {
@@ -66,8 +67,15 @@ export async function loader(args: LoaderFunctionArgs) {
       return redirect("/unknown-profile");
     }
 
+    const profileUser = await (
+      await getClerkServerClient()
+    ).users.getUser(profile.id);
+
     const returnData = {
       ...profile,
+      firstName: profileUser.firstName,
+      lastName: profileUser.lastName,
+      profileImageUrl: profileUser.imageUrl,
       isOwnProfile,
     } as IProfileFull;
 

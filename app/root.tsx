@@ -76,7 +76,7 @@ export async function loader(args: LoaderFunctionArgs): Promise<{
       }
       try {
         const loggedInUserProfile = await db.query.profilesTable.findFirst({
-          where: eq(profilesTable.userId, userId),
+          where: eq(profilesTable.id, userId),
         });
         return json({
           loggedInUserProfile,

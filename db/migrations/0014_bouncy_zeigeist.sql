@@ -1,1 +1,0 @@
-ALTER TABLE "profile_career_histories" DROP COLUMN IF EXISTS "is_current";

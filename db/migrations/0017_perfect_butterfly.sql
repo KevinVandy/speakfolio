@@ -1,1 +1,0 @@
-ALTER TABLE "profiles" ALTER COLUMN "areas_of_expertise" SET DEFAULT '[]'::json;

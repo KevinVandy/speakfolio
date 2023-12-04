@@ -21,6 +21,7 @@ import { db } from "db/connection";
 import { profileBiosTable } from "db/schemas/profileBiosTable";
 import { profilesTable } from "db/schemas/profilesTable";
 import { getClerkServerClient } from "~/util/getClerkServerClient.server";
+import { eq } from "drizzle-orm";
 
 interface SignUpPostResponse {
   data: any;
@@ -37,6 +38,12 @@ export async function loader(args: LoaderFunctionArgs) {
   const { userId } = await getAuth(args);
   if (!userId) {
     return redirect("/sign-in");
+  }
+  const loggedInUserProfile = await db.query.profilesTable.findFirst({
+    where: eq(profilesTable.id, userId),
+  });
+  if (loggedInUserProfile) {
+    return redirect(`/profile/${loggedInUserProfile.username}`);
   }
   return {};
 }

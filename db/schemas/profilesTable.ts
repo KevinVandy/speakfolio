@@ -100,4 +100,6 @@ export type IProfileFull = IProfile & {
   isOwnProfile: boolean;
   links?: Array<Partial<typeof profileLinksTable.$inferSelect>>;
   presentations?: Array<typeof presentationsTable.$inferSelect>;
+  firstName?: string;
+  lastName?: string;
 };

@@ -90,7 +90,7 @@ export function ProfileHead({ setTab }: Props) {
       <Flex justify="space-between">
         <Flex mt="-8px">
           <Title ml="190px" order={2}>
-            {profile.name}
+            {profile.firstName} {profile.lastName}
           </Title>
           {profile.location ? (
             <Flex align="center" c="dimmed" gap="4px" pl="md">

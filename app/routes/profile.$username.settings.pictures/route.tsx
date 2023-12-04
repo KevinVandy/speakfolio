@@ -4,7 +4,6 @@ import {
   Form,
   useActionData,
   useNavigate,
-  useOutletContext,
 } from "@remix-run/react";
 import { getAuth } from "@clerk/remix/ssr.server";
 import {
@@ -21,7 +20,6 @@ import { z } from "zod";
 import { eq } from "drizzle-orm";
 import { db } from "db/connection";
 import { profilesTable } from "db/schema";
-import { type EditProfileOutletContext } from "../profile.$username.edit/route";
 import {
   getProfileErrorNotification,
   getProfileSavingNotification,
@@ -29,9 +27,7 @@ import {
 } from "~/components/Notifications";
 import { SaveCancelButtons } from "~/components/SaveCancelButtons";
 import { useProfileLoader } from "~/hooks/loaders/useProfileLoader";
-import { getClerkServerClient } from "~/util/getClerkServerClient.server";
 import { transformDotNotation } from "~/util/transformDotNotation";
-import { validateAuth } from "~/util/validateAuth.server";
 
 const profileCustomizationSchema = z.object({
   coverImageUrl: z
@@ -119,7 +115,6 @@ export async function action(args: ActionFunctionArgs) {
 }
 
 export default function EditProfilePicturesTab() {
-  // const { onCancel, setIsDirty } = useOutletContext<EditProfileOutletContext>();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
   const profile = useProfileLoader();
