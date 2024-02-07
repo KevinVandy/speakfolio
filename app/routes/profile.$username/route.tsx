@@ -40,8 +40,8 @@ export async function loader(args: LoaderFunctionArgs) {
           with: {
             bio: {
               columns: {
-                id: true,
                 bio: true,
+                id: true,
               },
             },
             careerHistories: {
@@ -74,9 +74,9 @@ export async function loader(args: LoaderFunctionArgs) {
     const returnData = {
       ...profile,
       firstName: profileUser.firstName,
+      isOwnProfile,
       lastName: profileUser.lastName,
       profileImageUrl: profileUser.imageUrl,
-      isOwnProfile,
     } as IProfileFull;
 
     return json(returnData, { headers: response.headers });

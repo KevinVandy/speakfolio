@@ -3,11 +3,11 @@ import {
   boolean,
   pgTable,
   primaryKey,
-  timestamp,
   text,
+  timestamp,
 } from "drizzle-orm/pg-core";
-import { profilesTable } from "./profilesTable";
 import { groupsTable } from "./groupsTable";
+import { profilesTable } from "./profilesTable";
 
 export const groupMembershipsTable = pgTable(
   "group_memberships",

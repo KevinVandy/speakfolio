@@ -38,9 +38,9 @@ export const groupsTable = pgTable(
       .defaultNow()
       .notNull(),
     description: text("description").default(""),
+    groupColor: groupColorEnum("group_color").default("blue"),
     id: text("id").primaryKey().notNull(), //clerk org id
     name: text("name").notNull(),
-    groupColor: groupColorEnum("group_color").default("blue"),
     slug: text("slug").notNull(),
     updatedAt: timestamp("updated_at", { mode: "string", withTimezone: true })
       .defaultNow()
