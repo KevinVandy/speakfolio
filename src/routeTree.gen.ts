@@ -9,9 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignOutRouteImport } from './routes/sign-out'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as FinishSignUpRouteImport } from './routes/finish-sign-up'
 import { Route as AnotherPageRouteImport } from './routes/anotherPage'
 import { Route as IndexRouteImport } from './routes/index'
 
+const SignOutRoute = SignOutRouteImport.update({
+  id: '/sign-out',
+  path: '/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinishSignUpRoute = FinishSignUpRouteImport.update({
+  id: '/finish-sign-up',
+  path: '/finish-sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnotherPageRoute = AnotherPageRouteImport.update({
   id: '/anotherPage',
   path: '/anotherPage',
@@ -26,31 +44,70 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/anotherPage': typeof AnotherPageRoute
+  '/finish-sign-up': typeof FinishSignUpRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/anotherPage': typeof AnotherPageRoute
+  '/finish-sign-up': typeof FinishSignUpRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/anotherPage': typeof AnotherPageRoute
+  '/finish-sign-up': typeof FinishSignUpRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-out': typeof SignOutRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/anotherPage'
+  fullPaths: '/' | '/anotherPage' | '/finish-sign-up' | '/sign-in' | '/sign-out'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/anotherPage'
-  id: '__root__' | '/' | '/anotherPage'
+  to: '/' | '/anotherPage' | '/finish-sign-up' | '/sign-in' | '/sign-out'
+  id:
+    | '__root__'
+    | '/'
+    | '/anotherPage'
+    | '/finish-sign-up'
+    | '/sign-in'
+    | '/sign-out'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnotherPageRoute: typeof AnotherPageRoute
+  FinishSignUpRoute: typeof FinishSignUpRoute
+  SignInRoute: typeof SignInRoute
+  SignOutRoute: typeof SignOutRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign-out': {
+      id: '/sign-out'
+      path: '/sign-out'
+      fullPath: '/sign-out'
+      preLoaderRoute: typeof SignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/finish-sign-up': {
+      id: '/finish-sign-up'
+      path: '/finish-sign-up'
+      fullPath: '/finish-sign-up'
+      preLoaderRoute: typeof FinishSignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/anotherPage': {
       id: '/anotherPage'
       path: '/anotherPage'
@@ -71,6 +128,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnotherPageRoute: AnotherPageRoute,
+  FinishSignUpRoute: FinishSignUpRoute,
+  SignInRoute: SignInRoute,
+  SignOutRoute: SignOutRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
